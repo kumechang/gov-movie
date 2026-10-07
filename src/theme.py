@@ -77,6 +77,9 @@ class Theme:
             self.warnings.append('source.url が未記入です（出典URLを確認して記入してください）')
         if not str(s.get('verification', '')).strip():
             raise ThemeError('verification（検証方法の記録）が未記入です。検証できていない数字は載せません')
+        if not s.get('values') and src.get('fetch') == 'estat':
+            raise ThemeError('values がありません。source.fetch: estat のテーマは、先に e-Stat から取得してください'
+                             '（run.py / fetch_estat.py 経由。theme.load は取得しません）')
         raw = self._need(s, 'values')
         data = {}
         for k, v in raw.items():
@@ -326,10 +329,13 @@ class Theme:
         ])
 
 
-def load(path, narration_json=None):
+def load_spec(path):
     with open(path, encoding='utf-8') as f:
-        spec = yaml.safe_load(f)
-    return Theme(spec, narration_json)
+        return yaml.safe_load(f)
+
+
+def load(path, narration_json=None):
+    return Theme(load_spec(path), narration_json)
 
 
 if __name__ == '__main__':

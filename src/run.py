@@ -8,6 +8,8 @@
 """
 import os, subprocess, sys, urllib.request
 
+import estat
+import fetch_estat
 import theme
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -25,9 +27,19 @@ def main(argv):
         raise SystemExit(__doc__)
     theme_path = args[0]
     no_voice, check_only = '--no-voice' in argv, '--check' in argv
-    T0 = theme.load(theme_path)
-    out_dir = os.path.join(BUILD, T0.id)
+    spec = theme.load_spec(theme_path)
+    out_dir = os.path.join(BUILD, spec['id'])
     os.makedirs(out_dir, exist_ok=True)
+    fetch_report = ''
+    if spec.get('source', {}).get('fetch') == 'estat':
+        step('データ取得と検証（e-Stat）')
+        try:
+            spec, fetch_report = fetch_estat.resolve(spec, os.path.join(out_dir, 'estat_cache.json'), '--refetch' in argv)
+        except (fetch_estat.FetchError, estat.EstatError) as err:
+            raise SystemExit(estat.redact(err))
+        print(fetch_report)
+        open(os.path.join(out_dir, 'estat_report.txt'), 'w', encoding='utf-8').write(fetch_report + '\n')
+    T0 = theme.Theme(spec)
 
     step('テーマの検証')
     narration_json = os.path.join(out_dir, 'narration.json')
@@ -39,8 +51,8 @@ def main(argv):
         step('ナレーション生成（VOICEVOX）')
         import narration
         narration.synthesize(T0, out_dir, voice_dir)
-    T = theme.load(theme_path, narration_json)
-    report = T.report()
+    T = theme.Theme(spec, narration_json)
+    report = T.report() + ('\n\n' + fetch_report if fetch_report else '')
     print(report)
     open(os.path.join(out_dir, 'report.txt'), 'w', encoding='utf-8').write(report + '\n')
     if check_only:

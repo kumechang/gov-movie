@@ -94,7 +94,9 @@ class ValidationTest(unittest.TestCase):
         self.assertTrue(T.estimated_keys)  # narration.json なし → 見積もり
 
     def test_missing_url_is_warning(self):
-        self.assertTrue(any('source.url' in w for w in theme.load(YAML).warnings))
+        s = self.spec()
+        s['source']['url'] = None
+        self.assertTrue(any('source.url' in w for w in theme.Theme(s).warnings))
 
 
 if __name__ == '__main__':
