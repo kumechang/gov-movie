@@ -1,5 +1,9 @@
 # TikTok「政府データ・ランキング動画」自動量産プロジェクト 引き継ぎ資料
 
+> **リポジトリ取り込み後の注記**: 7.2 のテンプレ化は実施済み。`common.py` は `src/theme.py` ＋ `themes/*.yaml` に置き換わり、
+> 実行は `python3 src/run.py themes/<id>.yaml` の1コマンド。以降の手順・ファイル名は [THEME_SPEC.md](THEME_SPEC.md) と
+> [CLAUDE.md](../CLAUDE.md) を優先する（この資料はチャット時点の記録として残す）。
+
 作成日: 2026-10-07 / 作成元: Claude（チャット上のセッション）→ 引き継ぎ先: Claude Code
 
 > Claude Code へ: まずこのファイルを最後まで読み、「0. 作業ルール」を守ってください。

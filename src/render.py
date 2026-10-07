@@ -1,29 +1,63 @@
-import pickle, math, subprocess, sys
+"""映像の描画と書き出し。
+使い方:
+  python3 render.py <theme.yaml> still 1.0,4.5 [out_dir]   静止画で確認（still_XX.XX.png）
+  python3 render.py <theme.yaml> video [out_dir]           out_dir/out.mp4 を書き出す（audio.wav が必要）
+文言・色・数値はすべて Theme（themes/*.yaml）から読む。out_dir 既定: build/<theme id>
+フォントは環境変数 FONT_PATH（例 '/path/NotoSansCJK-%s.ttc'、%s に Black/Bold/Medium/Regular が入る）で指定できる。
+"""
+import os, pickle, subprocess, sys
 import numpy as np
 from PIL import Image, ImageDraw, ImageFont, ImageFilter, ImageChops
-from common import *
 
-geo = pickle.load(open('geo.pkl', 'rb'))
-P = geo['prefs']
+import theme
+
+HERE = os.path.dirname(os.path.abspath(__file__))
 W, H = 1080, 1920
-MAP_H = geo['MAP_H']
 MAP_TOP = 398
 FPS = 30
 
-FP = '/usr/share/fonts/opentype/noto/NotoSansCJK-%s.ttc'
+# ---------- フォント ----------
+_FALLBACK = {'Black': ('Black', 'Bold'), 'Medium': ('Medium', 'Regular'), 'Bold': ('Bold',), 'Regular': ('Regular',)}
+# macOS のヒラギノは未検証（見つからなければ次の候補へ進む）
+_HIRAGINO = {'Regular': 'W3', 'Medium': 'W3', 'Bold': 'W6', 'Black': 'W8'}
+
+
+def _font_paths(w):
+    if os.environ.get('FONT_PATH'):
+        p = os.environ['FONT_PATH']
+        for name in _FALLBACK[w]:
+            yield p % name if '%s' in p else p
+    for name in _FALLBACK[w]:
+        yield '/usr/share/fonts/opentype/noto/NotoSansCJK-%s.ttc' % name
+    yield '/System/Library/Fonts/ヒラギノ角ゴシック %s.ttc' % _HIRAGINO[w]
+    yield '/usr/share/fonts/opentype/ipafont-gothic/ipag.ttf'
+
+
 _fc = {}
 def F(size, w='Black'):
     k = (size, w)
     if k not in _fc:
-        _fc[k] = ImageFont.truetype(FP % w, size, index=0)
+        for p in _font_paths(w):
+            if os.path.exists(p):
+                _fc[k] = ImageFont.truetype(p, size, index=0)
+                break
+        else:
+            raise SystemExit('日本語フォントが見つかりません。FONT_PATH を指定してください（docs/HANDOFF.md 5.1）')
     return _fc[k]
+
 
 WHITE = (255, 255, 255)
 YELLOW = (255, 213, 74)
-RED = (255, 90, 95)
 MUTED = (170, 180, 215)
 GRAY = (46, 55, 100)
 BG_TOP, BG_BOT = np.array([9, 14, 36]), np.array([20, 27, 58])
+
+# init() で設定する（テーマと地図データ）
+T = None
+P = None
+MAP_H = None
+BG = None
+
 
 def ease(x):
     x = max(0.0, min(1.0, x))
@@ -32,6 +66,13 @@ def ease(x):
 def lerp(a, b, k):
     return tuple(int(round(a[i] + (b[i] - a[i]) * k)) for i in range(3))
 
+def fit_font(d, s, size, w, max_w):
+    """max_w に収まるまで文字サイズを縮める"""
+    while size > 40 and d.textlength(s, font=F(size, w)) > max_w:
+        size -= 2
+    return F(size, w)
+
+
 # ---------- 背景（静的） ----------
 def build_bg():
     grad = np.linspace(0, 1, H)[:, None, None]
@@ -39,23 +80,26 @@ def build_bg():
     arr = np.repeat(arr, W, axis=1)
     im = Image.fromarray(arr, 'RGB')
     d = ImageDraw.Draw(im, 'RGBA')
+    src = T.spec['source']
     # タイトル
     d.rounded_rectangle((330, 168, 750, 232), 32, fill=(255, 255, 255, 30), outline=(255, 255, 255, 70), width=2)
-    d.text((540, 200), '2024年｜都道府県別', font=F(34, 'Bold'), fill=(235, 240, 255), anchor='mm')
-    d.text((540, 282), '離婚率ランキング', font=F(100), fill=WHITE, anchor='mm', stroke_width=2, stroke_fill=(9, 14, 36))
-    d.text((540, 366), '人口千人あたりの離婚数 ／ 全国平均 1.55', font=F(32, 'Bold'), fill=MUTED, anchor='mm')
+    d.text((540, 200), T.say(T.spec['title_small']), font=F(34, 'Bold'), fill=(235, 240, 255), anchor='mm')
+    title = T.say(T.spec['title'])
+    d.text((540, 282), title, font=fit_font(d, title, 100, 'Black', 960), fill=WHITE, anchor='mm', stroke_width=2, stroke_fill=(9, 14, 36))
+    d.text((540, 366), T.say(T.spec['subtitle']), font=fit_font(d, T.say(T.spec['subtitle']), 32, 'Bold', 960), fill=MUTED, anchor='mm')
     # 沖縄インセット枠
     o = P['沖縄県']
     x0, y0 = o['x0'], o['y0'] + MAP_TOP
     x1, y1 = x0 + o['mask'].size[0], y0 + o['mask'].size[1]
     d.rounded_rectangle((x0 - 14, y0 - 12, x1 + 14, y1 + 10), 14, outline=(90, 102, 160, 160), width=2)
-    # 出典
-    d.text((540, 1578), '出典：厚生労働省「人口動態統計」2024年', font=F(26, 'Medium'), fill=(150, 160, 200), anchor='mm')
-    d.text((540, 1612), '（国立社会保障・人口問題研究所「人口統計資料集」より）', font=F(24, 'Medium'), fill=(130, 140, 180), anchor='mm')
-    d.text((540, 1650), '音声：VOICEVOX:四国めたん', font=F(24, 'Medium'), fill=(130, 140, 180), anchor='mm')
+    # 出典・クレジット
+    d.text((540, 1578), '出典：' + src['name'], font=fit_font(d, '出典：' + src['name'], 26, 'Medium', 1000), fill=(150, 160, 200), anchor='mm')
+    if src.get('note'):
+        d.text((540, 1612), src['note'], font=fit_font(d, src['note'], 24, 'Medium', 1000), fill=(130, 140, 180), anchor='mm')
+    if T.credit:
+        d.text((540, 1650), '音声：' + T.credit, font=F(24, 'Medium'), fill=(130, 140, 180), anchor='mm')
     return im
 
-BG = build_bg()
 
 # ---------- 地図の永続レイヤ ----------
 def paint(layer, name, color):
@@ -105,10 +149,8 @@ def ring(frame, name, a, strength=1.0):
     cx, cy = p['cx'], p['cy'] + MAP_TOP
     d.ellipse((cx - r, cy - r, cx + r, cy + r), outline=(255, 255, 255, al), width=5)
 
-# ---------- 部品 ----------
-def text_center(d, xy, s, font, fill, stroke=0, sfill=(9, 14, 36)):
-    d.text(xy, s, font=font, fill=fill, anchor='mm', stroke_width=stroke, stroke_fill=sfill)
 
+# ---------- 部品 ----------
 def panel(frame, lines, cy, alpha=1.0, pad=44, gap=18):
     """lines: [(text,size,color,weight)]  中央寄せの半透明パネル"""
     if alpha <= 0:
@@ -140,8 +182,8 @@ def legend(frame, alpha, active_tier=None):
         return
     layer = Image.new('RGBA', (440, 330), (0, 0, 0, 0))
     d = ImageDraw.Draw(layer)
-    d.text((6, 8), '離婚率の色分け', font=F(28, 'Bold'), fill=MUTED + (255,))
-    for i, (th, col, lab) in enumerate(TIERS):
+    d.text((6, 8), T.say(T.spec['legend_title']), font=F(28, 'Bold'), fill=MUTED + (255,))
+    for i, (th, col, lab) in enumerate(T.TIERS):
         y = 56 + i * 52
         d.rounded_rectangle((6, y, 44, y + 36), 8, fill=col + (255,))
         if active_tier == i:
@@ -154,7 +196,7 @@ def card(frame, item, a, dur):
     """カード：順位・県名・値"""
     k = ease(a / 0.22)
     name, v, rk = item['name'], item['val'], item['rank']
-    col = TIERS[tier(v)][1]
+    col = T.TIERS[T.tier(v)][1]
     L = Image.new('RGBA', (W, 250), (0, 0, 0, 0))
     d = ImageDraw.Draw(L)
     d.rounded_rectangle((54, 12, 1026, 214), 34, fill=(12, 17, 42, 240), outline=col + (255,), width=5)
@@ -165,21 +207,21 @@ def card(frame, item, a, dur):
     x = 178 - (wn + 6 + wk) / 2
     d.text((x, 160), num, font=fn, fill=WHITE + (255,), anchor='ls')
     d.text((x + wn + 6, 160), '位', font=fk, fill=WHITE + (255,), anchor='ls')
-    if name in TIE:
+    if name in T.TIE:
         d.rounded_rectangle((126, 14, 230, 48), 15, fill=YELLOW + (255,))
         d.text((178, 31), '同率', font=F(25), fill=(30, 30, 40, 255), anchor='mm')
     # 県名
     d.text((590, 100), name, font=F(92), fill=WHITE + (255,), anchor='mm')
-    if rk == 1:
-        sub = '全国平均の約%.1f倍' % (v / AVG)
-    elif rk == 47:
-        sub = '最下位（1位の約半分）'
+    if item['name'] == T.ORDER[-1]:
+        sub = T.spec['card_sub_first']
+    elif item['name'] == T.ORDER[0]:
+        sub = T.spec['card_sub_last']
     else:
-        sub = '人口千人あたり'
-    d.text((590, 172), sub, font=F(32, 'Bold'), fill=(190, 198, 230, 255), anchor='mm')
+        sub = T.spec['card_sub']
+    d.text((590, 172), T.say(sub, **T.item_vars(name)), font=F(32, 'Bold'), fill=(190, 198, 230, 255), anchor='mm')
     # 値
-    d.text((900, 80), '離婚率', font=F(26, 'Bold'), fill=MUTED + (255,), anchor='mm')
-    d.text((900, 140), '%.2f' % v, font=F(104), fill=col + (255,), anchor='mm')
+    d.text((900, 80), T.metric, font=F(26, 'Bold'), fill=MUTED + (255,), anchor='mm')
+    d.text((900, 140), T.fmt(v), font=F(104), fill=col + (255,), anchor='mm')
     L.putalpha(ImageChops.multiply(L.getchannel('A'), Image.new('L', L.size, int(255 * k))))
     frame.paste(L, (0, 1282 + int((1 - k) * 26)), L)
 
@@ -187,8 +229,9 @@ def progress(frame, n, alpha=1.0):
     d = ImageDraw.Draw(frame, 'RGBA')
     d.rounded_rectangle((54, 1534, 1026, 1546), 6, fill=(40, 48, 90, int(255 * alpha)))
     if n > 0:
-        wd = 54 + (1026 - 54) * n / 47
+        wd = 54 + (1026 - 54) * n / T.N
         d.rounded_rectangle((54, 1534, wd, 1546), 6, fill=(255, 255, 255, int(255 * alpha)))
+
 
 # ---------- フレーム ----------
 class Renderer:
@@ -197,48 +240,44 @@ class Renderer:
         self.done = 0
 
     def sync(self, t):
-        while self.done < len(SEQ) and SEQ[self.done]['start'] + SEQ[self.done]['dur'] <= t:
-            it = SEQ[self.done]
-            paint(self.layer, it['name'], TIERS[tier(it['val'])][1])
+        while self.done < len(T.SEQ) and T.SEQ[self.done]['start'] + T.SEQ[self.done]['dur'] <= t:
+            it = T.SEQ[self.done]
+            paint(self.layer, it['name'], T.TIERS[T.tier(it['val'])][1])
             self.done += 1
 
     def frame(self, t):
         self.sync(t)
         f = BG.copy()
-        if T_COUNT_END <= t < T_COUNT_END + T_TOKYO:
+        if T.T_COUNT_END <= t < T.T_COUNT_END + T.T_FOCUS:
             lyr = self.layer.copy()
             lyr.putalpha(lyr.getchannel('A').point(lambda v: int(v * 0.32)))
             f.paste(lyr, (0, MAP_TOP), lyr)
         else:
             f.paste(self.layer, (0, MAP_TOP), self.layer)
-        t_c = T_COUNT_END
+        t_c = T.T_COUNT_END
         # ---- フック ----
-        if t < T_HOOK:
+        if t < T.T_HOOK:
             k = 0
-            for i, sg in enumerate(HOOK_SEGS):
+            for i, sg in enumerate(T.HOOK_SEGS):
                 if sg['start'] <= t:
                     k = i
-            tl = t - HOOK_SEGS[k]['start']
-            if k == 0:
-                panel(f, [('あなたの県は', 68, WHITE, 'Bold'), ('何位？', 200, YELLOW, 'Black')], MAP_TOP + 380, ease(tl / 0.4))
-            elif k == 1:
-                panel(f, [('離婚率が一番高い県と', 54, WHITE, 'Bold'), ('一番低い県の差は', 54, WHITE, 'Bold'), ('約2倍', 190, RED, 'Black')], MAP_TOP + 400, ease(tl / 0.35))
-            else:
-                panel(f, [('47位から1位まで', 62, WHITE, 'Black'), ('一気に発表します', 62, YELLOW, 'Black')], MAP_TOP + 380, ease(tl / 0.35))
-            legend(f, ease((t - (T_HOOK - 0.6)) / 0.6))
+            sg = T.HOOK_SEGS[k]
+            tl = t - sg['start']
+            panel(f, T.hook_panels[k], MAP_TOP + sg['y'], ease(tl / sg['fade']))
+            legend(f, ease((t - (T.T_HOOK - 0.6)) / 0.6))
             progress(f, 0, 0.5)
             return f
         # ---- カウントダウン ----
         active = None
-        for it in SEQ:
+        for it in T.SEQ:
             if it['start'] <= t < it['start'] + it['dur']:
                 active = it
                 break
         n_done = self.done
         if active is not None:
             a = t - active['start']
-            tr = tier(active['val'])
-            col = lerp(WHITE, TIERS[tr][1], ease(a / 0.45))
+            tr = T.tier(active['val'])
+            col = lerp(WHITE, T.TIERS[tr][1], ease(a / 0.45))
             draw_active(f, active['name'], col, 0.85 - 0.4 * min(1, a / active['dur']))
             ring(f, active['name'], a)
             legend(f, 1.0, tr)
@@ -246,48 +285,41 @@ class Renderer:
             progress(f, n_done + 1)
             return f
         # ---- 「ここからTOP10」 ----
-        if t < T_COUNT_END and INTER and INTER['start'] <= t < INTER['start'] + INTER['dur']:
+        if t < T.T_COUNT_END and T.INTER and T.INTER['start'] <= t < T.INTER['start'] + T.INTER['dur']:
             legend(f, 1.0)
-            panel(f, [('ここから', 72, WHITE, 'Bold'), ('TOP10', 200, YELLOW, 'Black')], MAP_TOP + 380, ease((t - INTER['start']) / 0.3))
+            panel(f, T.intro_panel, MAP_TOP + 380, ease((t - T.INTER['start']) / 0.3))
             progress(f, n_done)
             return f
         # ---- アウトロ ----
-        progress(f, 47)
+        progress(f, T.N)
         t0 = t - t_c
-        if t0 < T_TOKYO:
-            # 東京にスポットライト
-            tk = '東京都'
-            draw_active(f, tk, TIERS[tier(DATA[tk])][1], 0.8)
-            ring(f, tk, t0 % 1.2 / 1.2 * 0.6)
-            rk = RANK[tk]
-            partners = [n for n in RANK if RANK[n] == rk and n != tk]
-            sub = '離婚率 %.2f' % DATA[tk] + ('（%sと同率）' % partners[0] if partners else '')
-            lines = [('東京都は', 52, WHITE, 'Bold'), ('%d位' % rk, 140, WHITE, 'Black'), (sub, 38, MUTED, 'Bold'),
-                     ('全国平均 %.2f とほぼ同じ' % AVG, 44, YELLOW, 'Black')]
-            panel(f, lines, 650, ease(t0 / 0.35), gap=16)
+        if t0 < T.T_FOCUS:
+            # 指定した県にスポットライト
+            fc = T.focus
+            draw_active(f, fc, T.TIERS[T.tier(T.DATA[fc])][1], 0.8)
+            ring(f, fc, t0 % 1.2 / 1.2 * 0.6)
+            panel(f, T.focus_panel, 650, ease(t0 / 0.35), gap=16)
         else:
-            t1 = t0 - T_TOKYO
-            panel(f, [('離婚の背景は人それぞれ。', 38, MUTED, 'Bold'), ('数字だけで決めつけないでね', 38, MUTED, 'Bold'),
-                      ('あなたの県は', 64, WHITE, 'Bold'), ('何位だった？', 124, YELLOW, 'Black'),
-                      ('コメントで教えてね ↓', 54, WHITE, 'Black'), ('他の指標のランキングも → フォロー', 36, MUTED, 'Bold')],
-                  MAP_TOP + 410, ease(t1 / 0.4), gap=14)
+            t1 = t0 - T.T_FOCUS
+            panel(f, T.cta_panel, MAP_TOP + 410, ease(t1 / 0.4), gap=14)
         return f
 
-def main():
+
+def init(theme_obj, geo_path):
+    global T, P, MAP_H, BG
+    T = theme_obj
+    geo = pickle.load(open(geo_path, 'rb'))
+    P = geo['prefs']
+    MAP_H = geo['MAP_H']
+    BG = build_bg()
+
+
+def render_video(out, audio):
     r = Renderer()
-    if len(sys.argv) > 1 and sys.argv[1] == 'still':
-        ts = [float(x) for x in sys.argv[2].split(',')]
-        for t in ts:
-            r = Renderer()  # 毎回作り直し（時刻を飛ばすため）
-            im = r.frame(t)
-            im.save('still_%05.2f.png' % t)
-        return
-    out = sys.argv[1]
-    audio = sys.argv[2]
-    total = int(T_END * FPS)
+    total = int(T.T_END * FPS)
     cmd = ['ffmpeg', '-v', 'error', '-y', '-f', 'rawvideo', '-pix_fmt', 'rgb24', '-s', '%dx%d' % (W, H), '-r', str(FPS), '-i', '-',
            '-i', audio, '-c:v', 'libx264', '-preset', 'medium', '-crf', '19', '-pix_fmt', 'yuv420p', '-c:a', 'aac', '-b:a', '160k',
-           '-movflags', '+faststart', '-t', '%.3f' % T_END, out]
+           '-movflags', '+faststart', '-t', '%.3f' % T.T_END, out]
     ff = subprocess.Popen(cmd, stdin=subprocess.PIPE)
     for i in range(total):
         im = r.frame(i / FPS)
@@ -295,8 +327,26 @@ def main():
         if i % 300 == 0:
             print('frame', i, '/', total, flush=True)
     ff.stdin.close()
-    ff.wait()
+    if ff.wait() != 0:
+        raise SystemExit('ffmpeg が失敗しました')
     print('done', out)
 
+
+def render_stills(out_dir, times):
+    for t in times:
+        r = Renderer()  # 毎回作り直し（時刻を飛ばすため）
+        r.frame(t).save(os.path.join(out_dir, 'still_%05.2f.png' % t))
+
+
 if __name__ == '__main__':
-    main()
+    theme_path, mode = sys.argv[1], sys.argv[2]
+    tid = theme.load(theme_path).id
+    default_out = os.path.join(HERE, '..', 'build', tid)
+    arg3 = sys.argv[3] if len(sys.argv) > 3 else None
+    out_dir = (sys.argv[4] if mode == 'still' and len(sys.argv) > 4 else arg3 if mode == 'video' and arg3 else default_out)
+    os.makedirs(out_dir, exist_ok=True)
+    init(theme.load(theme_path, os.path.join(out_dir, 'narration.json')), os.path.join(HERE, '..', 'build', 'geo.pkl'))
+    if mode == 'still':
+        render_stills(out_dir, [float(x) for x in arg3.split(',')])
+    else:
+        render_video(os.path.join(out_dir, 'out.mp4'), os.path.join(out_dir, 'audio.wav'))

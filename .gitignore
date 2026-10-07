@@ -1,11 +1,5 @@
 # 生成物・ダウンロード物（再生成できるもの）
-src/geo.pkl
-src/ne_admin1.geojson
-src/narr/
-src/audio.wav
-src/timeline.json
-src/still_*.png
-*.mp4
+build/
 
 # VOICEVOX 一式（docs/HANDOFF.md 5.2 参照）
 tts/

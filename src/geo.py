@@ -1,7 +1,8 @@
 """都道府県のマスク画像を作る（Natural Earth: パブリックドメイン）。
+使い方: python3 geo.py [ne_admin1.geojson] [geo.pkl]   （既定: ../build/ 配下）
 出力: geo.pkl  {pref_name: dict(mask, edge, x0, y0, cx, cy)} と領域サイズ
 """
-import json, math, pickle
+import json, math, os, pickle, sys
 from PIL import Image, ImageDraw, ImageFilter
 
 W = 1080
@@ -44,7 +45,10 @@ def simplify(pts, tol=0.6):
             out.append(p)
     return out
 
-g = json.load(open('ne_admin1.geojson'))
+BUILD = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'build')
+SRC = sys.argv[1] if len(sys.argv) > 1 else os.path.join(BUILD, 'ne_admin1.geojson')
+OUT = sys.argv[2] if len(sys.argv) > 2 else os.path.join(BUILD, 'geo.pkl')
+g = json.load(open(SRC, encoding='utf-8'))
 jp = [f for f in g['features'] if f['properties'].get('iso_a2') == 'JP']
 res = {}
 for f in jp:
@@ -97,5 +101,5 @@ for f in jp:
     cx = sum(p[0] for p in o) / len(o); cy = sum(p[1] for p in o) / len(o)
     res[name] = dict(mask=mask, edge=edge, x0=x0, y0=y0, cx=cx, cy=cy)
 
-pickle.dump(dict(prefs=res, W=W, MAP_H=MAP_H, INS=(INS_LEFT, INS_TOP, INS)), open('geo.pkl', 'wb'))
+pickle.dump(dict(prefs=res, W=W, MAP_H=MAP_H, INS=(INS_LEFT, INS_TOP, INS)), open(OUT, 'wb'))
 print('ok', len(res), 'prefs; X0=%.1f KX=%.2f KY=%.2f' % (X0, KX, KY))
