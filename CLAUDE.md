@@ -26,10 +26,11 @@ python3 -m unittest discover -s tests            # テスト
 - 新しい動画 = `themes/` に YAML を足すだけ。`src/` にテーマ固有の文言を書かない。
 - 成果物は `build/<id>/`（git 管理外）。`narration.json` は読み上げ文と一致するときだけ長さを使い、違えば見積もりに切り替わる。
 - 環境依存: フォントは `FONT_PATH`（`render.py` 冒頭）、VOICEVOX は `VOICEVOX_DIR`（既定 `tts/vv`、`narration.py`）。
-  macOS のフォント候補と VOICEVOX の onnxruntime 検出は未検証。
+  macOS のフォント候補は未検証。VOICEVOX の配置は `scripts/setup_voicevox.sh`（Linux x86_64 用。Mac は配布物名を差し替える）。
 
 ## 現状
 
 - 離婚率（2024）で、元の動画と静止画がピクセル単位で一致することを確認済み（テンプレ化の回帰確認）。
 - 未実装: 地図なしテンプレ（市区町村・業種・企業など）、e-Stat 等からのデータ取得（ROADMAP 2・3）。
-- このクラウド環境では api.e-stat.go.jp と VOICEVOX の配布元が許可制で届かない（要ネットワーク許可）。
+- VOICEVOX は `scripts/setup_voicevox.sh` で配置できる（このクラウド環境で動作確認済み。公式 download ツールは GitHub API が使えず失敗するため、配布物を直接取得する）。
+- e-Stat API（api.e-stat.go.jp）はこの環境から届く。必要なのは appId のみ。
