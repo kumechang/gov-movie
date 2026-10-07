@@ -4,6 +4,8 @@
 経緯・技術詳細は [docs/HANDOFF.md](docs/HANDOFF.md)（チャットでの試作からの引き継ぎ資料）、
 テーマ定義の書き方は [docs/THEME_SPEC.md](docs/THEME_SPEC.md)、今後の計画は [docs/ROADMAP.md](docs/ROADMAP.md)。
 
+**新しいセッションは [docs/NEXT_SESSION.md](docs/NEXT_SESSION.md)（環境の立ち上げ手順・次の作業・appId の扱い）から読むこと。**
+
 ## 作業ルール
 
 - ユーザーは動画制作のノウハウがなく、手を動かしたくない。調査・データ取得・台本・映像・音声・書き出しまで自動で完結させる。ユーザーに頼むのは TikTok への投稿・アカウント操作・判断が必要な選択だけ。
