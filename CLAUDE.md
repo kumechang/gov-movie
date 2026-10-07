@@ -22,6 +22,7 @@
 ```
 python3 src/run.py themes/<id>.yaml              # 検証→地図→ナレーション→音声→映像→音量調整→投稿文
 python3 src/run.py themes/<id>.yaml --no-voice   # VOICEVOXなしのプレビュー
+python3 src/fetch_estat.py themes/<id>.yaml      # e-Stat 取得と検証レポートだけ（--refetch で取り直し）
 python3 -m unittest discover -s tests            # テスト
 ```
 
@@ -33,6 +34,8 @@ python3 -m unittest discover -s tests            # テスト
 ## 現状
 
 - 離婚率（2024）で、元の動画と静止画がピクセル単位で一致することを確認済み（テンプレ化の回帰確認）。
-- 未実装: 地図なしテンプレ（市区町村・業種・企業など）、e-Stat 等からのデータ取得（ROADMAP 2・3）。
+- e-Stat からのデータ取得は実装済み（`src/fetch_estat.py`）。`source.fetch: estat` のテーマは、取得・検証（年・単位・欠損・全国値・2系統照合）が通らないと動画にしない。
+- 未実装: 地図なしテンプレ（市区町村・業種・企業など）、台本→統計表の選択（ROADMAP 3）。
+- **e-Stat の appId（環境変数 `ESTAT_APP_ID`）はコード・YAML・ドキュメント・コミット・ログに書かない。** URL や例外をそのまま表示しない（`estat.redact()` を通す）。
 - VOICEVOX は `scripts/setup_voicevox.sh` で配置できる（このクラウド環境で動作確認済み。公式 download ツールは GitHub API が使えず失敗するため、配布物を直接取得する）。
-- e-Stat API（api.e-stat.go.jp）はこの環境から届く。必要なのは appId のみ。
+- e-Stat API（api.e-stat.go.jp）はこの環境から届く。appId は環境変数 `ESTAT_APP_ID`。

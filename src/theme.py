@@ -75,6 +75,9 @@ class Theme:
         self._need(src, 'name', 'source.')
         if not src.get('url'):
             self.warnings.append('source.url が未記入です（出典URLを確認して記入してください）')
+        lic = src.get('license') or {}
+        if src.get('fetch') == 'estat' and not (lic.get('commercial') is True and lic.get('credit_lines')):
+            self.warnings.append('source.license が未記入です（商用利用の可否と出典・加工の表記を確認して記入してください）')
         if not str(s.get('verification', '')).strip():
             raise ThemeError('verification（検証方法の記録）が未記入です。検証できていない数字は載せません')
         if not s.get('values') and src.get('fetch') == 'estat':
@@ -319,6 +322,7 @@ class Theme:
         desc = ' '.join(self.say(p['description']).split())
         credits = ['出典：%s%s' % (src['name'], src.get('note', '')),
                    '地図：Natural Earth（パブリックドメイン）']
+        credits += list((src.get('license') or {}).get('credit_lines', []))
         if self.credit:
             credits.append('音声：' + self.credit)
         return '\n'.join([

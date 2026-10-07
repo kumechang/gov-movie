@@ -8,6 +8,7 @@
   estat:
     statsDataId: "0003411861"            # 統計表ID
     select: {cdTab: "10320", cdTime: "2024000000"}   # 絞り込み。各都道府県1値になるまで絞る
+    unit: ""                             # 任意。e-Stat 側の単位表記が unit と違うとき（単位のない指標は ""）
     cross:                               # 照合（2系統目）。任意・複数可
       - {label: ..., statsDataId: ..., select: {...}}                       # 別の表の同じ指標
       - {label: ..., numerator: {statsDataId, select}, denominator: {...}, scale: 1000}  # 件数÷人口などの再計算
@@ -145,8 +146,9 @@ def fetch_values(spec, cache_path=None, refetch=False):
     # --- 取り違え検出: 年・単位 ---
     if not str(tcode).startswith(str(spec['year'])):
         problems.append('時点 %s が year=%s と一致しません' % (tcode, spec['year']))
-    if unit != spec['unit']:
-        problems.append('単位 %r が unit=%r と一致しません' % (unit, spec['unit']))
+    want_unit = e.get('unit', spec['unit'])      # e-Stat 側の単位表記。単位のない指標は estat.unit: "" と書く
+    if unit != want_unit:
+        problems.append('単位 %r が想定 %r と一致しません' % (unit, want_unit))
     stat_name = (info.get('STATISTICS_NAME') or '')
     kind = '確定数' if '確定数' in stat_name else ('概数' if '概数' in stat_name else '（表の名称から確定数/概数を判別できません）')
 
@@ -155,7 +157,7 @@ def fetch_values(spec, cache_path=None, refetch=False):
         '  統計: %s ／ 表: %s' % (stat_name, _title(info)),
         '  調査期間: %s ／ 公表: %s ／ 更新: %s ／ 取得日: %s' % (
             info.get('SURVEY_DATE'), info.get('OPEN_DATE'), info.get('UPDATED_DATE'), raw.get('fetched')),
-        '  単位: %s ／ %s ／ 絞り込み: %s' % (unit, kind, json.dumps(select, ensure_ascii=False)),
+        '  単位: %s ／ %s ／ 絞り込み: %s' % (unit or '（e-Stat に単位表記なし）', kind, json.dumps(select, ensure_ascii=False)),
     ]
     rounded = {n: round(v, decimals) for n, v in vals.items()}
     hi = max(rounded, key=rounded.get)

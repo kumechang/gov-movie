@@ -109,6 +109,20 @@ class FetchTest(unittest.TestCase):
         self.assertEqual(theme.Theme(out).RANK['沖縄県'], 1)
 
 
+class TfrThemeTest(unittest.TestCase):
+    def test_estat_theme_without_values_is_not_loadable_offline(self):
+        with self.assertRaises(theme.ThemeError):
+            theme.load(os.path.join(ROOT, 'themes', 'tfr_2024.yaml'))
+
+    def test_tfr_theme_builds_with_fetched_values(self):
+        spec = theme.load_spec(os.path.join(ROOT, 'themes', 'tfr_2024.yaml'))
+        spec['values'] = {p: 1.0 + i / 100 for i, p in enumerate(theme.PREFS)}
+        spec['average'] = 1.2
+        T = theme.Theme(spec)
+        self.assertEqual(T.N, 47)
+        self.assertEqual(spec['estat']['unit'], '')
+
+
 class AppIdTest(unittest.TestCase):
     def test_redact_hides_plain_and_encoded_forms(self):
         with mock.patch.dict(os.environ, {estat.ENV_NAME: 'a b+c/d'}):
