@@ -1,0 +1,9 @@
+# 生成物・ダウンロード物（再生成できるもの）
+build/
+
+# VOICEVOX 一式（docs/HANDOFF.md 5.2 参照）
+tts/
+
+__pycache__/
+*.pyc
+.DS_Store

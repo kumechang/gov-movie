@@ -1,0 +1,118 @@
+# テーマ定義: 合計特殊出生率（2024年・都道府県別）。データは e-Stat から取得して検証する（values は書かない）。
+# 書き方は docs/THEME_SPEC.md、実例は themes/divorce_rate_2024.yaml。
+
+id: tfr_2024
+template: prefecture_map
+
+# ---------- データ ----------
+metric: 合計特殊出生率
+year: 2024
+unit: 1人の女性が生涯に産む子どもの数の目安
+decimals: 2
+rank_order: desc                  # 値が大きいほど上位
+
+source:
+  name: 厚生労働省「人口動態統計」2024年
+  note: （政府統計の総合窓口 e-Stat 掲載の確定数より）
+  table: 人口動態調査 上巻 都道府県別にみた年次別合計特殊出生率（e-Stat 統計表ID 0003411598）
+  url: https://www.e-stat.go.jp/stat-search/database?statdisp_id=0003411598
+  license:
+    checked: 2026-10-07
+    terms_url: https://www.e-stat.go.jp/terms-of-use
+    commercial: true              # e-Stat 利用規約「商用利用も可能です」（政府標準利用規約2.0版準拠・CC BY互換）
+    credit_lines:
+      - 「人口動態統計」（厚生労働省）を加工して作成
+      - 政府統計の総合窓口(e-Stat)（https://www.e-stat.go.jp/）
+      - このサービスは、政府統計総合窓口(e-Stat)のAPI機能を使用していますが、サービスの内容は国によって保証されたものではありません。
+  fetch: estat
+verification: >-
+  e-Stat の人口動態統計（確定数）から取得。47都道府県・全国値を、別の表（人口動態総覧）の合計特殊出生率と
+  全件突き合わせて一致を確認（src/fetch_estat.py。結果は build/tfr_2024/estat_report.txt）。
+  注: 表の注記のとおり、全国値は母の年齢15〜49歳の各歳の出生率の合計、都道府県の値は5歳階級の出生率の5倍の合計
+  （算出方法が少し違う）。全国値は表の全国行の値をそのまま使う。
+
+estat:
+  statsDataId: "0003411598"
+  unit: ""                        # この指標は e-Stat 側に単位表記がない
+  select: {cdTab: "10060", cdTime: "2024000000"}    # 表章項目=合計特殊出生率、時間軸=2024年
+  cross:
+    - label: 人口動態総覧の合計特殊出生率
+      statsDataId: "0003411562"
+      select: {cdCat01: "00300", cdTime: "2024000000"}
+
+# ---------- 色の区分 ----------
+tiers:
+  thresholds: [1.10, 1.20, 1.30, 1.40]
+
+# ---------- 画面の固定文言 ----------
+title: 合計特殊出生率ランキング
+title_small: "{year}年｜都道府県別"
+subtitle: "女性1人あたりの子どもの数の目安 ／ 全国 {avg}"
+legend_title: "{metric}の色分け"
+card_sub: 女性1人あたり
+card_sub_first: "全国の約{ratio_avg}倍"
+card_sub_last: "最下位（{last_vs_first}）"
+
+# ---------- 声 ----------
+voice:
+  style_id: 2          # VOICEVOX スタイルID。2=四国めたん / 3=ずんだもん / 8=春日部つむぎ
+  speed: 1.28
+  credit: VOICEVOX:四国めたん   # 動画フッターと概要欄に入る。話者を変えたら必ず変える
+
+# ---------- 構成（say=読み上げ、panel=画面の文字 [文字, サイズ, 色, 太さ]） ----------
+hooks:
+  - say: "都道府県別、{metric}ランキング。あなたの県は、何位？"
+    min: 2.6
+    gap: 0.5
+    y: 380
+    fade: 0.4
+    panel:
+      - [あなたの県は, 68, white, Bold]
+      - [何位？, 200, yellow, Black]
+  - say: "一番高い県と低い県で、差は{gap_text}。"
+    min: 2.2
+    gap: 0.45
+    y: 400
+    fade: 0.35
+    panel:
+      - ["{metric}が一番高い県と", 54, white, Bold]
+      - [一番低い県の差は, 54, white, Bold]
+      - ["{gap_text}", 190, red, Black]
+  - say: 47位から、いきます。
+    min: 1.6
+    gap: 0.45
+    y: 380
+    fade: 0.35
+    panel:
+      - [47位から1位まで, 62, white, Black]
+      - [一気に発表します, 62, yellow, Black]
+
+intro_top10:
+  say: ここからトップ10です。
+  panel:
+    - [ここから, 72, white, Bold]
+    - [TOP10, 200, yellow, Black]
+
+item_say:
+  last: "{rank}位、{name}、{value}。ここが最下位です。"
+  first: "そして1位は、{name}。{value}。全国の約{ratio_avg}倍です。"
+  top10: "{rank}位、{name}、{value}。"
+
+cta:
+  say: "子どもを持つかどうかは、人それぞれ。決めつけないでね。あなたの県は、何位だった？コメントで教えてね。"
+  panel:
+    - [子どもを持つかどうかは人それぞれ。, 38, muted, Bold]
+    - [数字だけで決めつけないでね, 38, muted, Bold]
+    - [あなたの県は, 64, white, Bold]
+    - [何位だった？, 124, yellow, Black]
+    - [コメントで教えてね ↓, 54, white, Black]
+    - [他の指標のランキングも → フォロー, 36, muted, Bold]
+
+# ---------- 投稿用テキスト（post.md として自動生成） ----------
+post:
+  title: "【{year}年】都道府県別 {metric}ランキング｜あなたの県は何位？"
+  description: >-
+    {year}年の都道府県別{metric}（{unit}）ランキングです。1位は{first_name}、最下位は{last_name}。
+    数字は、その県の良し悪しではありません。子どもを持つかどうかは人それぞれ。決めつけないでね。
+  pinned_comment: あなたの県は何位でしたか？コメントで教えてください！
+  hashtags: ["#{metric}", "#出生率", "#都道府県ランキング", "#統計", "#地域差"]
