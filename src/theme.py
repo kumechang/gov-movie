@@ -42,6 +42,70 @@ class _Vars(dict):
         raise ThemeError('文言テンプレートに未定義の変数 {%s} があります' % key)
 
 
+def normalize_pref_values(raw, decimals):
+    """values（都道府県名→数値）を検証し、フルネーム→丸めた値の dict にする。欠け・重複・非数値はエラー。"""
+    data = {}
+    for k, v in raw.items():
+        k = str(k)
+        n = k if k in FULL_NAMES else full(k)
+        if n not in FULL_NAMES:
+            raise ThemeError('不明な都道府県名: %s' % k)
+        if n in data:
+            raise ThemeError('都道府県が重複しています: %s' % n)
+        if isinstance(v, bool) or not isinstance(v, (int, float)) or not math.isfinite(v):
+            raise ThemeError('%s の値が数値ではありません: %r' % (n, v))
+        data[n] = round(float(v), decimals)
+    missing = FULL_NAMES - set(data)
+    if missing:
+        raise ThemeError('値のない都道府県: %s' % '、'.join(sorted(missing)))
+    return data
+
+
+def build_tiers(values, spec_tiers, decimals):
+    """色の区分 [(上限, 色, ラベル)] を作る。thresholds が 'auto' なら values の分位で決める。"""
+    t = spec_tiers or {}
+    colors = [tuple(c) for c in t.get('colors', DEFAULT_COLORS)]
+    th = t.get('thresholds', 'auto')
+    vals = sorted(values)
+    if th == 'auto':
+        k = len(colors)
+        th = sorted({round(vals[min(len(vals) - 1, int(len(vals) * i / k))], decimals) for i in range(1, k)})
+        if len(th) < k - 1:        # 同率が多くて境界が重なったら、区分を減らして色を等間隔に選ぶ
+            m = len(th) + 1
+            colors = [colors[round(i * (k - 1) / max(1, m - 1))] for i in range(m)]
+    th = [float(x) for x in th]
+    if len(th) != len(colors) - 1:
+        raise ThemeError('tiers: thresholds は colors より1つ少なくしてください')
+    if any(b <= a for a, b in zip(th, th[1:])):
+        raise ThemeError('tiers.thresholds が昇順になっていません: %s' % th)
+    step = 10 ** -decimals
+    f = lambda v: '%.*f' % (decimals, v)
+    labels = ['〜' + f(th[0] - step)]
+    labels += ['%s〜%s' % (f(a), f(b - step)) for a, b in zip(th, th[1:])]
+    labels.append(f(th[-1]) + '〜')
+    return [(h, c, lb) for h, c, lb in zip(th + [float('inf')], colors, labels)]
+
+
+def post_md(T):
+    """投稿用テキスト（post.md）。T は spec / say / credit を持つテーマ。"""
+    p = T.spec.get('post')
+    if not p:
+        return ''
+    src = T.spec['source']
+    desc = ' '.join(T.say(p['description']).split())
+    credits = ['出典：%s%s' % (src['name'], src.get('note', '')),
+               '地図：Natural Earth（パブリックドメイン）']
+    credits += list((src.get('license') or {}).get('credit_lines', []))
+    if T.credit:
+        credits.append('音声：' + T.credit)
+    return '\n'.join([
+        '# 投稿用テキスト（自動生成）', '',
+        '## タイトル', T.say(p['title']), '',
+        '## 概要欄', desc, '', *credits, '', ' '.join(T.say(h) for h in p.get('hashtags', [])), '',
+        '## 固定コメント案', T.say(p.get('pinned_comment', '')), '',
+    ])
+
+
 class Theme:
     def __init__(self, spec, narration_json=None):
         self.spec = spec
@@ -83,21 +147,7 @@ class Theme:
         if not s.get('values') and src.get('fetch') == 'estat':
             raise ThemeError('values がありません。source.fetch: estat のテーマは、先に e-Stat から取得してください'
                              '（run.py / fetch_estat.py 経由。theme.load は取得しません）')
-        raw = self._need(s, 'values')
-        data = {}
-        for k, v in raw.items():
-            k = str(k)
-            n = k if k in FULL_NAMES else full(k)
-            if n not in FULL_NAMES:
-                raise ThemeError('不明な都道府県名: %s' % k)
-            if n in data:
-                raise ThemeError('都道府県が重複しています: %s' % n)
-            if isinstance(v, bool) or not isinstance(v, (int, float)) or not math.isfinite(v):
-                raise ThemeError('%s の値が数値ではありません: %r' % (n, v))
-            data[n] = round(float(v), self.decimals)
-        missing = FULL_NAMES - set(data)
-        if missing:
-            raise ThemeError('値のない都道府県: %s' % '、'.join(sorted(missing)))
+        data = normalize_pref_values(self._need(s, 'values'), self.decimals)
         # 地図の描画順（北→南）に並べ直す
         self.DATA = {full(n): data[full(n)] for n in PREFS}
         self.AVG = float(self._need(s, 'average'))
@@ -122,23 +172,7 @@ class Theme:
 
     # ---------- 色の区分 ----------
     def _tiers(self):
-        t = self.spec.get('tiers') or {}
-        colors = [tuple(c) for c in t.get('colors', DEFAULT_COLORS)]
-        th = t.get('thresholds', 'auto')
-        vals = sorted(self.DATA.values())
-        if th == 'auto':
-            k = len(colors)
-            th = [round(vals[min(len(vals) - 1, int(len(vals) * i / k))], self.decimals) for i in range(1, k)]
-        th = [float(x) for x in th]
-        if len(th) != len(colors) - 1:
-            raise ThemeError('tiers: thresholds は colors より1つ少なくしてください')
-        if any(b <= a for a, b in zip(th, th[1:])):
-            raise ThemeError('tiers.thresholds が昇順になっていません: %s' % th)
-        step = 10 ** -self.decimals
-        labels = ['〜' + self.fmt(th[0] - step)]
-        labels += ['%s〜%s' % (self.fmt(a), self.fmt(b - step)) for a, b in zip(th, th[1:])]
-        labels.append(self.fmt(th[-1]) + '〜')
-        self.TIERS = [(h, c, lb) for h, c, lb in zip(th + [float('inf')], colors, labels)]
+        self.TIERS = build_tiers(self.DATA.values(), self.spec.get('tiers'), self.decimals)
 
     def tier(self, v):
         for i, (th, _, _) in enumerate(self.TIERS):
@@ -315,22 +349,7 @@ class Theme:
         return '\n'.join(lines)
 
     def post_md(self):
-        p = self.spec.get('post')
-        if not p:
-            return ''
-        src = self.spec['source']
-        desc = ' '.join(self.say(p['description']).split())
-        credits = ['出典：%s%s' % (src['name'], src.get('note', '')),
-                   '地図：Natural Earth（パブリックドメイン）']
-        credits += list((src.get('license') or {}).get('credit_lines', []))
-        if self.credit:
-            credits.append('音声：' + self.credit)
-        return '\n'.join([
-            '# 投稿用テキスト（自動生成）', '',
-            '## タイトル', self.say(p['title']), '',
-            '## 概要欄', desc, '', *credits, '', ' '.join(self.say(h) for h in p.get('hashtags', [])), '',
-            '## 固定コメント案', self.say(p.get('pinned_comment', '')), '',
-        ])
+        return post_md(self)
 
 
 def load_spec(path):

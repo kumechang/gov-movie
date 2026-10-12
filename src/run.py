@@ -8,8 +8,7 @@
 """
 import os, subprocess, sys, urllib.request
 
-import estat
-import fetch_estat
+import loader
 import theme
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -27,19 +26,18 @@ def main(argv):
         raise SystemExit(__doc__)
     theme_path = args[0]
     no_voice, check_only = '--no-voice' in argv, '--check' in argv
-    spec = theme.load_spec(theme_path)
-    out_dir = os.path.join(BUILD, spec['id'])
+    spec0 = theme.load_spec(theme_path)
+    out_dir = os.path.join(BUILD, spec0['id'])
     os.makedirs(out_dir, exist_ok=True)
     fetch_report = ''
-    if spec.get('source', {}).get('fetch') == 'estat':
+    if spec0.get('source', {}).get('fetch') == 'estat':
         step('データ取得と検証（e-Stat）')
-        try:
-            spec, fetch_report = fetch_estat.resolve(spec, os.path.join(out_dir, 'estat_cache.json'), '--refetch' in argv)
-        except (fetch_estat.FetchError, estat.EstatError) as err:
-            raise SystemExit(estat.redact(err))
+    spec, fetch_report = loader.load_resolved(theme_path, out_dir, '--refetch' in argv)
+    if fetch_report:
         print(fetch_report)
         open(os.path.join(out_dir, 'estat_report.txt'), 'w', encoding='utf-8').write(fetch_report + '\n')
-    T0 = theme.Theme(spec)
+    T0 = loader.make_theme(spec)
+    is_list = spec.get('template') == 'ranked_list'
 
     step('テーマの検証')
     narration_json = os.path.join(out_dir, 'narration.json')
@@ -51,7 +49,7 @@ def main(argv):
         step('ナレーション生成（VOICEVOX）')
         import narration
         narration.synthesize(T0, out_dir, voice_dir)
-    T = theme.Theme(spec, narration_json)
+    T = loader.make_theme(spec, narration_json)
     report = T.report() + ('\n\n' + fetch_report if fetch_report else '')
     print(report)
     open(os.path.join(out_dir, 'report.txt'), 'w', encoding='utf-8').write(report + '\n')
@@ -59,7 +57,8 @@ def main(argv):
         return
 
     geojson, geo_pkl = os.path.join(BUILD, 'ne_admin1.geojson'), os.path.join(BUILD, 'geo.pkl')
-    if not os.path.exists(geo_pkl):
+    needs_geo = not is_list or T.is_pref
+    if needs_geo and not os.path.exists(geo_pkl):
         if not os.path.exists(geojson):
             step('地図データのダウンロード（Natural Earth、約40MB）')
             urllib.request.urlretrieve(GEOJSON_URL, geojson)
@@ -68,13 +67,18 @@ def main(argv):
 
     step('効果音＋音声')
     import audio
-    wav = audio.build(T, out_dir, voice=use_voice)
-
-    step('映像の書き出し')
-    import render
-    render.init(T, geo_pkl)
     raw, final = os.path.join(out_dir, 'out.mp4'), os.path.join(out_dir, 'final.mp4')
-    render.render_video(raw, wav)
+    if is_list:
+        wav = audio.build_list(T, out_dir, voice=use_voice)
+        step('映像の書き出し（一覧型: %s）' % T.layout)
+        import render_list
+        render_list.render_video(raw, wav, render_list.init(T, geo_pkl))
+    else:
+        wav = audio.build(T, out_dir, voice=use_voice)
+        step('映像の書き出し')
+        import render
+        render.init(T, geo_pkl)
+        render.render_video(raw, wav)
 
     step('音量調整（loudnorm）')
     subprocess.run(['ffmpeg', '-v', 'error', '-y', '-i', raw, '-c:v', 'copy', '-af', 'loudnorm=I=-16:TP=-1.5:LRA=11',

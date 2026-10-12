@@ -2,7 +2,7 @@
 
 政府の公開データから「都道府県ランキング」などの TikTok ショート動画（1080×1920、60秒以上）を自動生成するプロジェクト。
 経緯・技術詳細は [docs/HANDOFF.md](docs/HANDOFF.md)（チャットでの試作からの引き継ぎ資料）、
-テーマ定義の書き方は [docs/THEME_SPEC.md](docs/THEME_SPEC.md)、今後の計画は [docs/ROADMAP.md](docs/ROADMAP.md)。
+テーマ定義の書き方は [docs/THEME_SPEC.md](docs/THEME_SPEC.md)、今後の計画は [docs/ROADMAP.md](docs/ROADMAP.md)、動画の型と国のデータの対応は [docs/FORMATS.md](docs/FORMATS.md)。
 
 **新しいセッションは [docs/NEXT_SESSION.md](docs/NEXT_SESSION.md)（環境の立ち上げ手順・次の作業・appId の扱い）から読むこと。**
 
@@ -35,7 +35,8 @@ python3 -m unittest discover -s tests            # テスト
 
 - 離婚率（2024）で、元の動画と静止画がピクセル単位で一致することを確認済み（テンプレ化の回帰確認）。
 - e-Stat からのデータ取得は実装済み（`src/fetch_estat.py`）。`source.fetch: estat` のテーマは、取得・検証（年・単位・欠損・全国値・2系統照合）が通らないと動画にしない。
-- 未実装: 地図なしテンプレ（市区町村・業種・企業など）、台本→統計表の選択（ROADMAP 3）。
+- 一覧型テンプレート（`template: ranked_list`、layout: grid/scroll/steps）を実装済み。型の全体像と今後の順番は [docs/FORMATS.md](docs/FORMATS.md)。
+- 未実装: 推移の棒グラフ、場所×年代、企業プロフィール、Tier 表、台本→統計表の選択（ROADMAP 3）。
 - **e-Stat の appId（環境変数 `ESTAT_APP_ID`）はコード・YAML・ドキュメント・コミット・ログに書かない。** URL や例外をそのまま表示しない（`estat.redact()` を通す）。
 - VOICEVOX は `scripts/setup_voicevox.sh` で配置できる（このクラウド環境で動作確認済み。公式 download ツールは GitHub API が使えず失敗するため、配布物を直接取得する）。
 - e-Stat API（api.e-stat.go.jp）はこの環境から届く。appId は環境変数 `ESTAT_APP_ID`。

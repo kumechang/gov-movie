@@ -41,6 +41,26 @@ python3 -m unittest discover -s tests            # テスト
 
 `panel` の各行は `[文字, サイズ, 色, 太さ]`。色は `white / yellow / red / muted`、太さは `Regular / Medium / Bold / Black`。
 
+## 一覧型（`template: ranked_list`）
+
+「項目＋値」の一覧を順位つきで見せる。実例: [tfr_2024_grid.yaml](../themes/tfr_2024_grid.yaml)（カード一覧）、[tfr_2024_scroll.yaml](../themes/tfr_2024_scroll.yaml)（横スクロール・全47県）、[tfr_2024_steps.yaml](../themes/tfr_2024_steps.yaml)（階段）。
+地図テンプレートと同じ項目（`metric` `year` `unit` `source` `verification` `title*` `subtitle` `voice` `hooks` `cta` `post` など）に加えて、次の項目を使う。`focus` `intro_top10` `card_sub*` `legend_title` は不要。
+
+| 項目 | 内容 |
+|---|---|
+| `layout` | `grid`（3列のカード一覧。最下位から埋まり1位が左上、最大12マス）／`scroll`（カードが右から流れる。最大47件）／`steps`（棒で比べる。最大6件） |
+| `n` / `show` | 表示する件数（既定 grid 11 / scroll 47 / steps 5）と、`top`（上位）か `bottom`（下位）か。**同率の途中では切らない**（境界の同率グループは丸ごと外すので、表示件数 `{n}` は減ることがある。警告が出る） |
+| `values` / `items` | `values`: 47都道府県の値（e-Stat 取得で埋まる。順位・色は47県全体で決め、カードには都道府県の形が出る）。`items`: `[{name, value, note?}]` を直接書く（都道府県以外。形は出ない）。同時には書けない |
+| `value_suffix` | 値のあとに付ける単位の表示（`万円` `人` など。読み上げにも入る） |
+| `sub` / `sub_first` | カードの補足文（1位だけ `sub_first`）。`items[].note` があればそれを優先 |
+| `grid_note` | grid の余ったマスに出す一言 `{title, lines: [...]}`（省略可） |
+| `item_say` | `last`（最初に発表）／`first`（1位）／`top10`（10位以内。grid・steps は全件）／`rest`（scroll の11位以下。無ければ無言で短く流す） |
+| `min_total` | 最短の動画長（秒、既定60）。足りなければ各項目の表示時間を均等に延ばす。0で無効 |
+
+文言で使える変数: 全体 `metric` `year` `unit` `n` `first_name`（クライマックスの項目）`last_name`（最初に発表する項目）`gap_text` `avg`（`average` があるとき）／ `sub` `item_say`: `rank` `name` `value`（単位つき）`note` `ratio_last`（最初に発表する項目に対する倍率）`ratio_first` `ratio_avg`。
+
+映像は `src/render_list.py`、音声は `audio.build_list`。プレビュー: `python3 src/render_list.py themes/<id>.yaml still 5,30,50`。
+
 ## e-Stat 取得（`source.fetch: estat`）
 
 `values` / `average` を書かず `estat:` を書くと、`run.py` が e-Stat から47都道府県＋全国値を取って検証し、動画にする。

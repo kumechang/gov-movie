@@ -1,0 +1,99 @@
+# 一覧型テンプレートのデモ（scroll）。データは e-Stat から取得して検証する（values は書かない）。
+# 書き方は docs/THEME_SPEC.md、実例は themes/divorce_rate_2024.yaml。
+
+id: tfr_2024_scroll
+template: ranked_list
+layout: scroll
+n: 47
+show: top
+
+# ---------- データ ----------
+metric: 合計特殊出生率
+year: 2024
+unit: 1人の女性が生涯に産む子どもの数の目安
+decimals: 2
+rank_order: desc                  # 値が大きいほど上位
+
+source:
+  name: 厚生労働省「人口動態統計」2024年
+  note: （政府統計の総合窓口 e-Stat 掲載の確定数より）
+  table: 人口動態調査 上巻 都道府県別にみた年次別合計特殊出生率（e-Stat 統計表ID 0003411598）
+  url: https://www.e-stat.go.jp/stat-search/database?statdisp_id=0003411598
+  license:
+    checked: 2026-10-07
+    terms_url: https://www.e-stat.go.jp/terms-of-use
+    commercial: true              # e-Stat 利用規約「商用利用も可能です」（政府標準利用規約2.0版準拠・CC BY互換）
+    credit_lines:
+      - 「人口動態統計」（厚生労働省）を加工して作成
+      - 政府統計の総合窓口(e-Stat)（https://www.e-stat.go.jp/）
+      - このサービスは、政府統計総合窓口(e-Stat)のAPI機能を使用していますが、サービスの内容は国によって保証されたものではありません。
+  fetch: estat
+verification: >-
+  e-Stat の人口動態統計（確定数）から取得。47都道府県・全国値を、別の表（人口動態総覧）の合計特殊出生率と
+  全件突き合わせて一致を確認（src/fetch_estat.py。結果は build/tfr_2024_scroll/estat_report.txt）。
+  注: 表の注記のとおり、全国値は母の年齢15〜49歳の各歳の出生率の合計、都道府県の値は5歳階級の出生率の5倍の合計
+  （算出方法が少し違う）。全国値は表の全国行の値をそのまま使う。
+
+estat:
+  statsDataId: "0003411598"
+  unit: ""                        # この指標は e-Stat 側に単位表記がない
+  select: {cdTab: "10060", cdTime: "2024000000"}    # 表章項目=合計特殊出生率、時間軸=2024年
+  cross:
+    - label: 人口動態総覧の合計特殊出生率
+      statsDataId: "0003411562"
+      select: {cdCat01: "00300", cdTime: "2024000000"}
+
+# ---------- 色の区分 ----------
+tiers:
+  thresholds: [1.10, 1.20, 1.30, 1.40]
+
+# ---------- 画面の固定文言 ----------
+title: 出生率ランキング 全{n}都道府県
+title_small: "{year}年｜都道府県別"
+subtitle: "{metric}（女性1人あたり）｜全国 {avg}"
+sub: "全国の約{ratio_avg}倍"
+sub_first: "全国の約{ratio_avg}倍"
+
+# ---------- 声 ----------
+voice:
+  style_id: 2
+  speed: 1.28
+  credit: VOICEVOX:四国めたん
+
+# ---------- 構成 ----------
+hooks:
+  - say: "都道府県別、出生率ランキング。47位から、いきます。あなたの県は、何位？"
+    min: 2.6
+    gap: 0.5
+    y: 380
+    fade: 0.4
+    panel:
+      - ["{metric}", 56, white, Bold]
+      - [47位から1位まで, 90, yellow, Black]
+      - [あなたの県は何位？, 60, white, Bold]
+  - say: "全国の合計特殊出生率は、{avg}。それより高い県は、どこ？"
+    min: 2.4
+    gap: 0.45
+    y: 400
+    fade: 0.35
+    panel:
+      - [全国は, 54, white, Bold]
+      - ["{avg}", 200, red, Black]
+item_say:
+  last: "{rank}位、{name}、{value}。"
+  first: "そして1位は、{name}。{value}。全国の約{ratio_avg}倍です。"
+  top10: "{rank}位、{name}、{value}。"
+cta:
+  say: "子どもを持つかどうかは、人それぞれ。数字だけで決めつけないでね。あなたの県は、何位だった？コメントで教えてね。"
+  panel:
+    - [子どもを持つかどうかは人それぞれ。, 38, muted, Bold]
+    - [数字だけで決めつけないでね, 38, muted, Bold]
+    - [あなたの県は, 64, white, Bold]
+    - [何位だった？, 124, yellow, Black]
+    - [コメントで教えてね ↓, 54, white, Black]
+post:
+  title: "【{year}年】出生率ランキング 全{n}都道府県｜あなたの県は何位？"
+  description: >-
+    {year}年の都道府県別{metric}のランキングです。1位は{first_name}。数字は、その県の良し悪しではありません。子どもを持つかどうかは人それぞれ。決めつけないでね。
+  pinned_comment: あなたの県は何位でしたか？コメントで教えてください！
+  hashtags: ["#合計特殊出生率", "#出生率", "#都道府県ランキング", "#統計", "#地域差"]
