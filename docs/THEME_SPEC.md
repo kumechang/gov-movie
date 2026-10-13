@@ -77,10 +77,49 @@ estat:
 ```
 
 - 取得時に確認すること: 時点が `year` と一致／単位が一致／47県＋全国が揃い、1地域1値／欠損記号（`-` `…`）なし／全国値が最小〜最大の範囲内／（あれば）YAML の `values` `average` と一致／`cross` と一致。1つでも外れると**止まる**（動画にしない）。
-- 検証レポート（出典・表題・調査期間・公表日・取得日・単位・確定数/概数・最大/最小/全国値・照合結果）は画面に出て、`build/<id>/estat_report.txt` と `report.txt` に残る。
+- 検証レポート（出典・表題・調査期間・公表日・取得日・単位・確定数/概数・最大/最小/全国値・照合結果）は画面に出て、`build/<id>/fetch_report.txt` と `report.txt` に残る。
 - 生の応答は `build/<id>/estat_cache.json` に保存（appId は含まない）。再取得は `--refetch`。取得だけ試す: `python3 src/fetch_estat.py themes/<id>.yaml`。
 - 統計表の探し方: `getStatsList`（`searchWord`・`statsCode`）で表IDを探し、`getMetaInfo` で表章項目・地域・時間軸のコードを見る。
 - 商用利用: e-Stat は「商用利用も可能」（政府標準利用規約2.0版準拠）。出典の記載と、加工した旨の記載が必要。API を使ったサービスにはクレジット表示（`source.license.credit_lines` に入れる）。確認日 2026-10-07、`https://www.e-stat.go.jp/terms-of-use` と `.../api/api-info/credit`。他の API（市区町村など）を使うときは、その都度規約を確認して記録する。
+
+## 段階ボード（`template: tier_board`）
+
+項目を「段階（レベル）」ごとにまとめて、段階を順に発表する型。レベルの高い段階ほど後ろに置き、最後がクライマックス。
+実例: [g20_risk_levels.yaml](../themes/g20_risk_levels.yaml)（G20の18か国の、外務省の危険レベル。恐怖演出つき）
+
+データは `source.fetch: mofa_risk`（外務省 海外安全情報オープンデータ）。`run.py` が取得して検証し、`tier_data` に入れる（`src/mofa.py`）。
+- **取得**: 国別XML（全207か国）の `riskLevel1〜4`（＝「そのレベルの**地域を含む**」）から、国ごとの最大レベルを使う。国全体のレベルではないので、画面に「国全体ではなく、その国に含まれる地域のレベルです」と明記する（`footnote`）。
+- **2系統目の照合**: 各国の公式の危険情報ページ（HTML）の本文に、その最大レベルが出てくるか。一致した国だけを使い、食い違った国は除外してレポートに残す（実際に、XMLのフラグが古い国が見つかった）。
+- キャッシュ `build/mofa_cache.json` は全テーマで共有（既定24時間。古ければ取り直す）。アクセスは1国ずつ間隔を空け、先頭だけ読む（規約の「大量アクセスの禁止」への配慮）。
+- 商用可・出典と加工した旨の記載が必要（`source.license` に記録。確認日 2026-10-13）。
+
+| 項目 | 内容 |
+|---|---|
+| `tiers[]` | `level` `title` `sub` `color` `say`（`{count}` `{level}` `{title}` `{sub}` が使える）。先に出す順に並べる。`names: false` で件数だけ見せる。`spotlight: true` で1か国ずつじっくり見せる |
+| `members[]` | 対象の国を絞る（省略すると取得できた全国）。`code`（外務省の国コード。`data/mofa_countries.csv`）`label`（画面の名前）。スポットライトの国は `say`（読み上げ文）が必須 |
+| `members[].where` | 最も高いレベルの地域の文言。**公式の「危険レベル」の節にそのまま出てきて、直後のレベル表示が一致すること**を毎回自動で検証する（外れると止まる） |
+| `members[].also` | ほかの地域のレベル `[{level, where}]`（同じく検証）。「ロシアはそれ以外も全域レベル3」のような、誤解を防ぐ情報に使う |
+| `members[].why` | 何が危ないか `[{tag, text, evidence}]`。`tag` は種類（紛争・武力衝突／テロ／ギャング・凶悪犯罪／誘拐／感染症…）、`evidence` は**公式ページ本文にそのまま出てくる文言**（毎回検証。出てこなければ止まる） |
+| `names_note` `footnote` | 件数だけの段階に出す注記／画面下の常設の注記 |
+
+文言の変数: `metric` `year` `asof`（取得日）`total` `n<レベル>`（例 `{n4}`）`n_high`（レベル3以上）`n_any` `excluded_note`。
+
+## 見た目の設定（`style`）と声
+
+一覧型・段階ボードで使える。無ければ標準の見た目（紺色）。恐怖演出の実例は [g20_risk_levels.yaml](../themes/g20_risk_levels.yaml)。
+
+| 項目 | 内容 |
+|---|---|
+| `look: horror` | 音が、明るい和音ではなく、半音でぶつかる低いうなりと心音になる |
+| `fonts` | `Black` `Bold` `Accent`（見せ場用）にフォントファイルを指定。`scripts/setup_fonts.sh` で `assets/fonts/` に置く（Kaisei Tokumin＝筆文字風の明朝、Yuji Boku＝かすれた手書き風。どちらも OFL で商用可）。無ければ標準のフォント |
+| `bg` | `top` `bottom`（背景のグラデーション）`fog`（下から立ちのぼる霧の色）`fog_height` `vignette`（四隅の暗さ）`grain`（ざらつき） |
+| `text` `muted` `accent` `title_color` `title_glow` `drips` | 文字色・補助色・強調色・タイトルの色・タイトルの光・血の滴り（色） |
+| `pill` `panel` `bar` | 上部の丸い枠・フックのパネル・進行バーの配色 |
+| `fx` | `shake`（揺れの大きさ）`flash`（色）`flash_alpha`。レベルが明かされる瞬間に1回だけ。点滅の繰り返しはしない |
+| `named_colors` | hooks / cta の panel で使う色名（white / yellow / red / muted）の差し替え |
+
+声（`voice`）: `vvm: [n]`（`tts/vv/<n>.vvm` の追加モデル。`scripts/setup_voicevox.sh` の `EXTRA_VVM="1"` で配置）`style_id` `speed` `pitch`（低いほど不穏）`intonation`（小さいほど平坦）`credit`。
+1=冥鳴ひまり（style 14・落ち着いた低めの声）、2=九州そら、3=波音リツ・中国うさぎ。話者を変えたら `credit` も必ず変える（冥鳴ひまりは「VOICEVOX:冥鳴ひまり」。商用可・クレジット必須・公序良俗に反しないこと）。
 
 ## 文言で使える変数 `{...}`
 

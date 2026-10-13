@@ -30,14 +30,15 @@ def main(argv):
     out_dir = os.path.join(BUILD, spec0['id'])
     os.makedirs(out_dir, exist_ok=True)
     fetch_report = ''
-    if spec0.get('source', {}).get('fetch') == 'estat':
-        step('データ取得と検証（e-Stat）')
+    fetch = spec0.get('source', {}).get('fetch')
+    if fetch in ('estat', 'mofa_risk'):
+        step('データ取得と検証（%s）' % {'estat': 'e-Stat', 'mofa_risk': '外務省 海外安全情報'}[fetch])
     spec, fetch_report = loader.load_resolved(theme_path, out_dir, '--refetch' in argv)
     if fetch_report:
         print(fetch_report)
-        open(os.path.join(out_dir, 'estat_report.txt'), 'w', encoding='utf-8').write(fetch_report + '\n')
+        open(os.path.join(out_dir, 'fetch_report.txt'), 'w', encoding='utf-8').write(fetch_report + '\n')
     T0 = loader.make_theme(spec)
-    is_list = spec.get('template') == 'ranked_list'
+    is_list = spec.get('template') in ('ranked_list', 'tier_board')
 
     step('テーマの検証')
     narration_json = os.path.join(out_dir, 'narration.json')
@@ -69,7 +70,7 @@ def main(argv):
     import audio
     raw, final = os.path.join(out_dir, 'out.mp4'), os.path.join(out_dir, 'final.mp4')
     if is_list:
-        wav = audio.build_list(T, out_dir, voice=use_voice)
+        wav = (audio.build_tiers if T.layout == 'tiers' else audio.build_list)(T, out_dir, voice=use_voice)
         step('映像の書き出し（一覧型: %s）' % T.layout)
         import render_list
         render_list.render_video(raw, wav, render_list.init(T, geo_pkl))

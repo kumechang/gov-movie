@@ -27,7 +27,7 @@ source:
   fetch: estat
 verification: >-
   e-Stat の人口動態統計（確定数）から取得。47都道府県・全国値を、別の表（人口動態総覧）の合計特殊出生率と
-  全件突き合わせて一致を確認（src/fetch_estat.py。結果は build/tfr_2024/estat_report.txt）。
+  全件突き合わせて一致を確認（src/fetch_estat.py。結果は build/tfr_2024/fetch_report.txt）。
   注: 表の注記のとおり、全国値は母の年齢15〜49歳の各歳の出生率の合計、都道府県の値は5歳階級の出生率の5倍の合計
   （算出方法が少し違う）。全国値は表の全国行の値をそのまま使う。
 

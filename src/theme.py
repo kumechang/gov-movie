@@ -93,9 +93,11 @@ def post_md(T):
         return ''
     src = T.spec['source']
     desc = ' '.join(T.say(p['description']).split())
-    credits = ['出典：%s%s' % (src['name'], src.get('note', '')),
-               '地図：Natural Earth（パブリックドメイン）']
-    credits += list((src.get('license') or {}).get('credit_lines', []))
+    sub = lambda x: T.say(x) if '{' in x else x          # {asof} などの変数を使える
+    credits = ['出典：%s%s' % (src['name'], sub(src.get('note', '')))]
+    if getattr(T, 'uses_map', True):
+        credits.append('地図：Natural Earth（パブリックドメイン）')
+    credits += [sub(x) for x in (src.get('license') or {}).get('credit_lines', [])]
     if T.credit:
         credits.append('音声：' + T.credit)
     return '\n'.join([

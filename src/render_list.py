@@ -25,27 +25,120 @@ T = None
 P = None
 BG = None
 _cards = {}
+STYLE = {}
+FX = None                                 # 揺れ・フラッシュの設定（恐怖演出のとき）
+TITLE_COLOR = None
+BAR_BG, BAR_FILL = (40, 48, 90), (255, 255, 255)
+SRC_COLOR, SRC_COLOR2 = (150, 160, 200), (130, 140, 180)
 
 
 # ---------- 背景 ----------
+def _rgb(v, default):
+    return tuple(v) if v else default
+
+
 def build_bg():
+    st = STYLE
+    bg = st.get('bg') or {}
+    top = np.array(_rgb(bg.get('top'), tuple(BG_TOP.tolist())), dtype=float)
+    bot = np.array(_rgb(bg.get('bottom'), tuple(BG_BOT.tolist())), dtype=float)
     grad = np.linspace(0, 1, H)[:, None, None]
-    arr = (BG_TOP * (1 - grad) + BG_BOT * grad).astype(np.uint8)
-    im = Image.fromarray(np.repeat(arr, W, axis=1), 'RGB')
+    arr = (top * (1 - grad) + bot * grad)
+    arr = np.repeat(arr, W, axis=1)
+    if bg.get('fog'):                                  # 下から立ちのぼる赤い霧
+        fog = np.array(bg['fog'], dtype=float)
+        k = np.clip((np.linspace(0, 1, H) - (1 - float(bg.get('fog_height', 0.4)))) / float(bg.get('fog_height', 0.4)), 0, 1)[:, None, None] ** 1.6
+        arr = arr * (1 - 0.55 * k) + fog * 0.55 * k
+    if bg.get('vignette'):                             # 四隅を暗くする
+        yy, xx = np.mgrid[0:H, 0:W]
+        r = np.sqrt(((xx - W / 2) / (W / 2)) ** 2 + ((yy - H / 2) / (H / 2)) ** 2) / 1.41
+        v = 1 - float(bg['vignette']) * np.clip(r, 0, 1)[:, :, None] ** 2.2
+        arr = arr * v
+    if bg.get('grain'):                                # フィルムのざらつき（静止）
+        rng = np.random.default_rng(7)
+        arr = arr + rng.normal(0, float(bg['grain']) * 255, (H, W, 1))
+    im = Image.fromarray(np.clip(arr, 0, 255).astype(np.uint8), 'RGB')
     d = ImageDraw.Draw(im, 'RGBA')
     src = T.spec['source']
-    d.rounded_rectangle((330, 168, 750, 232), 32, fill=(255, 255, 255, 30), outline=(255, 255, 255, 70), width=2)
-    d.text((540, 200), T.say(T.spec['title_small']), font=F(34, 'Bold'), fill=(235, 240, 255), anchor='mm')
+    pill = st.get('pill') or {}
+    d.rounded_rectangle((330, 168, 750, 232), 32, fill=_rgb(pill.get('fill'), (255, 255, 255, 30)),
+                        outline=_rgb(pill.get('outline'), (255, 255, 255, 70)), width=2)
+    d.text((540, 200), T.say(T.spec['title_small']), font=F(34, 'Bold'), fill=_rgb(pill.get('text'), (235, 240, 255)), anchor='mm')
     title = T.say(T.spec['title'])
-    d.text((540, 282), title, font=fit_font(d, title, 100, 'Black', 960), fill=WHITE, anchor='mm', stroke_width=2, stroke_fill=NAVY)
+    tfont = fit_font(d, title, 100, 'Black', 960)
+    tcol = TITLE_COLOR or WHITE
+    if st.get('title_glow'):                           # タイトルの赤い光
+        glow = Image.new('RGB', im.size, (0, 0, 0))
+        ImageDraw.Draw(glow).text((540, 282), title, font=tfont, fill=tuple(st['title_glow']), anchor='mm', stroke_width=6)
+        glow = glow.filter(ImageFilter.GaussianBlur(18))
+        im = Image.fromarray(np.clip(np.asarray(im, dtype=float) + np.asarray(glow, dtype=float), 0, 255).astype(np.uint8), 'RGB')
+        d = ImageDraw.Draw(im, 'RGBA')
+    d.text((540, 282), title, font=tfont, fill=tcol, anchor='mm', stroke_width=3, stroke_fill=STROKE_COLOR())
+    if st.get('drips'):                                # 文字から血が滴る
+        bb = d.textbbox((540, 282), title, font=tfont, anchor='mm')
+        rng = np.random.default_rng(11)
+        base_y = bb[3] - 14
+        for x in sorted(rng.integers(bb[0] + 20, bb[2] - 20, 9)):
+            ln = int(rng.integers(16, 52))
+            wd = int(rng.integers(5, 9))
+            col = tuple(st['drips']) if isinstance(st['drips'], (list, tuple)) else tcol
+            d.rounded_rectangle((x - wd // 2, base_y, x + wd // 2, base_y + ln), wd // 2, fill=col + (235,))
+            d.ellipse((x - wd, base_y + ln - wd // 2, x + wd, base_y + ln + wd * 1.4), fill=col + (235,))
     sub = T.say(T.spec['subtitle'])
     d.text((540, 366), sub, font=fit_font(d, sub, 32, 'Bold', 960), fill=MUTED, anchor='mm')
-    d.text((540, 1578), '出典：' + src['name'], font=fit_font(d, '出典：' + src['name'], 26, 'Medium', 1000), fill=(150, 160, 200), anchor='mm')
+    d.text((540, 1578), '出典：' + src['name'], font=fit_font(d, '出典：' + src['name'], 26, 'Medium', 1000), fill=SRC_COLOR, anchor='mm')
     if src.get('note'):
-        d.text((540, 1612), src['note'], font=fit_font(d, src['note'], 24, 'Medium', 1000), fill=(130, 140, 180), anchor='mm')
+        note = T.say(src['note']) if '{' in src['note'] else src['note']
+        d.text((540, 1612), note, font=fit_font(d, note, 24, 'Medium', 1000), fill=SRC_COLOR2, anchor='mm')
     if T.credit:
-        d.text((540, 1650), '音声：' + T.credit, font=F(24, 'Medium'), fill=(130, 140, 180), anchor='mm')
+        d.text((540, 1650), '音声：' + T.credit, font=F(24, 'Medium'), fill=SRC_COLOR2, anchor='mm')
     return im
+
+
+def STROKE_COLOR():
+    return tuple(render.STROKE[:3])
+
+
+def apply_style(st):
+    """テーマの style を反映する（フォント・配色・パネル・揺れ）。style が無ければ標準の見た目"""
+    global STYLE, FX, TITLE_COLOR, BAR_BG, BAR_FILL, SRC_COLOR, SRC_COLOR2, WHITE, MUTED, YELLOW, NAVY
+    STYLE = st or {}
+    # 既定に戻す（テーマを続けて処理しても前のスタイルが残らないように）
+    WHITE, MUTED, YELLOW = (255, 255, 255), (170, 180, 215), (255, 213, 74)
+    NAVY = tuple(BG_TOP.tolist())
+    render.FONT_OVERRIDE.clear()
+    render._fc.clear()
+    render.PANEL_FILL, render.PANEL_OUTLINE, render.STROKE = (8, 12, 32, 222), (255, 255, 255, 40), (9, 14, 36, 255)
+    BAR_BG, BAR_FILL, SRC_COLOR, SRC_COLOR2, TITLE_COLOR, FX = (40, 48, 90), (255, 255, 255), (150, 160, 200), (130, 140, 180), None, None
+    if not STYLE:
+        return
+    root = os.path.join(HERE, '..')
+    for w, path in (STYLE.get('fonts') or {}).items():
+        fp = path if os.path.isabs(path) else os.path.join(root, path)
+        if os.path.exists(fp):
+            render.FONT_OVERRIDE[w] = fp
+        else:
+            print('注意: フォント %s が見つかりません。標準のフォントで書き出します（scripts/setup_fonts.sh で配置できます）' % path)
+    if STYLE.get('text'):
+        WHITE = tuple(STYLE['text'])
+    if STYLE.get('muted'):
+        MUTED = tuple(STYLE['muted'])
+        SRC_COLOR, SRC_COLOR2 = tuple(int(x * 0.9) for x in MUTED), tuple(int(x * 0.75) for x in MUTED)
+    if STYLE.get('accent'):
+        YELLOW = tuple(STYLE['accent'])
+    if STYLE.get('title_color'):
+        TITLE_COLOR = tuple(STYLE['title_color'])
+    pn = STYLE.get('panel') or {}
+    if pn.get('fill'):
+        render.PANEL_FILL = tuple(pn['fill'])
+    if pn.get('outline'):
+        render.PANEL_OUTLINE = tuple(pn['outline'])
+    if pn.get('stroke'):
+        render.STROKE = tuple(pn['stroke'])
+        NAVY = tuple(pn['stroke'][:3])
+    bar = STYLE.get('bar') or {}
+    BAR_BG, BAR_FILL = _rgb(bar.get('bg'), BAR_BG), _rgb(bar.get('fill'), BAR_FILL)
+    FX = STYLE.get('fx') or None
 
 
 # ---------- 部品 ----------
@@ -114,9 +207,9 @@ def dimmed(frame, k=0.35):
 
 def progress(frame, n, alpha=1.0):
     d = ImageDraw.Draw(frame, 'RGBA')
-    d.rounded_rectangle((54, 1534, 1026, 1546), 6, fill=(40, 48, 90, int(255 * alpha)))
+    d.rounded_rectangle((54, 1534, 1026, 1546), 6, fill=BAR_BG + (int(255 * alpha),))
     if n > 0:
-        d.rounded_rectangle((54, 1534, 54 + (1026 - 54) * n / len(T.SEQ), 1546), 6, fill=(255, 255, 255, int(255 * alpha)))
+        d.rounded_rectangle((54, 1534, 54 + (1026 - 54) * n / len(T.SEQ), 1546), 6, fill=BAR_FILL + (int(255 * alpha),))
 
 
 def hook_panel(f, t):
@@ -138,6 +231,29 @@ def current(t):
 
 def revealed(t):
     return sum(1 for sg in T.SEQ if sg['start'] <= t)
+
+
+def wrap_text(d, text, font, max_w):
+    """文字単位で折り返す（日本語向け）"""
+    lines, cur = [], ''
+    for ch in text:
+        if cur and d.textlength(cur + ch, font=font) > max_w:
+            lines.append(cur)
+            cur = ch
+        else:
+            cur += ch
+    if cur:
+        lines.append(cur)
+    return lines
+
+
+def why_color(tag):
+    """危険の種類ごとの色（紛争・テロ・犯罪・感染症…）"""
+    for keys, col in ((('紛争', '武力', '戦'), (205, 70, 70)), (('テロ',), (230, 125, 45)), (('誘拐',), (205, 70, 150)),
+                      (('ギャング', '犯罪', '凶悪', '麻薬'), (140, 80, 205)), (('感染', 'マラリア', '疫'), (50, 160, 120))):
+        if any(k in tag for k in keys):
+            return col
+    return (90, 110, 170)
 
 
 # ---------- grid ----------
@@ -382,13 +498,352 @@ class Steps:
         return f
 
 
-LAYOUT_CLASSES = {'grid': Grid, 'scroll': Scroll, 'steps': Steps}
+# ---------- tiers（段階ボード） ----------
+class Tiers:
+    """段階（レベル）ごとに、その段階の項目名をチップとして1つずつ並べる。最後は段階ごとの件数の一覧"""
+    HEAD_TOP, HEAD_H = AREA_TOP, 150
+    BOARD_TOP, BOARD_BOTTOM = AREA_TOP + 170, AREA_BOTTOM - 40
+    FOOT_Y = AREA_BOTTOM - 10
+
+    def __init__(self):
+        self._lay = {}
+
+    @staticmethod
+    def _on(col):
+        return (15, 20, 40) if sum(col) > 420 else WHITE
+
+    def header(self, tier, k=1.0):
+        key = ('head', tier['level'])
+        if key not in _cards:
+            col = tier['color']
+            on = self._on(col)
+            L = Image.new('RGBA', (1000, self.HEAD_H), (0, 0, 0, 0))
+            d = ImageDraw.Draw(L)
+            d.rounded_rectangle((0, 0, 999, self.HEAD_H - 1), 30, fill=col + (255,), outline=(255, 255, 255, 140), width=3)
+            d.text((34, 58), tier['title'], font=F(88), fill=on + (255,), anchor='lm')
+            text_fit(d, (36, 118), tier['sub'], 34, 'Bold', on + (235,), 620, anchor='lm')
+            cnt = str(tier['count'])
+            fn, fs = F(120), F(42, 'Bold')
+            w = d.textlength(cnt, font=fn) + 8 + d.textlength('か国', font=fs)
+            x = 966 - w
+            d.text((x, 70), cnt, font=fn, fill=on + (255,), anchor='lm')
+            d.text((x + d.textlength(cnt, font=fn) + 8, 96), 'か国', font=fs, fill=on + (255,), anchor='lm')
+            _cards[key] = L
+        L = _cards[key]
+        if k >= 1:
+            return L
+        im = L.copy()
+        im.putalpha(ImageChops.multiply(im.getchannel('A'), Image.new('L', im.size, int(255 * max(0.0, k)))))
+        return im
+
+    def layout(self, tier):
+        """チップの位置を最初に決める（文字サイズは、全部が領域に収まる最大にする）"""
+        if tier['level'] in self._lay:
+            return self._lay[tier['level']]
+        probe = ImageDraw.Draw(Image.new('RGB', (10, 10)))
+        avail_h = self.BOARD_BOTTOM - self.BOARD_TOP
+        names = [m['short'] for m in tier['members']]
+        for size in range(48, 27, -2):
+            pad, gap = int(size * 0.55), 12
+            h = int(size * 1.7)
+            ws = [int(probe.textlength(n, font=F(size, 'Bold'))) + 2 * pad for n in names]
+            rows, cur, curw = [], [], 0
+            for i, w in enumerate(ws):
+                add = w + (gap if cur else 0)
+                if cur and curw + add > 1000:
+                    rows.append(cur)
+                    cur, curw = [], 0
+                    add = w
+                cur.append(i)
+                curw += add
+            rows.append(cur)
+            if len(rows) * (h + gap) - gap <= avail_h:
+                break
+        pos = {}
+        total_h = len(rows) * (h + gap) - gap
+        y = self.BOARD_TOP + max(0, (avail_h - total_h) // 2)
+        for r in rows:
+            rw = sum(ws[i] for i in r) + gap * (len(r) - 1)
+            x = 40 + (1000 - rw) // 2
+            for i in r:
+                pos[i] = (x, y, ws[i], h)
+                x += ws[i] + gap
+            y += h + gap
+        self._lay[tier['level']] = (size, pos)
+        return self._lay[tier['level']]
+
+    def chip(self, tier, i, size, box):
+        key = ('chip', tier['level'], i)
+        if key not in _cards:
+            x, y, w, h = box
+            col = tier['color']
+            L = Image.new('RGBA', (w, h), (0, 0, 0, 0))
+            d = ImageDraw.Draw(L)
+            d.rounded_rectangle((0, 0, w - 1, h - 1), h // 2, fill=col + (240,), outline=(255, 255, 255, 120), width=2)
+            d.text((w / 2, h / 2 + 1), tier['members'][i]['short'], font=F(size, 'Bold'), fill=self._on(col) + (255,), anchor='mm')
+            _cards[key] = L
+        return _cards[key]
+
+    def legend(self, f, alpha):
+        """フック中に出す、段階の凡例（レベルの高い順）"""
+        if alpha <= 0:
+            return
+        d = ImageDraw.Draw(f, 'RGBA')
+        n = len(T.TIERS)
+        rh = min(118, (AREA_BOTTOM - AREA_TOP - 30) // n - 14)
+        top = AREA_TOP + 20
+        for i, tier in enumerate(reversed(T.TIERS)):
+            y = top + i * (rh + 14)
+            col = tier['color']
+            d.rounded_rectangle((40, y, 1040, y + rh), 26, fill=col + (int(200 * alpha),))
+            on = self._on(col)
+            tf = F(min(60, rh - 40))
+            d.text((74, y + rh / 2), tier['title'], font=tf, fill=on + (int(255 * alpha),), anchor='lm')
+            sx = 74 + int(d.textlength(tier['title'], font=tf)) + 28
+            text_fit(d, (sx, y + rh / 2), tier['sub'], 36, 'Bold', on + (int(255 * alpha),), 1010 - sx, anchor='lm')
+
+    def summary(self, f, alpha=1.0):
+        if T.subset:
+            return self.summary_chips(f)
+        d = ImageDraw.Draw(f, 'RGBA')
+        mx = max(t['count'] for t in T.TIERS)
+        n = len(T.TIERS)
+        rh = min(118, (AREA_BOTTOM - AREA_TOP - 30) // n - 14)
+        top = AREA_TOP + 20
+        for i, tier in enumerate(reversed(T.TIERS)):
+            y = top + i * (rh + 14)
+            col = tier['color']
+            on = self._on(col)
+            d.rounded_rectangle((40, y, 1040, y + rh), 26, fill=(14, 20, 48, 200), outline=(70, 82, 140, 200), width=2)
+            d.rounded_rectangle((52, y + 14, 330, y + rh - 14), 18, fill=col + (255,))
+            d.text((191, y + rh / 2), tier['title'], font=F(52), fill=on + (255,), anchor='mm')
+            blen = 40 + 520 * tier['count'] / mx
+            d.rounded_rectangle((350, y + 30, 350 + blen, y + rh - 30), 14, fill=col + (255,))
+            d.text((350 + blen + 16, y + rh / 2), '%dか国' % tier['count'], font=F(48), fill=WHITE + (255,), anchor='lm')
+
+    def summary_chips(self, f):
+        """指定した国すべてを、レベル別の行にして並べる（結果の一覧）"""
+        d = ImageDraw.Draw(f, 'RGBA')
+        probe = d
+        fs, pad, gap, ch = 34, 18, 10, 56
+        y = AREA_TOP + 4
+        for tier in reversed(T.TIERS):
+            col = tier['color']
+            on = self._on(col)
+            names = [m['short'] for m in tier['members']]
+            rows, cur, curw = [], [], 0
+            for n in names:
+                w = int(probe.textlength(n, font=F(fs, 'Bold'))) + 2 * pad
+                add = w + (gap if cur else 0)
+                if cur and curw + add > 790:
+                    rows.append(cur)
+                    cur, curw, add = [], 0, w
+                cur.append((n, w))
+                curw += add
+            rows.append(cur)
+            h = len(rows) * (ch + gap) - gap
+            d.rounded_rectangle((40, y, 1040, y + h + 24), 24, fill=(14, 20, 48, 190), outline=col + (200,), width=3)
+            d.rounded_rectangle((52, y + 12, 250, y + 12 + h), 18, fill=col + (255,))
+            size = 44
+            while size > 22 and d.textlength(tier['title'], font=F(size)) > 180:     # 長い見出しは枠に収まるまで縮める
+                size -= 2
+            d.text((151, y + 12 + h / 2), tier['title'], font=F(size), fill=on + (255,), anchor='mm')
+            yy = y + 12
+            for r in rows:
+                x = 270
+                for n, w in r:
+                    d.rounded_rectangle((x, yy, x + w, yy + ch), ch // 2, fill=col + (235,))
+                    d.text((x + w / 2, yy + ch / 2 + 1), n, font=F(fs, 'Bold'), fill=on + (255,), anchor='mm')
+                    x += w + gap
+                yy += ch + gap
+            y += h + 24 + 14
+
+    def footnote(self, f):
+        if T.footnote:
+            d = ImageDraw.Draw(f, 'RGBA')
+            text_fit(d, (540, self.FOOT_Y), T.footnote, 28, 'Medium', (170, 180, 215, 255), 1000)
+
+    def unknown_chip(self, tier, i, box):
+        key = ('unk', tier['level'], i)
+        if key not in _cards:
+            x, y, w, h = box
+            L = Image.new('RGBA', (w, h), (0, 0, 0, 0))
+            d = ImageDraw.Draw(L)
+            d.rounded_rectangle((0, 0, w - 1, h - 1), h // 2, fill=(16, 22, 52, 170), outline=(80, 92, 150, 200), width=2)
+            d.text((w / 2, h / 2 + 1), '？', font=F(int(h * 0.6), 'Bold'), fill=(90, 102, 160, 230), anchor='mm')
+            _cards[key] = L
+        return _cards[key]
+
+    def spotlight(self, f, sg, it, a):
+        """1か国をじっくり見せる: 国名 →「？」→ レベル・地域・危険の理由 を順に出す"""
+        tier, m = sg['tier'], it['member']
+        col = tier['color']
+        on = self._on(col)
+        d = ImageDraw.Draw(f, 'RGBA')
+        k0 = ease(a / 0.3)
+        # 国名
+        name_font = fit_font(d, m['short'], 170, 'Black', 960)
+        d.text((540, self.BOARD_TOP + 110 - (1 - k0) * 30), m['short'], font=name_font, fill=WHITE + (int(255 * k0),), anchor='mm',
+               stroke_width=3, stroke_fill=NAVY + (255,))
+        reveal = 1.0
+        if a < reveal:
+            blink = 0.65 + 0.35 * math.sin(a * 10)
+            d.text((540, self.BOARD_TOP + 330), 'レベルは？', font=F(130, 'Accent'), fill=YELLOW + (int(255 * k0 * blink),), anchor='mm')
+            return
+        r = a - reveal
+        kb = ease(r / 0.35)
+        by = self.BOARD_TOP + 255
+        bw = 880
+        d.rounded_rectangle((540 - bw / 2, by - 55, 540 + bw / 2, by + 55), 30, fill=col + (int(255 * kb),), outline=(255, 255, 255, int(180 * kb)), width=3)
+        d.text((540, by + 2), '%s の地域を含む' % tier['title'], font=F(64), fill=on + (int(255 * kb),), anchor='mm')
+        y = by + 100
+        # どこ？
+        if m.get('where'):
+            kw = ease((r - 0.35) / 0.35)
+            d.text((60, y), 'どこ？', font=F(34, 'Bold'), fill=(170, 180, 215, int(255 * kw)), anchor='lm')
+            wf = F(46, 'Bold')
+            lines = wrap_text(d, m['where'], wf, 940)[:3]
+            for i, ln in enumerate(lines):
+                d.text((60, y + 50 + i * 58), ln, font=wf, fill=WHITE + (int(255 * kw),), anchor='lm')
+            y += 50 + len(lines) * 58 + 22
+        # 何が危ない？
+        if m.get('why'):
+            d.text((60, y), '何が危ない？', font=F(34, 'Bold'), fill=(170, 180, 215, int(255 * ease((r - 0.7) / 0.3))), anchor='lm')
+            y += 56
+            for i, w in enumerate(m['why'][:3]):
+                kw = ease((r - 0.9 - i * 0.4) / 0.35)
+                if kw <= 0:
+                    continue
+                tc = why_color(w.get('tag', ''))
+                tag = w.get('tag', '')
+                tf = F(34, 'Bold')
+                tw = int(d.textlength(tag, font=tf)) + 36
+                avail = 1020 - (60 + tw + 18)
+                for size in (40, 36, 32):
+                    bf = F(size, 'Bold')
+                    lines = wrap_text(d, w['text'], bf, avail)
+                    if len(lines) <= 2:
+                        break
+                rh = max(62, 46 * len(lines) + 16)
+                d.rounded_rectangle((60, y, 60 + tw, y + 58), 29, fill=tc + (int(255 * kw),))
+                d.text((60 + tw / 2, y + 30), tag, font=tf, fill=WHITE + (int(255 * kw),), anchor='mm')
+                for j, ln in enumerate(lines[:2]):
+                    d.text((60 + tw + 18, y + 24 + j * 46), ln, font=bf, fill=WHITE + (int(255 * kw),), anchor='lm')
+                y += rh + 14
+        # ほかの地域のレベル
+        for i, al in enumerate(m.get('also', [])[:2]):
+            kw = ease((r - 2.2 - i * 0.3) / 0.35)
+            if kw <= 0:
+                continue
+            lc = next((t['color'] for t in T.TIERS if t['level'] == al['level']), (170, 180, 215))
+            txt = 'レベル%d：%s' % (al['level'], al['where'])
+            lf = F(34, 'Bold')
+            for j, ln in enumerate(wrap_text(d, txt, lf, 940)[:2]):
+                d.text((60, y + 10 + j * 44), ln, font=lf, fill=lc + (int(255 * kw),), anchor='lm')
+            y += 12 + 44 * min(2, len(wrap_text(d, txt, lf, 940)))
+
+    def events(self):
+        """揺れ・フラッシュが入る時刻 [(開始, 長さ, 揺れの強さ, フラッシュの強さ)]。レベル3以上の発表と、レベルが明かされる瞬間"""
+        if not hasattr(self, '_events'):
+            ev = []
+            for sg in T.SEQ:
+                if sg['level'] >= 3:
+                    ev.append((sg['start'], 0.6, 0.5, 0.5))
+                for it in sg['items']:
+                    if sg['tier']['spotlight']:
+                        ev.append((it['start'] + 1.0, 0.55, 1.3 if sg['level'] >= 4 else 1.0, 1.0))
+            self._events = ev
+        return self._events
+
+    def post(self, f, t):
+        """恐怖演出: レベルが明かされる瞬間に、画面を揺らし、赤くフラッシュさせる（点滅の繰り返しはしない）"""
+        if not FX:
+            return f
+        amp = flash = 0.0
+        for t0, dur, a, fl in self.events():
+            if t0 <= t < t0 + dur:
+                k = 1 - (t - t0) / dur
+                amp, flash = max(amp, a * k), max(flash, fl * k)
+        if amp > 0:
+            sh = float(FX.get('shake', 14)) * amp
+            dx, dy = int(round(sh * math.sin(t * 97))), int(round(sh * math.cos(t * 83)))
+            g = Image.new('RGB', f.size, NAVY)
+            g.paste(f, (dx, dy))
+            f = g
+        if flash > 0:
+            f = Image.blend(f, Image.new('RGB', f.size, tuple(FX.get('flash', (170, 0, 10)))), flash * float(FX.get('flash_alpha', 0.35)))
+        return f
+
+    def frame(self, t):
+        return self.post(self._frame(t), t)
+
+    def _frame(self, t):
+        f = BG.copy()
+        if t < T.T_HOOK:
+            self.legend(f, 0.55)
+            hook_panel(f, t)
+            progress(f, 0, 0.5)
+            self.footnote(f)
+            return f
+        cur = current(t)
+        if cur is None and t < T.T_COUNT_END:                # 段階の間（通常は起きないが念のため）
+            cur = (len(T.SEQ) - 1, T.SEQ[-1], 0.0)
+        if cur is not None:
+            idx, sg, a = cur
+            tier = sg['tier']
+            hd = self.header(tier, a / 0.3)
+            f.paste(hd, (40, self.HEAD_TOP), hd)
+            active = None
+            if tier['spotlight']:
+                active = next((it for it in sg['items'] if it['start'] <= t < it['start'] + it['dur']), None)
+            if active is not None:
+                self.spotlight(f, sg, active, t - active['start'])
+            elif tier['names']:
+                size, pos = self.layout(tier)
+                for i, it in enumerate(sg['items']):
+                    box = pos[i]
+                    if it['start'] > t:
+                        if tier['spotlight']:
+                            ch = self.unknown_chip(tier, i, box)
+                            f.paste(ch, (box[0], box[1]), ch)
+                        continue
+                    ch = self.chip(tier, i, size, box)
+                    k = (t - it['start']) / 0.22
+                    pop(f, ch, box[0] + box[2] / 2, box[1] + box[3] / 2, k)
+                    if t - it['start'] < 0.5 and not tier['spotlight']:
+                        d = ImageDraw.Draw(f, 'RGBA')
+                        d.rounded_rectangle((box[0] - 3, box[1] - 3, box[0] + box[2] + 3, box[1] + box[3] + 3), box[3] // 2 + 3,
+                                            outline=(255, 255, 255, int(255 * (1 - (t - it['start']) / 0.5))), width=4)
+            else:
+                d = ImageDraw.Draw(f, 'RGBA')
+                k = ease((a - sg['intro'] + 0.6) / 0.5)
+                cnt = '%d' % tier['count']
+                d.text((540, self.BOARD_TOP + 300), cnt, font=F(360), fill=tier['color'] + (int(255 * k),), anchor='mm')
+                d.text((540, self.BOARD_TOP + 560), 'か国', font=F(100, 'Bold'), fill=WHITE + (int(255 * k),), anchor='mm')
+                note = T.spec.get('names_note')
+                if note:
+                    text_fit(d, (540, self.BOARD_TOP + 700), note, 34, 'Medium', (170, 180, 215, int(255 * k)), 960)
+            progress(f, revealed(t))
+            self.footnote(f)
+            return f
+        # アウトロ: 結果の一覧 ＋ CTA
+        self.summary(f)
+        if not T.subset:
+            f = dimmed(f, 0.38)
+        panel(f, T.cta_panel, 1225 if T.subset else MAP_TOP + 410, ease((t - T.T_COUNT_END) / 0.4), gap=14)
+        progress(f, len(T.SEQ))
+        self.footnote(f)
+        return f
+
+
+LAYOUT_CLASSES = {'grid': Grid, 'scroll': Scroll, 'steps': Steps, 'tiers': Tiers}
 
 
 def init(theme_obj, geo_path=None):
     global T, P, BG
     T = theme_obj
     _cards.clear()
+    apply_style(getattr(T, 'style', None))
     P = None
     if T.is_pref:
         P = pickle.load(open(geo_path, 'rb'))['prefs']

@@ -25,15 +25,25 @@ def synthesize(T, out_dir, vv):
     from voicevox_core.blocking import Onnxruntime, OpenJtalk, Synthesizer, VoiceModelFile
     style = int(T.voice.get('style_id', 2))
     speed = float(T.voice.get('speed', 1.28))
+    pitch = T.voice.get('pitch')            # 音の高さ（-0.15〜0.15 くらい。低いほど不穏な声）
+    intonation = T.voice.get('intonation')  # 抑揚（1.0 が標準。小さいほど平坦）
     ort = Onnxruntime.load_once(filename=find_onnxruntime(vv))
     syn = Synthesizer(ort, OpenJtalk(glob.glob(vv + '/dic/open_jtalk_dic_utf_8-*')[0]))
-    with VoiceModelFile.open(vv + '/0.vvm') as m:
-        syn.load_voice_model(m)
+    for n in T.voice.get('vvm', [0]):       # 使う音声モデル（tts/vv/<n>.vvm）。0 は標準で入っている
+        path = '%s/%d.vvm' % (vv, int(n))
+        if not os.path.exists(path):
+            raise SystemExit('音声モデル %s がありません。scripts/setup_voicevox.sh（EXTRA_VVM=%d）で配置してください' % (path, int(n)))
+        with VoiceModelFile.open(path) as m:
+            syn.load_voice_model(m)
     os.makedirs(os.path.join(out_dir, 'narr'), exist_ok=True)
     out = {}
     for key, text in T.narration_lines().items():
         q = syn.create_audio_query(text, style)
         q.speed_scale = speed
+        if pitch is not None:
+            q.pitch_scale = float(pitch)
+        if intonation is not None:
+            q.intonation_scale = float(intonation)
         q.pre_phoneme_length = 0.05
         q.post_phoneme_length = 0.12
         wav = syn.synthesis(q, style)

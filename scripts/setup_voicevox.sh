@@ -20,6 +20,10 @@ curl -fsSL -o "$VV/0.vvm" "$VVM/0.vvm"
 curl -fsSL -o "$VV/TERMS.txt" "$VVM/TERMS.txt"
 tar xzf tts/dl/ort.tgz -C "$VV/ort"
 tar xzf tts/dl/dic.tar.gz -C "$VV/dic"
+# 追加の音声モデル（例: EXTRA_VVM="1" で 冥鳴ひまり。1=冥鳴ひまり, 2=九州そら, 3=波音リツ・中国うさぎ。各約60MB）
+for n in ${EXTRA_VVM:-}; do
+  curl -fsSL -o "$VV/$n.vvm" "$VVM/$n.vvm"
+done
 python3 -m pip install -q "tts/dl/$WHL"
 python3 -c "import voicevox_core; print('voicevox_core OK')"
 echo "配置完了: $VV （規約: $VV/TERMS.txt）"
