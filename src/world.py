@@ -66,3 +66,47 @@ def country_silhouette(iso, box_w, box_h, margin=0, ss=2, bbox=None):
                 d.polygon(xy, fill=255 if i == 0 else 0)
     mask = big.resize((box_w, box_h), Image.LANCZOS)
     return mask, proj
+
+
+def _rings(iso):
+    feats = _load()
+    g = feats[iso]['geometry']
+    polys = g['coordinates'] if g['type'] == 'MultiPolygon' else [g['coordinates']]
+    return [ring for poly in polys for ring in poly[:1]]
+
+
+def _densify(ring, step_km):
+    out = []
+    for (x0, y0), (x1, y1) in zip(ring, ring[1:]):
+        d = math.hypot((x1 - x0) * math.cos(math.radians((y0 + y1) / 2)) * 111.32, (y1 - y0) * 110.57)
+        n = max(1, int(d / step_km))
+        out += [(x0 + (x1 - x0) * i / n, y0 + (y1 - y0) * i / n) for i in range(n)]
+    return out
+
+
+def border_runs(iso_a, iso_b, near_km=4.0, step_km=3.0):
+    """2つの国の国境線（iso_a の国境線のうち、iso_b の国境線から near_km 以内の部分）を、[経度, 緯度] の折れ線のリストで返す。
+    「国境から30km以内」のような、距離で決まる危険地域を、国境線のデータから描くために使う（Natural Earth 50m。国境線は目安）"""
+    import numpy as np
+    b_pts = np.array([p for ring in _rings(iso_b) for p in _densify(ring, step_km * 2)])
+    runs = []
+    for ring in _rings(iso_a):
+        pts = _densify(ring, step_km)
+        arr = np.array(pts)
+        near = np.zeros(len(arr), dtype=bool)
+        for i in range(0, len(arr), 400):
+            chunk = arr[i:i + 400]
+            dx = (chunk[:, None, 0] - b_pts[None, :, 0]) * math.cos(math.radians(chunk[:, 1].mean())) * 111.32
+            dy = (chunk[:, None, 1] - b_pts[None, :, 1]) * 110.57
+            near[i:i + 400] = (np.sqrt(dx ** 2 + dy ** 2).min(axis=1) <= near_km)
+        cur = []
+        for pt, n in zip(pts, near):
+            if n:
+                cur.append((float(pt[0]), float(pt[1])))
+            else:
+                if len(cur) > 1:
+                    runs.append(cur)
+                cur = []
+        if len(cur) > 1:
+            runs.append(cur)
+    return runs

@@ -159,6 +159,9 @@ class PlaceRisk(rl.Tiers):
             layer.paste(Image.new('RGBA', mask.size, (214, 40, 52, 255)), (0, 0), edge.filter(ImageFilter.GaussianBlur(7)).point(lambda v: min(255, int(v * 1.6))))
             layer.paste(Image.new('RGBA', mask.size, (255, 96, 104, 255)), (0, 0), edge.point(lambda v: int(v * 0.8)))
             self.cache['map'] = (layer, proj)
+            full = Image.new('L', (W, H), 0)                       # 国の形（全画面の位置）。国境から○km以内の地域を、国の内側だけに切り取るのに使う
+            full.paste(mask, (x0, y0))
+            self.cache['mask'] = full
         return self.cache['map']
 
     def to_px(self, lonlat):
@@ -185,7 +188,12 @@ class PlaceRisk(rl.Tiers):
             d.line(pts, fill=col + (190,), width=wd, joint='curve')
             for p in (pts[0], pts[-1]):
                 d.ellipse((p[0] - wd / 2, p[1] - wd / 2, p[0] + wd / 2, p[1] + wd / 2), fill=col + (190,))
+        if r.get('clip'):
+            self.map_base()
+            lay.putalpha(ImageChops.multiply(lay.getchannel('A'), self.cache['mask']))
         glow = lay.filter(ImageFilter.GaussianBlur(16))
+        if r.get('clip'):
+            glow.putalpha(ImageChops.multiply(glow.getchannel('A'), self.cache['mask'].filter(ImageFilter.MaxFilter(5))))
         pulse = 0.75 + 0.25 * math.sin(t * 5)
         glow.putalpha(glow.getchannel('A').point(lambda v: min(255, int(v * 1.5 * pulse))))
         return Image.alpha_composite(glow, lay)
@@ -211,10 +219,9 @@ class PlaceRisk(rl.Tiers):
         lay = layer.copy()
         lay.putalpha(ImageChops.multiply(lay.getchannel('A'), Image.new('L', lay.size, int(255 * km))))
         f.paste(lay, (MAP_RECT[0], MAP_RECT[1]), lay)
-        for sg in T.MAP_SEGS:
-            if sg['kind'] == 'region' and sg['start'] <= t:
-                img = self.region_layer(sg['region'], (t - sg['start']) / 0.5, t)
-                f.paste(img, (0, 0), img)
+        for sg in sorted((x for x in T.MAP_SEGS if x['kind'] == 'region' and x['start'] <= t), key=lambda x: x['region']['level']):   # レベルの低い地域から重ねる
+            img = self.region_layer(sg['region'], (t - sg['start']) / 0.5, t)
+            f.paste(img, (0, 0), img)
         d = ImageDraw.Draw(f, 'RGBA')
         for sg in T.MAP_SEGS:
             r = sg.get('region')
@@ -267,7 +274,7 @@ class PlaceRisk(rl.Tiers):
         y = INFO_TOP + 220 + 70 * (len(wl) - 1) + 62
         if r.get('note'):
             kn = ease((a - 1.2) / 0.4)
-            nf = F(38, 'Bold')
+            nf = F(34, 'Bold')
             nl = rl.wrap_text(d, r['note'], nf, 960)[:3]
             for i, ln in enumerate(nl):
                 d.text((60, y + i * 48), ln, font=nf, fill=rl.MUTED + (int(255 * kn),), anchor='lm')

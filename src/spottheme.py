@@ -12,6 +12,7 @@
 import math
 
 import theme
+import world
 from theme import ThemeError, _Vars
 from tiertheme import TierTheme
 
@@ -86,6 +87,13 @@ class SpotTheme(TierTheme):
             for k in ('level', 'where'):
                 self._need(r, k, 'regions[].')
             self.regions.append(dict(r, color=LEVEL_COLORS[r['level']], sub=LEVEL_SUB[r['level']]))
+        for r in self.regions:                         # 国境からの距離で決まる地域（例: タイ国境から30km以内）は、国境線のデータから帯を作る
+            b = r.get('border')
+            if b:
+                runs = world.border_runs(self.country['iso'], b['with'])
+                if not runs:
+                    raise ThemeError('地域「%s」: %s との国境線が見つかりません' % (r['where'], b['with']))
+                r.update(bands=[[list(p) for p in run] for run in runs], width_km=2 * float(b['km']), clip=True, edge_km=float(b['km']))
         self.danger = [r for r in self.regions if r.get('bands')]
         for r in self.danger:
             if not r.get('say'):
@@ -115,6 +123,12 @@ class SpotTheme(TierTheme):
             else:
                 raise ThemeError('places[%d] %s に region / in_region / absent のどれかを書いてください' % (i, p['name']))
             self.places.append(q)
+        border_pts = [tuple(pt) for r in self.regions if r.get('border') for run in r['bands'] for pt in run]
+        for p in self.places:                          # 国境までの距離（地図上の概算）。in_region の主張が、距離と食い違わないことも確かめる
+            p['border_km'] = min((_km(p['marker'], pt) for pt in border_pts), default=None)
+            if p['status'] == 'in_region' and p['rg'].get('border') and p['border_km'] > p['rg']['edge_km']:
+                raise ThemeError('places %s: 国境まで約%dkm あり、「%s」（国境から%skm以内）の中とは言えません（座標か地域を確かめてください）'
+                                 % (p['name'], p['border_km'], p['rg']['where'], p['rg']['border']['km']))
         names = [p['name'] for p in self.places]
         if len(set(names)) != len(names):
             raise ThemeError('places の name が重複しています: %s' % names)
@@ -143,8 +157,20 @@ class SpotTheme(TierTheme):
             targets = [r for r in self.danger if r['level'] == int(d['level'])]
             if not targets:
                 raise ThemeError('distance.level=%s の危険地域がありません' % d['level'])
-            best = min(((_km(src['marker'], pt), pt) for r in targets for b in r['bands'] for pt in _dense(b)), key=lambda x: x[0])
-            self.dist = dict(src=src, level=int(d['level']), km=best[0], point=best[1], km_round=int(round(best[0] / 50.0)) * 50)
+            cand = []
+            for r in targets:
+                for b in r['bands']:
+                    for pt in _dense(b):
+                        cand.append((_km(src['marker'], pt) - r.get('edge_km', 0.0), pt, r))
+            d_edge, pt, r = min(cand, key=lambda x: x[0])
+            d_edge = max(0.0, d_edge)
+            d_all = d_edge + r.get('edge_km', 0.0)
+            k = (d_edge / d_all) if d_all else 0.0                # 国境線の点ではなく、地域の縁（国境から edge_km の手前）まで線を引く
+            end = (src['marker'][0] + (pt[0] - src['marker'][0]) * (1 - (r.get('edge_km', 0.0) / d_all if d_all else 0)),
+                   src['marker'][1] + (pt[1] - src['marker'][1]) * (1 - (r.get('edge_km', 0.0) / d_all if d_all else 0)))
+            step = float(d.get('round', 50))
+            self.dist = dict(src=src, level=int(d['level']), km=d_edge, point=end, km_round=int(round(d_edge / step)) * int(step))
+
         self.scenes = list(self._need(s, 'scenes'))
         for i, sc in enumerate(self.scenes):
             for k in ('kind', 'tag', 'name', 'say'):
@@ -166,6 +192,17 @@ class SpotTheme(TierTheme):
         self.subset = True
 
     def _vars(self):
+        self._vars0()
+        v = self.V
+        for i, p in enumerate(self.places):
+            if p.get('border_km') is not None:
+                v['border_km_%d' % i] = int(round(p['border_km'] / 5.0)) * 5
+        for sc in self.scenes:                         # 場面の文言でも、{border_km_0} のような変数が使える
+            for k in ('lines', 'photo_note', 'source_line'):
+                if sc.get(k):
+                    sc[k] = [self.say(x) for x in sc[k]] if isinstance(sc[k], list) else self.say(sc[k])
+
+    def _vars0(self):
         rd = self.country.get('risk_date') or ''
         v = _Vars(asof=self.asof, risk_date=('%s年%d月%d日' % (rd[:4], int(rd[5:7]), int(rd[8:10]))) if rd else '不明', country=self.country['short'], level=self.level,
                   n_scenes=len(self.scenes), dist_km=('{:,}'.format(self.dist['km_round']) if self.dist else ''))
