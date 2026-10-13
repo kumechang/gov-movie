@@ -35,17 +35,19 @@ def _polys(feature):
     return [[[((x + 360 if wrap and x < 0 else x), y) for x, y in ring] for ring in poly] for poly in polys]
 
 
-def country_silhouette(iso, box_w, box_h, margin=0, ss=2):
-    """国の形を box_w×box_h に収めた RGBA 画像（白＋不透明度）と、(lon, lat) → 画像内の座標 の関数を返す"""
+def country_silhouette(iso, box_w, box_h, margin=0, ss=2, bbox=None):
+    """国の形を box_w×box_h に収めた画像（マスク）と、(lon, lat) → 画像内の座標 の関数を返す。
+    bbox=[経度の最小, 緯度の最小, 経度の最大, 緯度の最大] を渡すと、国全体ではなく、その範囲だけを拡大して収める（国の一部の地域を見せたいとき）"""
     feats = _load()
     if iso not in feats:
         raise KeyError('国 %s が地図データにありません' % iso)
     polys = _polys(feats[iso])
     pts = [pt for poly in polys for ring in poly for pt in ring]
-    lat0 = (min(y for _, y in pts) + max(y for _, y in pts)) / 2
+    ex = pts if bbox is None else [(bbox[0], bbox[1]), (bbox[2], bbox[3])]      # 範囲の計算に使う点（bbox があれば、その2隅）
+    lat0 = (min(y for _, y in ex) + max(y for _, y in ex)) / 2
     kx = math.cos(math.radians(lat0))
-    minx, maxx = min(x for x, _ in pts) * kx, max(x for x, _ in pts) * kx
-    miny, maxy = -max(y for _, y in pts), -min(y for _, y in pts)
+    minx, maxx = min(x for x, _ in ex) * kx, max(x for x, _ in ex) * kx
+    miny, maxy = -max(y for _, y in ex), -min(y for _, y in ex)
     k = min((box_w - 2 * margin) / (maxx - minx), (box_h - 2 * margin) / (maxy - miny))
     ox = (box_w - (maxx - minx) * k) / 2 - minx * k
     oy = (box_h - (maxy - miny) * k) / 2 - miny * k

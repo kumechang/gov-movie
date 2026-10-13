@@ -261,11 +261,15 @@ def check_members(spec, c, verified, excluded, problems):
                                 % (m['label'], rg['where'], rg['level']))
             if rg.get('note') and _squash(rg['note']) not in _squash(info.get('body', '')):
                 problems.append('%s: 地域「%s」の note「%s」が、公式ページの本文にそのまま出てきません' % (m['label'], rg['where'], rg['note']))
+        for ab in m.get('absent_places', []):        # 「危険レベルの節に載っていない場所」: 地名が節に出てこないこと
+            hit = [n for n in ab['names'] if _squash(n) in _squash(info.get('section', ''))]
+            if hit:
+                problems.append('%s: %s は「危険レベル」の節に載っていません、と言えません（%s が出てきます）' % (m['label'], ab['place'], '、'.join(hit)))
         for w in m.get('why', []):
             ev = w.get('evidence', '')
             if not ev or _squash(ev) not in _squash(info.get('body', '')):
                 problems.append('%s: why「%s」の根拠の文言「%s」が、公式ページの本文に出てきません' % (m['label'], w.get('text'), ev))
-        lines.append('  %s: レベル%d%s' % (m['label'], r['level'], '（地域・理由の文言を公式ページ本文と照合済み）' if m.get('where') or m.get('why') else ''))
+        lines.append('  %s: レベル%d%s' % (m['label'], r['level'], '（地域・理由の文言を公式ページ本文と照合済み）' if m.get('where') or m.get('why') or m.get('regions') else ''))
     return lines
 
 

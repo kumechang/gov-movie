@@ -111,27 +111,30 @@ estat:
 
 ## 場所と危険情報（`template: place_vs_risk`）
 
-1か国の「人気の街」の根拠を見せたあと、外務省の危険情報を地図で見比べる型。「◯◯だけど危険な国」シリーズの1本ずつ版。
-実例: [turkey_place_risk.yaml](../themes/turkey_place_risk.yaml)（トルコ × イスタンブール）
+人気の場所（観光地・名物）の魅力を、根拠つきで見せたあと、外務省の危険情報を地図で見比べる型。「◯◯だけど危険な国」シリーズの1本ずつ版。
+実例: [turkey_place_risk.yaml](../themes/turkey_place_risk.yaml)（「危険と隣り合わせの観光地帯」: トルコ南東部のガジアンテプ・シャンルウルファ・ディヤルバクル）
 
-流れ: フック → 人気の根拠の場面（写真・落ち着いた配色。`calm_style`）→ ターン（背景と音が赤黒の恐怖演出に切り替わる）→ 危険情報の地域を地図に出す（レベルの高い順）→ 人気の街のレベル → 注意点 → 結び → CTA。
-大事な点: **人気の場所が危険情報の対象かどうかを、必ず明示する**（並べるだけだと「あの夜景も危ない」と誤解される）。`regions` に人気の街が属する地域（`place: true`）を1つ入れ、そのレベルを見せる。
+流れ: フック → 魅力の場面（写真・落ち着いた配色。場所は右上の小さな地図で示す。`calm_style`）→ ターン（背景と音が赤黒の恐怖演出に切り替わる）→ 危険情報の地域を地図に出す（レベルの高い順）→ 人気の場所が属する地域のレベル →（任意: 距離・載っていない場所・注意点）→ 結び → CTA。
+大事な点: **人気の場所が危険情報の対象かどうか（どの地域にあるか）を、必ず明示する**（並べるだけだと誤解される）。「遠い場所」を紹介するなら、距離や「載っていない」ことも検証して見せる。
 
 検証（どれか1つでも通らないと止まる）:
-- **危険情報**（`src/mofa.py`）: `members[].regions[].where` が公式の「危険レベル」の節にそのレベルで出てくること。`note` と `why[].evidence` が公式ページ本文にそのまま出てくること。
-- **人気の根拠**（`src/facts.py`）: Wikidata（CC0）の主張と ja.wikipedia の本文の両方で一致したものだけ使う。世界遺産・無形文化遺産は指定先（`designation`）と登録年、映画は撮影場所（`place.wikidata`）と公開年を確認する。結果は `build/<id>/fetch_report.txt`。
-- **写真**: Wikimedia Commons の API でライセンスを確認する。**CC0 / パブリックドメイン / CC BY だけ**使う（CC BY-SA・NC・ND は使わない）。作者・ライセンスが画面と post.md に出る。`photo.must_mention`（例 night）で、ファイル名・説明・カテゴリに語が出てくることも確認できる。
-- Wikimedia の API は回数制限が厳しい（429）。間隔をあけて取得し、`build/facts_cache.json`（事実）と `build/images/`（写真）に残す。2回目以降はネットワーク不要。
+- **危険情報**（`src/mofa.py`）: `members[0].regions[].where` が公式の「危険レベル」の節にそのレベルで出てくること。`note` と `why[].evidence` が公式ページ本文にそのまま出てくること。`absent_places` の地名が節に出てこないこと。全角・半角の違いはそろえて比べる。
+- **魅力の根拠**（`src/facts.py`）: 世界遺産・無形文化遺産は、Wikidata（CC0）の指定先（`designation`）と登録年に加えて、ja.wikipedia の本文に年と「世界遺産」が出てくること（Wikidata に ja の記事が結び付いていないときは `wp_title` で記事名を指定）。映画は撮影場所と公開年。Wikidata に項目が無いもの（`kind: ich` / `wikipedia`）は、ja と en の Wikipedia 2記事の本文で確かめる（同じ Wikipedia の別言語版で、独立した2系統とは言えない。報告に残る。UNESCO の公式サイトはボット対策で自動取得できない）。
+- **写真**: Wikimedia Commons でライセンスを確認する。**CC0 / パブリックドメイン / CC BY だけ**使う（CC BY-SA・NC・ND は使わない）。作者・ライセンスが画面と post.md に出る。`photo.must_mention`（例 night）で、ファイル名・説明・カテゴリに語が出てくることも確認できる。
+- Wikimedia は回数制限（429）が厳しい。API は1回失敗したらその実行では使わず、ヘッドレス Chromium（`src/browser.py`）で通常のページ（Special:EntityData・記事・ファイルページ）を読む。写真は標準サイズのサムネイルを取る（元画像は Retry-After が10分になることがある）。結果は `build/facts_cache.json`（事実）と `build/images/`（写真）に残り、2回目以降はネットワーク不要。
 
 | 項目 | 内容 |
 |---|---|
-| `members[0]` | 対象の国 1 件。`code` `label` `iso`（国の形）`why`（注意点 `[{tag, text, evidence}]`）`regions` |
-| `members[0].regions[]` | 地図に出す地域。`level` `where`（公式ページの文言）`say`（読み上げ）。危険な地域は `bands`（地図上のおおよその位置 `[[[経度,緯度],...],...]`。点が1つなら円 `radius_km`、2点以上なら帯 `width_km`）と `label_at`（レベルのチップの位置）、`note`（公式ページ本文の文言。任意）。人気の街の地域は `place: true` |
-| `place` | `name` `wikidata`（街の Q-id。映画の撮影場所の照合に使う）`marker`（`[経度, 緯度]`） |
-| `scenes[]` | 人気の根拠。`kind`: `heritage`（世界遺産）/ `ich`（無形文化遺産）/ `film`（映画のロケ地。`films: [{wikidata, name, year}]`）/ `night`（写真のみ。人気や順位の主張はしない）。`tag` `name` `headline` `lines` `say` `photo.file`（Commons のファイル名）`source_line` `min`（最短秒数） |
-| `turn` `caution` `closing` | ターン・注意点・結びの `say`（`turn.lines` / `closing.lines` は `[文, サイズ, 色名]`、`caution.head` は見出し） |
+| `members[0]` | 対象の国 1 件。`code` `label` `iso`（国の形）`regions` `absent_places`（任意）`why`（任意。注意点 `[{tag, text, evidence}]`） |
+| `members[0].regions[]` | `level` `where`（公式ページの文言）。**bands あり＝地図に描く危険地域**: `bands`（おおよその位置 `[[[経度,緯度],...],...]`。点が1つなら円 `radius_km`、2点以上なら帯 `width_km`）`label_at`（レベルのチップの位置）`say`、`note`（公式ページ本文の文言。任意）`place_note`（人気の場所との関係。任意）。**bands なし＝人気の場所が属する地域のレベル**（places から参照。`say` と、画面用の `display` が使える） |
+| `places[]` | 人気の場所。`name` `marker`（`[経度, 緯度]`）と、`region`（bands の無い地域の `where`）／`in_region`（危険地域の `where`。その地域の中）／`absent: true`（`absent_places` に載っていることが必要）のどれか。`side`（名前を出す向き: above / above-right / above-left / below / left / right…）`lift`（px）`label` |
+| `map.bbox` | `[経度の最小, 緯度の最小, 経度の最大, 緯度の最大]`。地図を国全体ではなくその範囲に拡大する（任意） |
+| `distance` | 任意。`from`（places の name）`level`（危険地域のレベル）`say`（`{dist_km}` が使える）。地図上のおおよその位置から計算した概算で、50km単位に丸める |
+| `others` | `absent` の場所の説明の `say` |
+| `scenes[]` | 魅力の根拠。`kind`: `heritage` / `ich` / `wikipedia`（Wikipedia 2記事で確認）/ `film`（`films: [{wikidata, name, year, places}]`）/ `night`（写真のみ。人気や順位の主張はしない）。`tag` `name` `headline` `lines` `say` `place`（右上の小さな地図に印を出す）`photo.file`（Commons のファイル名）`photo_note` `source_line` `min`（最短秒数） |
+| `turn` `closing` `caution` | ターン・結び・注意点（任意）の `say`。`turn.lines` / `closing.lines` は `[文, サイズ, 色名]`、`caution.head` は見出し |
 | `calm_style` | ターンの前だけ `style` を上書きする（背景・タイトルの色など） |
-| 変数 | `asof`（取得日）`risk_date`（危険情報の最終更新日）`country` `place` `level` `place_level` |
+| 変数 | `asof`（取得日）`risk_date`（危険情報の最終更新日）`country` `level` `dist_km` |
 
 ## 見た目の設定（`style`）と声
 

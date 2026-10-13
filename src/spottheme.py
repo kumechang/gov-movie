@@ -9,6 +9,8 @@
   ・人気の根拠は facts.resolve が、Wikidata × ja.wikipedia で照合し、写真のライセンスを Commons の API で確かめる
   どちらも通ったものだけを使う。文言・色・順番はすべて YAML から読む。書き方は docs/THEME_SPEC.md「場所と危険情報」。
 """
+import math
+
 import theme
 from theme import ThemeError, _Vars
 from tiertheme import TierTheme
@@ -16,6 +18,24 @@ from tiertheme import TierTheme
 LEVEL_COLORS = {4: (214, 20, 40), 3: (226, 70, 36), 2: (232, 150, 40), 1: (216, 188, 64), 0: (96, 160, 130)}   # 地図とバッジの色
 LEVEL_SUB = {4: '退避してください（退避勧告）', 3: '渡航は止めてください（渡航中止勧告）', 2: '不要不急の渡航は止めてください',
              1: '十分注意してください', 0: '危険情報は出ていません'}
+
+
+def _km(a, b):
+    """2点 [経度, 緯度] の大圏距離（km）"""
+    la1, lo1, la2, lo2 = map(math.radians, (a[1], a[0], b[1], b[0]))
+    h = math.sin((la2 - la1) / 2) ** 2 + math.cos(la1) * math.cos(la2) * math.sin((lo2 - lo1) / 2) ** 2
+    return 6371.0 * 2 * math.asin(math.sqrt(h))
+
+
+def _dense(band, step_km=10.0):
+    """折れ線を、約 step_km ごとの点に刻む（最も近い点を探すため）"""
+    if len(band) == 1:
+        return [tuple(band[0])]
+    out = []
+    for p, q in zip(band, band[1:]):
+        n = max(1, int(_km(p, q) / step_km))
+        out += [(p[0] + (q[0] - p[0]) * i / n, p[1] + (q[1] - p[1]) * i / n) for i in range(n)]
+    return out + [tuple(band[-1])]
 
 
 class SpotTheme(TierTheme):
@@ -60,35 +80,78 @@ class SpotTheme(TierTheme):
         self.country = dict(row, short=mem.get('label', row['short']), iso=mem.get('iso'), marker=mem.get('marker'),
                             why=list(mem.get('why', [])))
         self.level = row['level']
-        pl = self._need(s, 'place')
-        for k in ('name', 'marker'):
-            self._need(pl, k, 'place.')
-        self.place = dict(pl)
-        # 危険情報の地域（地図に出す）。place: true の1件が、人気の街のレベル
+        # 危険情報の地域。bands があるものは地図に描く危険地域、無いものは「人気の場所が属する地域のレベル」（places から参照する）
         self.regions = []
         for r in mem.get('regions', []):
             for k in ('level', 'where'):
                 self._need(r, k, 'regions[].')
-            self.regions.append(dict(r, color=LEVEL_COLORS[r['level']], sub=LEVEL_SUB[r['level']], place=bool(r.get('place'))))
-        pr = [r for r in self.regions if r['place']]
-        if len(pr) != 1:
-            raise ThemeError('regions に place: true の地域をちょうど1つ書いてください（人気の街が属する地域）')
-        self.place_region = pr[0]
-        self.danger = sorted((r for r in self.regions if not r['place']), key=lambda r: -r['level'])
+            self.regions.append(dict(r, color=LEVEL_COLORS[r['level']], sub=LEVEL_SUB[r['level']]))
+        self.danger = [r for r in self.regions if r.get('bands')]
         for r in self.danger:
             if not r.get('say'):
                 raise ThemeError('地域 %s に say（読み上げ文）がありません' % r['where'])
-            if not r.get("bands"):
-                raise ThemeError('地域 %s に bands（地図上の位置 [[[経度,緯度],...],...]）がありません' % r['where'])
-        if not self.place_region.get('say'):
-            raise ThemeError('place: true の地域に say がありません')
+        by_where = {r['where']: r for r in self.regions}
+        absent = {a['place']: a['names'] for a in mem.get('absent_places', [])}
+        # 人気の場所。status は3種類: region（その場所のレベルがある地域）／in_region（危険地域の中）／absent（危険レベルの地域に載っていない）
+        self.places = []
+        for i, p in enumerate(self._need(s, 'places')):
+            for k in ('name', 'marker'):
+                self._need(p, k, 'places[%d].' % i)
+            q = dict(p, side=p.get('side', 'above-right'))
+            if p.get('region'):
+                r = by_where.get(p['region'])
+                if r is None or r.get('bands'):
+                    raise ThemeError('places[%d] %s: region「%s」が members[0].regions にありません（bands の無い地域を指定）' % (i, p['name'], p['region']))
+                q.update(status='region', rg=r)
+            elif p.get('in_region'):
+                r = by_where.get(p['in_region'])
+                if r is None or not r.get('bands'):
+                    raise ThemeError('places[%d] %s: in_region「%s」が危険地域（bands あり）にありません' % (i, p['name'], p['in_region']))
+                q.update(status='in_region', rg=r)
+            elif p.get('absent') is True:
+                if p['name'] not in absent:
+                    raise ThemeError('places[%d] %s: members[0].absent_places に載っていない場所は absent にできません（公式ページに載っていないことを検証するため）' % (i, p['name']))
+                q.update(status='absent', rg=None)
+            else:
+                raise ThemeError('places[%d] %s に region / in_region / absent のどれかを書いてください' % (i, p['name']))
+            self.places.append(q)
+        names = [p['name'] for p in self.places]
+        if len(set(names)) != len(names):
+            raise ThemeError('places の name が重複しています: %s' % names)
+        self.level_places = [p for p in self.places if p['status'] == 'region']
+        self.place_groups = []                         # 同じ地域に属する場所は、1つの説明にまとめる（出てくる順）
+        for p in self.level_places:
+            g = next((g for g in self.place_groups if g['region'] is p['rg']), None)
+            if g is None:
+                if not p['rg'].get('say'):
+                    raise ThemeError('地域「%s」に say（読み上げ文）がありません（places から参照している地域）' % p['rg']['where'])
+                g = dict(region=p['rg'], places=[])
+                self.place_groups.append(g)
+            g['places'].append(p)
+        self.absent_places = [p for p in self.places if p['status'] == 'absent']
+        if self.absent_places:
+            self._need(s, 'others')
+            self._need(s['others'], 'say', 'others.')
+        # 距離（地図上のおおよその位置から計算する概算）
+        self.dist = None
+        if s.get('distance'):
+            d = s['distance']
+            self._need(d, 'say', 'distance.')
+            src = next((p for p in self.places if p['name'] == d.get('from')), None)
+            if src is None:
+                raise ThemeError('distance.from「%s」が places にありません' % d.get('from'))
+            targets = [r for r in self.danger if r['level'] == int(d['level'])]
+            if not targets:
+                raise ThemeError('distance.level=%s の危険地域がありません' % d['level'])
+            best = min(((_km(src['marker'], pt), pt) for r in targets for b in r['bands'] for pt in _dense(b)), key=lambda x: x[0])
+            self.dist = dict(src=src, level=int(d['level']), km=best[0], point=best[1], km_round=int(round(best[0] / 50.0)) * 50)
         self.scenes = list(self._need(s, 'scenes'))
         for i, sc in enumerate(self.scenes):
             for k in ('kind', 'tag', 'name', 'say'):
                 self._need(sc, k, 'scenes[%d].' % i)
             if sc.get('photo') and not sc.get('image'):
                 raise ThemeError('scenes[%d]: 写真は facts.resolve で取得・検証してから使います（run.py 経由）' % i)
-        for k in ('turn', 'caution', 'closing'):
+        for k in ('turn', 'closing') + (('caution',) if s.get('caution') else ()):
             self._need(s, k)
             self._need(s[k], 'say', k + '.')
         self.footnote = s.get('footnote', '')
@@ -104,8 +167,8 @@ class SpotTheme(TierTheme):
 
     def _vars(self):
         rd = self.country.get('risk_date') or ''
-        v = _Vars(asof=self.asof, risk_date=('%s年%d月%d日' % (rd[:4], int(rd[5:7]), int(rd[8:10]))) if rd else '不明', country=self.country['short'], place=self.place['name'], level=self.level,
-                  place_level=self.place_region['level'], n_scenes=len(self.scenes))
+        v = _Vars(asof=self.asof, risk_date=('%s年%d月%d日' % (rd[:4], int(rd[5:7]), int(rd[8:10]))) if rd else '不明', country=self.country['short'], level=self.level,
+                  n_scenes=len(self.scenes), dist_km=('{:,}'.format(self.dist['km_round']) if self.dist else ''))
         self.V = v
 
     # ---------- 読み上げ ----------
@@ -119,8 +182,14 @@ class SpotTheme(TierTheme):
         L['turn'] = self.say(s['turn']['say'])
         for i, r in enumerate(self.danger):
             L['region:%d' % i] = self.say(r['say'])
-        L['place'] = self.say(self.place_region['say'])
-        L['caution'] = self.say(s['caution']['say'])
+        if self.dist:
+            L['distance'] = self.say(s['distance']['say'])
+        for i, g in enumerate(self.place_groups):
+            L['place:%d' % i] = self.say(g['region']['say'])
+        if self.absent_places:
+            L['others'] = self.say(s['others']['say'])
+        if s.get('caution'):
+            L['caution'] = self.say(s['caution']['say'])
         L['closing'] = self.say(s['closing']['say'])
         L['cta'] = self.say(s['cta']['say'])
         return L
@@ -154,9 +223,20 @@ class SpotTheme(TierTheme):
         add('turn', 'turn', 3.4, 0.7)
         for i, r in enumerate(self.danger):
             add('region', 'region:%d' % i, 4.2, 0.9, region=r, index=i)
-        add('place', 'place', 5.0, 1.0, region=self.place_region)
-        add('caution', 'caution', 5.0, 0.9)
+        for i, g in enumerate(self.place_groups):
+            if self.dist and any(p['name'] == self.dist['src']['name'] for p in g['places']):
+                add('distance', 'distance', 4.0, 0.9, dist=self.dist)
+            add('place', 'place:%d' % i, 4.6, 1.0, region=g['region'], places=g['places'], index=i)
+        if self.absent_places:
+            add('others', 'others', 4.0, 1.0, places=self.absent_places)
+        if s.get('caution'):
+            add('caution', 'caution', 5.0, 0.9)
         add('closing', 'closing', 5.0, 1.0)
+        # 地図の場所の印が、いつ色づくか（その場所の説明が始まる時刻）
+        for p in self.places:
+            p['t_reveal'] = next((sg['start'] for sg in self.MAP_SEGS
+                                  if (sg['kind'] == 'place' and p in sg['places']) or (sg['kind'] == 'others' and p in sg['places'])
+                                  or (sg['kind'] == 'region' and p['status'] == 'in_region' and sg['region'] is p['rg'])), None)
         self.T_COUNT_END = t
         self.T_CTA = max(6.5, self.nd('cta') + 1.0)
         self.T_END = t + self.T_CTA + 0.4
@@ -166,9 +246,11 @@ class SpotTheme(TierTheme):
     # ---------- 検証レポート ----------
     def report(self):
         lines = [
-            'テーマ %s: %s と %s（%s 時点）場所×危険情報' % (self.id, self.country['short'], self.place['name'], self.asof),
-            '国の最大レベル: %d  人気の街 %s の属する地域: %s（レベル%d）' % (self.level, self.place['name'], self.place_region['where'], self.place_region['level']),
+            'テーマ %s: %s（%s 時点）場所×危険情報' % (self.id, self.country['short'], self.asof),
+            '国の最大レベル: %d' % self.level,
             '危険情報の地域: ' + ' / '.join('レベル%d %s' % (r['level'], r['where']) for r in self.danger),
+            '人気の場所: ' + ' / '.join('%s（%s）' % (p['name'], {'region': 'レベル%s' % (p['rg']['level'] if p['rg'] else ''), 'in_region': 'レベル%s の地域内' % (p['rg']['level'] if p['rg'] else ''), 'absent': '危険情報の地域に載っていない'}[p['status']]) for p in self.places),
+            ('距離: %s から レベル%d の地域まで 約%d km（地図上の概算）' % (self.dist['src']['name'], self.dist['level'], self.dist['km_round'])) if self.dist else '距離: なし',
             '人気の根拠: ' + ' / '.join('%s（%s）' % (sc['name'], sc['kind']) for sc in self.scenes),
             '動画長: フック %.1f秒 / 人気の場面 %.1f〜%.1f秒 / 発表終了 %.1f秒 / 全体 %.1f秒%s' % (
                 self.T_HOOK, self.T_HOOK, self.T_TURN, self.T_COUNT_END, self.T_END,

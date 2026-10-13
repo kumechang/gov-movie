@@ -78,8 +78,11 @@ def _fetch(url, sleep=time.sleep, opener=urllib.request.urlopen, binary=False, t
 def _cached(key, fn):
     if _state['cache'] is None:
         open_cache(None)
-    if key not in _state['cache']:
-        _state['cache'][key] = fn()
+    if key not in _state['cache'] or _state['cache'][key] == '':      # 空の結果は残さない（取得の失敗かもしれない）
+        v = fn()
+        if v == '':
+            return v
+        _state['cache'][key] = v
         _save()
     return _state['cache'][key]
 
@@ -140,13 +143,22 @@ def designation_years(ent, target):
 
 
 # ---------- ja.wikipedia ----------
+def _wp_web(b, title, lang):
+    q = urllib.parse.quote(title.replace(' ', '_'))
+    try:
+        return b.fetch_text('https://%s.wikipedia.org/w/index.php?title=%s&action=raw' % (lang, q))
+    except b.BrowserError:                       # リダイレクトなど、raw で取れない記事は、通常のページの本文を使う
+        return b.page_text('https://%s.wikipedia.org/wiki/%s' % (lang, q))
+
+
 def wp_text(title, lang='ja'):
     def get():
         try:
             pages = _api('https://%s.wikipedia.org/w/api.php' % lang, action='query', titles=title, prop='extracts', explaintext=1, redirects=1)['query']['pages']
-            return next(iter(pages.values())).get('extract', '')
+            text = next(iter(pages.values())).get('extract', '')
         except FactsError:
-            return _web(lambda b: b.fetch_text('https://%s.wikipedia.org/w/index.php?title=%s&action=raw' % (lang, urllib.parse.quote(title.replace(' ', '_')))))
+            text = ''
+        return text or _web(_wp_web, title, lang)             # API が空・失敗のときは、ブラウザ経由
     return _cached('wp:%s' % title if lang == 'ja' else 'wp:%s:%s' % (lang, title), get)
 
 
@@ -203,15 +215,13 @@ def credit_line(info):
 
 
 def _thumb_urls(info):
-    """写真の取得先の候補。元画像（数MB〜数十MB）は回数制限にかかりやすいので、標準サイズのサムネイル（3840 → 1920 px）を先に試す"""
+    """写真の取得先の候補。元画像は回数制限が厳しい（Retry-After が10分になることもある）ので、標準サイズのサムネイル（3840 → 1920 → 1280 → 960 px。
+    元の幅より小さいもの）を先に試し、元画像は最後の手段にする"""
     u = info['thumb'].split('?')[0]
     m = re.match(r'(https://upload\.wikimedia\.org/wikipedia/commons)/(\w/\w\w)/([^/]+)$', u)
-    if not m or info['w'] <= 1920:
+    if not m:
         return [u]
-    out = []
-    for w in (3840, 1920):
-        if info['w'] > w:
-            out.append('%s/thumb/%s/%s/%dpx-%s' % (m.group(1), m.group(2), m.group(3), w, m.group(3)))
+    out = ['%s/thumb/%s/%s/%dpx-%s' % (m.group(1), m.group(2), m.group(3), w, m.group(3)) for w in (3840, 1920, 1280, 960) if info['w'] > w][:2]
     return out + [u]
 
 
@@ -242,7 +252,7 @@ def check_scene(sc, place_qid):
     """scenes[] 1件の事実を2系統で照合する。(問題のリスト, 報告の行) を返す"""
     kind, problems, lines = sc['kind'], [], []
     name = sc.get('name', sc.get('title', kind))
-    if kind == 'ich' and not sc.get('wikidata'):
+    if kind in ('ich', 'wikipedia') and not sc.get('wikidata'):
         # Wikidata に該当の項目が無いとき（例: トルココーヒーの文化と伝統）は、ja / en の Wikipedia の2記事で照合する。
         # 同じ Wikipedia の別言語版なので、独立した2系統とは言えない（報告に残す。UNESCO の公式ページは自動取得できない）
         pages = sc.get('wikipedia') or []
@@ -262,14 +272,15 @@ def check_scene(sc, place_qid):
         if sc['year'] not in years:
             problems.append('%s: Wikidata の指定年 %s が %s と一致しません' % (name, years or '（なし）', sc['year']))
         ref = '世界遺産' if kind == 'heritage' else '無形文化遺産'
-        text = wp_text(ent['jawiki']) if ent['jawiki'] else ''
+        title = sc.get('wp_title') or ent['jawiki']                    # Wikidata に ja の記事が結び付いていないときは、記事名を指定する
+        text = wp_text(title) if title else ''
         need = [str(sc['year']), ref] + list(sc.get('wp_contains', []))
         miss = [w for w in need if w not in text]
         if not text:
             problems.append('%s: ja.wikipedia の記事がありません' % name)
         elif miss:
             problems.append('%s: ja.wikipedia の本文に %s が出てきません' % (name, '、'.join(miss)))
-        lines.append('  %s: Wikidata %s（%s、%s年）× ja.wikipedia「%s」' % (name, sc['wikidata'], ref, years, ent['jawiki']))
+        lines.append('  %s: Wikidata %s（%s、%s年）× ja.wikipedia「%s」' % (name, sc['wikidata'], ref, years, title))
     elif kind == 'film':
         for fm in sc['films']:
             ent = wd_entity(fm['wikidata'])
@@ -308,12 +319,11 @@ def resolve(spec, cache_path, img_dir, log=print):
     """place_vs_risk のテーマ用。scenes[] の事実を照合し、写真を保存して、scenes[].image / image_credit を埋めた spec と報告を返す。
     1つでも照合できなければ止まる（検証できていない内容は動画に載せない）"""
     open_cache(cache_path)
-    place_qid = spec['place']['wikidata']
     problems, lines = [], ['[人気の根拠の照合] Wikidata（CC0）× ja.wikipedia、写真は Commons のライセンスを確認']
     out = dict(spec)
     out['scenes'] = []
     for sc in spec['scenes']:
-        p, l = check_scene(sc, place_qid)
+        p, l = check_scene(sc, sc.get('place_wikidata'))
         problems += p
         lines += l
         sc = dict(sc)

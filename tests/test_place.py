@@ -81,10 +81,12 @@ def place_spec(image_path, **kw):
         'tier_data': dict(asof='2026年10月13日', fetched=c['fetched'], countries=v, excluded=ex),
         'members': [{'code': '0004', 'label': 'デルタ', 'iso': 'TUR', 'regions': [
             {'level': 4, 'where': '北の国境地帯', 'note': '衝突が散発的に発生しています', 'bands': [[[36.0, 36.3], [40.0, 36.9]]], 'label_at': [38.0, 35.5], 'say': '北がレベル4'},
-            {'level': 1, 'where': '首都県', 'place': True, 'say': '首都はレベル1'}],
+            {'level': 1, 'where': '首都県', 'say': '首都はレベル1'}], 'absent_places': [{'place': '田舎', 'names': ['存在しない県']}],
             'why': [{'tag': 'デモ', 'text': 'デモがある', 'evidence': 'デモが突発的に行われることがあります'}]}],
-        'place': {'name': '首都', 'wikidata': 'Q406', 'marker': [28.98, 41.01]},
-        'scenes': [{'kind': 'night', 'tag': '夜景', 'name': '夜', 'say': '夜景です', 'image': image_path, 'photo': {'file': 'x'}, 'image_credit': '作者／CC BY 4.0／Wikimedia Commons'},
+        'places': [{'name': '首都', 'marker': [28.98, 41.01], 'region': '首都県'}, {'name': '田舎', 'marker': [34.0, 39.0], 'absent': True}],
+        'others': {'say': '田舎は載っていません'},
+        'distance': {'from': '首都', 'level': 4, 'say': '約{dist_km}キロ'},
+        'scenes': [{'kind': 'night', 'tag': '夜景', 'name': '夜', 'say': '夜景です', 'place': '首都', 'image': image_path, 'photo': {'file': 'x'}, 'image_credit': '作者／CC BY 4.0／Wikimedia Commons'},
                    {'kind': 'heritage', 'tag': '世界遺産', 'name': '歴史地域', 'say': '世界遺産です', 'lines': ['1985年に登録'], 'image': image_path, 'photo': {'file': 'y'}}],
         'turn': {'say': 'ところが', 'lines': [['ところが', 100, 'red']]},
         'caution': {'say': '注意'}, 'closing': {'say': '結び', 'lines': [['地域ごと', 60, 'white']]},
@@ -104,7 +106,11 @@ class MofaRegionsTest(unittest.TestCase):
         problems = []
         mofa.check_members({'members': spec['members']}, c, v, ex, problems)
         self.assertEqual(problems, [])
-        bad = [dict(spec['members'][0], regions=[{'level': 3, 'where': '北の国境地帯'}, {'level': 4, 'where': '存在しない県', 'note': '書かれていない'}])]
+        c['pages']['0004']['section'] += '\n●存在しない県\nレベル1：y'
+        problems = []
+        mofa.check_members({'members': spec['members']}, c, v, ex, problems)
+        self.assertEqual(len(problems), 1)             # 載っていないはずの場所の名前が、節に出てきた
+        bad = [dict(spec['members'][0], absent_places=[], regions=[{'level': 3, 'where': '北の国境地帯'}, {'level': 4, 'where': '存在しない県', 'note': '書かれていない'}])]
         problems = []
         mofa.check_members({'members': bad}, c, v, ex, problems)
         self.assertEqual(len(problems), 3)             # レベル違い・存在しない地域・note
@@ -123,8 +129,12 @@ class SpotThemeTest(unittest.TestCase):
     def test_structure_and_timeline(self):
         T = spottheme.SpotTheme(place_spec(self.img))
         self.assertEqual(T.level, 4)
-        self.assertEqual(T.place_region['level'], 1)
+        self.assertEqual(T.place_groups[0]['region']['level'], 1)
         self.assertEqual([r['level'] for r in T.danger], [4])
+        self.assertEqual([p['status'] for p in T.places], ['region', 'absent'])
+        self.assertTrue(T.dist['km_round'] > 0 and T.dist['km_round'] % 50 == 0)
+        self.assertEqual([sg['kind'] for sg in T.MAP_SEGS], ['turn', 'region', 'distance', 'place', 'others', 'caution', 'closing'])
+        self.assertTrue(all(p['t_reveal'] is not None for p in T.places))
         self.assertEqual(T.nd('hook1') > 0, True)
         starts = [s['start'] for s in T.HOOK_SEGS + T.SCENE_SEGS + T.MAP_SEGS]
         self.assertEqual(starts, sorted(starts))
@@ -138,9 +148,13 @@ class SpotThemeTest(unittest.TestCase):
         with self.assertRaises(ThemeError):
             spottheme.SpotTheme(place_spec(self.img, verification=''))
         s = place_spec(self.img)
-        s['members'][0]['regions'][1].pop('place')
+        s['places'][0]['region'] = '存在しない地域'
         with self.assertRaises(ThemeError):
-            spottheme.SpotTheme(s)                      # 人気の街の地域がない
+            spottheme.SpotTheme(s)                      # 場所が参照する地域がない
+        s = place_spec(self.img)
+        s['members'][0]['absent_places'] = []
+        with self.assertRaises(ThemeError):
+            spottheme.SpotTheme(s)                      # 「載っていない」ことを検証していない場所
         s = place_spec(self.img)
         s['scenes'][0].pop('image')
         with self.assertRaises(ThemeError):
