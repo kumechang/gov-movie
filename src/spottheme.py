@@ -94,7 +94,13 @@ class SpotTheme(TierTheme):
                 if not runs:
                     raise ThemeError('地域「%s」: %s との国境線が見つかりません' % (r['where'], b['with']))
                 r.update(bands=[[list(p) for p in run] for run in runs], width_km=2 * float(b['km']), clip=True, edge_km=float(b['km']))
-        self.danger = [r for r in self.regions if r.get('bands')]
+        for r in self.regions:                         # 州・県の単位で決まる地域は、Natural Earth の州の境界から塗る（provinces: 英語名）
+            if r.get('provinces'):
+                try:
+                    r['polys'] = world.admin1_rings(self.country['iso'], r['provinces'], r.get('lat_max'), r.get('lat_min'))
+                except KeyError as e:
+                    raise ThemeError('地域「%s」: %s' % (r['where'], e.args[0]))
+        self.danger = [r for r in self.regions if r.get('bands') or r.get('polys')]
         for r in self.danger:
             if not r.get('say'):
                 raise ThemeError('地域 %s に say（読み上げ文）がありません' % r['where'])

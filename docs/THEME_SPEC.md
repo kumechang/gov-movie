@@ -126,7 +126,7 @@ estat:
 | 項目 | 内容 |
 |---|---|
 | `members[0]` | 対象の国 1 件。`code` `label` `iso`（国の形）`regions` `absent_places`（任意）`why`（任意。注意点 `[{tag, text, evidence}]`） |
-| `members[0].regions[]` | `level` `where`（公式ページの文言）。**bands あり＝地図に描く危険地域**: `bands`（おおよその位置 `[[[経度,緯度],...],...]`。点が1つなら円 `radius_km`、2点以上なら帯 `width_km`）`label_at`（レベルのチップの位置）`say`、`note`（公式ページ本文の文言。任意）`place_note`（人気の場所との関係。任意）。**bands なし＝人気の場所が属する地域のレベル**（places から参照。`say` と、画面用の `display` が使える） |
+| `members[0].regions[]` | `level` `where`（公式ページの文言）。**bands あり＝地図に描く危険地域**: `bands`（おおよその位置 `[[[経度,緯度],...],...]`。点が1つなら円 `radius_km`、2点以上なら帯 `width_km`）`label_at`（レベルのチップの位置）`say`、`note`（公式ページ本文の文言。任意）`place_note`（人気の場所との関係。任意）。州・県単位で塗るときは `provinces`（Natural Earth の英語名の一覧。KeyError で名前の違いに気づける）、そこから抜く例外は `holes`（`[経度,緯度,半径km]`）。`bands` と併用できる（町の円を足す）。`display`（画面用の短い言い換え）、`place_where`（レベル1の場所の画面で出す、`where` の抜粋）。**bands なし＝人気の場所が属する地域のレベル**（places から参照。`say` と、画面用の `display` が使える） |
 | `places[]` | 人気の場所。`name` `marker`（`[経度, 緯度]`）と、`region`（bands の無い地域の `where`）／`in_region`（危険地域の `where`。その地域の中）／`absent: true`（`absent_places` に載っていることが必要）のどれか。`side`（名前を出す向き: above / above-right / above-left / below / left / right…）`lift`（px）`label` |
 | `map.bbox` | `[経度の最小, 緯度の最小, 経度の最大, 緯度の最大]`。地図を国全体ではなくその範囲に拡大する（任意） |
 | `distance` | 任意。`from`（places の name）`level`（危険地域のレベル）`say`（`{dist_km}` が使える）。地図上のおおよその位置から計算した概算で、50km単位に丸める |

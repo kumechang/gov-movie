@@ -197,7 +197,15 @@ def commons_file(title, width=3840):
         try:
             pages = _api(COMMONS_API, action='query', titles=title, prop='imageinfo|categories', iiprop='url|size|extmetadata', iiurlwidth=width, cllimit=50)['query']['pages']
         except FactsError:
-            return _web(lambda b: _parse_commons_page(b.dump_dom('https://commons.wikimedia.org/wiki/' + urllib.parse.quote(title.replace(' ', '_'))), title))
+            err = None
+            for attempt in range(3):                       # ページが回数制限（429）の表示だったときは、待って取り直す
+                try:
+                    return _web(lambda b: _parse_commons_page(b.dump_dom('https://commons.wikimedia.org/wiki/' + urllib.parse.quote(title.replace(' ', '_'))), title))
+                except FactsError as e:
+                    err = e
+                    print('  （Commons のページを読み取れませんでした。%d秒待ちます）' % (30 * (attempt + 1)), flush=True)
+                    time.sleep(30 * (attempt + 1))
+            raise err
         p = next(iter(pages.values()))
         if 'imageinfo' not in p:
             raise FactsError('Commons に %s がありません' % title)

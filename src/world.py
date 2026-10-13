@@ -110,3 +110,60 @@ def border_runs(iso_a, iso_b, near_km=4.0, step_km=3.0):
         if len(cur) > 1:
             runs.append(cur)
     return runs
+
+
+ADMIN1_PATH = os.path.join(HERE, '..', 'build', 'ne_admin1.geojson')
+ADMIN1_URL = 'https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_10m_admin_1_states_provinces.geojson'
+
+
+def _load_admin1():
+    if 'a1' not in _data:
+        if not os.path.exists(ADMIN1_PATH):
+            os.makedirs(os.path.dirname(ADMIN1_PATH), exist_ok=True)
+            urllib.request.urlretrieve(ADMIN1_URL, ADMIN1_PATH)          # 約40MB（Natural Earth 10m の州・県の境界）
+        with open(ADMIN1_PATH, encoding='utf-8') as f:
+            _data['a1'] = json.load(f)['features']
+    return _data['a1']
+
+
+def _clip_lat(ring, lat_max=None, lat_min=None):
+    """リングを、緯度の範囲に切り取る（Sutherland–Hodgman。半平面ごと）"""
+    def clip(pts, inside, cross):
+        out = []
+        for i, p in enumerate(pts):
+            q = pts[i - 1]
+            if inside(p):
+                if not inside(q):
+                    out.append(cross(q, p))
+                out.append(p)
+            elif inside(q):
+                out.append(cross(q, p))
+        return out
+    pts = [tuple(p) for p in ring]
+    if lat_max is not None:
+        pts = clip(pts, lambda p: p[1] <= lat_max, lambda a, b: (a[0] + (b[0] - a[0]) * (lat_max - a[1]) / (b[1] - a[1]), lat_max))
+    if lat_min is not None and pts:
+        pts = clip(pts, lambda p: p[1] >= lat_min, lambda a, b: (a[0] + (b[0] - a[0]) * (lat_min - a[1]) / (b[1] - a[1]), lat_min))
+    return pts
+
+
+def admin1_rings(iso, names, lat_max=None, lat_min=None):
+    """国 iso の州・県（Natural Earth の英語名 names）の外周を、[経度, 緯度] のリングのリストで返す。
+    同じ名前の地物が複数あれば（例: 北コタバト州とコタバト市）すべて含める。名前が見つからないときは KeyError。
+    lat_max / lat_min で、南部だけ・北部だけに切り取れる（例: 「パラワン州南部」）。州の境界は Natural Earth の目安"""
+    want = set(names)
+    found, rings = set(), []
+    for f in _load_admin1():
+        pr = f['properties']
+        if pr.get('adm0_a3') == iso and pr.get('name') in want:
+            found.add(pr['name'])
+            g = f['geometry']
+            polys = g['coordinates'] if g['type'] == 'MultiPolygon' else [g['coordinates']]
+            for poly in polys:
+                ring = _clip_lat(poly[0], lat_max, lat_min) if (lat_max is not None or lat_min is not None) else poly[0]
+                if len(ring) >= 3:
+                    rings.append([tuple(p) for p in ring])
+    missing = want - found
+    if missing:
+        raise KeyError('地図データ（州・県）に見つかりません: %s' % '、'.join(sorted(missing)))
+    return rings

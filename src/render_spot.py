@@ -178,7 +178,10 @@ class PlaceRisk(rl.Tiers):
         col = r['color']
         lay = Image.new('RGBA', (W, H), (0, 0, 0, 0))
         d = ImageDraw.Draw(lay)
-        for band in r['bands']:
+        for ring in r.get('polys', []):                        # 州・県の単位の地域（塗りつぶし）
+            pts = [self.to_px(p) for p in ring]
+            d.polygon(pts, fill=col + (int(170 * ease(k)),), outline=col + (255,), width=3)
+        for band in r.get('bands', []):
             pts = [self.to_px(p) for p in band]
             wd = max(6, int(self.km_px(float(r.get('width_km', 46))) * ease(k)))
             if len(pts) == 1:
@@ -188,6 +191,14 @@ class PlaceRisk(rl.Tiers):
             d.line(pts, fill=col + (190,), width=wd, joint='curve')
             for p in (pts[0], pts[-1]):
                 d.ellipse((p[0] - wd / 2, p[1] - wd / 2, p[0] + wd / 2, p[1] + wd / 2), fill=col + (190,))
+        if r.get('holes'):                                     # 例外（レベルが低い島・市）を、地域から抜く
+            hole = Image.new('L', (W, H), 255)
+            hd = ImageDraw.Draw(hole)
+            for lon, lat, hkm in r['holes']:
+                x, y = self.to_px((lon, lat))
+                hr = self.km_px(hkm)
+                hd.ellipse((x - hr, y - hr, x + hr, y + hr), fill=0)
+            lay.putalpha(ImageChops.multiply(lay.getchannel('A'), hole))
         if r.get('clip'):
             self.map_base()
             lay.putalpha(ImageChops.multiply(lay.getchannel('A'), self.cache['mask']))
@@ -294,7 +305,7 @@ class PlaceRisk(rl.Tiers):
         d.text((60, INFO_TOP + 160), names, font=fit_font(d, names, 64, 'Black', 960), fill=rl.WHITE + (int(255 * kw),), anchor='lm', stroke_width=3, stroke_fill=rl.NAVY + (255,))
         kn = ease((a - 1.0) / 0.4)
         nf = F(38, 'Bold')
-        for i, ln in enumerate(rl.wrap_text(d, '公式ページの地域：' + r['where'], nf, 960)[:2]):
+        for i, ln in enumerate(rl.wrap_text(d, '公式ページの地域：' + r.get('place_where', r['where']), nf, 960)[:2]):
             d.text((60, INFO_TOP + 236 + i * 48), ln, font=nf, fill=rl.MUTED + (int(255 * kn),), anchor='lm')
         if r.get('place_note'):
             kp = ease((a - 1.6) / 0.4)

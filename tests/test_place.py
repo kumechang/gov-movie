@@ -180,3 +180,35 @@ class SpotThemeTest(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
+
+
+class AdminRingsTest(unittest.TestCase):
+    """州・県の外周（world.admin1_rings）と、緯度での切り取り。地図データは合成して、ネットワークには出ない。"""
+
+    def setUp(self):
+        import world
+        self.world = world
+        sq = lambda x0, y0, x1, y1: [[[x0, y0], [x1, y0], [x1, y1], [x0, y1], [x0, y0]]]
+        feats = [
+            {'properties': {'adm0_a3': 'AAA', 'name': 'Alpha'}, 'geometry': {'type': 'Polygon', 'coordinates': sq(0, 0, 2, 4)}},
+            {'properties': {'adm0_a3': 'AAA', 'name': 'Alpha'}, 'geometry': {'type': 'Polygon', 'coordinates': sq(5, 5, 6, 6)}},
+            {'properties': {'adm0_a3': 'BBB', 'name': 'Alpha'}, 'geometry': {'type': 'Polygon', 'coordinates': sq(9, 9, 10, 10)}},
+        ]
+        self._orig = world._load_admin1
+        world._load_admin1 = lambda: feats
+
+    def tearDown(self):
+        self.world._load_admin1 = self._orig
+
+    def test_same_name_all_included_and_other_country_excluded(self):
+        rings = self.world.admin1_rings('AAA', ['Alpha'])
+        self.assertEqual(len(rings), 2)
+
+    def test_missing_name_raises(self):
+        with self.assertRaises(KeyError):
+            self.world.admin1_rings('AAA', ['Alpha', 'Nowhere'])
+
+    def test_clip_lat(self):
+        rings = self.world.admin1_rings('AAA', ['Alpha'], lat_max=2)
+        ys = [p[1] for r in rings for p in r]
+        self.assertTrue(max(ys) <= 2 + 1e-9)

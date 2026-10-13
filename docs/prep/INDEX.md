@@ -6,7 +6,7 @@
 | # | 国 | 状況 | 準備ファイル / 動画 |
 |---|---|---|---|
 | 1 | カンボジア | **作成済み**（約99秒） | [VIDEO_CAMBODIA.md](../VIDEO_CAMBODIA.md) |
-| 2 | フィリピン | **作成中**（検証は通過。映像・音声の書き出しと確認が残り） | `themes/philippines_place_risk.yaml`（完成後に VIDEO_PHILIPPINES.md を作る） |
+| 2 | フィリピン | **作成済み**（約106秒） | [VIDEO_PHILIPPINES.md](../VIDEO_PHILIPPINES.md) |
 | 3 | インド | 下準備のみ。**優先度を下げることを提案**（領有権・2025年の事件との関係） | [INDIA.md](INDIA.md) |
 | 4 | タイ | 下準備のみ。カンボジア編の続きとして出すと自然 | [THAILAND.md](THAILAND.md) |
 | 5 | エジプト | 下準備のみ。**話の筋が最も強い**（シナイ半島の「帯」） | [EGYPT.md](EGYPT.md) |
