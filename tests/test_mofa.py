@@ -55,6 +55,15 @@ class ParseTest(unittest.TestCase):
         self.assertTrue(f(SECTION, 1, '上記以外の地域'))
         self.assertFalse(f(SECTION, 4, ''))
 
+    def test_section_with_alternative_heading(self):
+        txt = '前置き\n【危険度】\n●ミンダナオ地方\nレベル3：渡航は止めてください。\n【ポイント】\n本文'
+        sec = mofa.extract_section(txt)
+        self.assertTrue(sec.startswith('【危険度】'))
+        self.assertNotIn('本文', sec)
+        self.assertTrue(mofa.where_is_faithful(sec, 3, 'ミンダナオ地方'))
+        self.assertEqual(mofa.section_of({'section': '', 'body': txt}), sec)       # 節が空の古いキャッシュは、本文から取り直す
+        self.assertEqual(mofa.extract_section('見出しなし'), '')
+
     def test_where_with_repeated_phrase_checks_each_occurrence(self):
         sec = '●A州のイエメンとの国境地帯を除く地域\nレベル2：x\n●イエメンとの国境地帯\nレベル3：y'
         self.assertTrue(mofa.where_is_faithful(sec, 3, 'イエメンとの国境地帯'))

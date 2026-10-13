@@ -140,10 +140,26 @@ def page_info(url, opener=urllib.request.urlopen):
     txt = html.unescape(re.sub(r'<[^>]+>', '\n', body)).translate(_ZEN)
     txt = re.sub(r'[ \t\u3000]+', ' ', txt)
     levels = sorted({int(x) for x in re.findall(r'レベル\s*([1-4])', txt)})
-    i = txt.find('【危険レベル】')
-    j = txt.find('【ポイント】', i) if i >= 0 else -1
-    section = re.sub(r'\n\s*\n+', '\n', txt[i:j if j > i else i + 4000]).strip() if i >= 0 else ''
-    return dict(levels=levels, section=section[:6000], body=re.sub(r'\n\s*\n+', '\n', txt).strip()[:20000])
+    body = re.sub(r'\n\s*\n+', '\n', txt).strip()
+    return dict(levels=levels, section=extract_section(txt), body=body[:20000])
+
+
+SECTION_MARKERS = ('【危険レベル】', '【危険度】')       # 国によって、節の見出しが違う（フィリピン・パキスタン・アゼルバイジャンなどは【危険度】）
+
+
+def extract_section(txt):
+    """危険情報ページの本文から、地域ごとのレベルを書いた節（見出しから【ポイント】まで）を取り出す"""
+    pos = [txt.find(m) for m in SECTION_MARKERS if txt.find(m) >= 0]
+    if not pos:
+        return ''
+    i = min(pos)
+    j = txt.find('【ポイント】', i)
+    return re.sub(r'\n\s*\n+', '\n', txt[i:j if j > i else i + 4000]).strip()[:6000]
+
+
+def section_of(info):
+    """キャッシュ済みのページ情報の節。節が空なら、本文から取り出し直す（古いキャッシュ用）"""
+    return (info or {}).get('section') or extract_section((info or {}).get('body', ''))
 
 
 def verify_pages(c, cache_path=None, log=print, sleep=time.sleep):
@@ -252,17 +268,17 @@ def check_members(spec, c, verified, excluded, problems):
             continue
         info = (c.get('pages') or {}).get(code) or {}
         if m.get('where'):
-            if not where_is_faithful(info.get('section', ''), r['level'], m['where']):
+            if not where_is_faithful(section_of(info), r['level'], m['where']):
                 problems.append('%s: where「%s」が、公式ページの「危険レベル」の節にレベル%d の地域として出てきません（ページが更新された可能性。文言を確かめてください）'
                                 % (m['label'], m['where'], r['level']))
         for rg in m.get('regions', []):             # 地図に出す地域ごとのレベル（place_vs_risk）
-            if not where_is_faithful(info.get('section', ''), rg['level'], rg['where']):
+            if not where_is_faithful(section_of(info), rg['level'], rg['where']):
                 problems.append('%s: 地域「%s」が、公式ページの「危険レベル」の節にレベル%d として出てきません（ページが更新された可能性）'
                                 % (m['label'], rg['where'], rg['level']))
             if rg.get('note') and _squash(rg['note']) not in _squash(info.get('body', '')):
                 problems.append('%s: 地域「%s」の note「%s」が、公式ページの本文にそのまま出てきません' % (m['label'], rg['where'], rg['note']))
         for ab in m.get('absent_places', []):        # 「危険レベルの節に載っていない場所」: 地名が節に出てこないこと
-            hit = [n for n in ab['names'] if _squash(n) in _squash(info.get('section', ''))]
+            hit = [n for n in ab['names'] if _squash(n) in _squash(section_of(info))]
             if hit:
                 problems.append('%s: %s は「危険レベル」の節に載っていません、と言えません（%s が出てきます）' % (m['label'], ab['place'], '、'.join(hit)))
         for w in m.get('why', []):
