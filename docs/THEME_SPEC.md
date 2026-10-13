@@ -95,12 +95,17 @@ estat:
 
 | 項目 | 内容 |
 |---|---|
-| `tiers[]` | `level` `title` `sub` `color` `say`（`{count}` `{level}` `{title}` `{sub}` が使える）。先に出す順に並べる。`names: false` で件数だけ見せる。`spotlight: true` で1か国ずつじっくり見せる |
+| `tiers[]` | `level` `title` `sub` `color` `say`（`{count}` `{level}` `{title}` `{sub}` が使える）。先に出す順に並べる。`names: false` で件数だけ見せる。`fast: true` で国名は読み上げず、チップをサッと一気に出す（前段を短くする）。`spotlight: true` で1か国ずつじっくり見せる（fast とは併用不可） |
 | `members[]` | 対象の国を絞る（省略すると取得できた全国）。`code`（外務省の国コード。`data/mofa_countries.csv`）`label`（画面の名前）。スポットライトの国は `say`（読み上げ文）が必須 |
 | `members[].where` | 最も高いレベルの地域の文言。**公式の「危険レベル」の節にそのまま出てきて、直後のレベル表示が一致すること**を毎回自動で検証する（外れると止まる） |
 | `members[].also` | ほかの地域のレベル `[{level, where}]`（同じく検証）。「ロシアはそれ以外も全域レベル3」のような、誤解を防ぐ情報に使う |
 | `members[].why` | 何が危ないか `[{tag, text, evidence}]`。`tag` は種類（紛争・武力衝突／テロ／ギャング・凶悪犯罪／誘拐／感染症…）、`evidence` は**公式ページ本文にそのまま出てくる文言**（毎回検証。出てこなければ止まる） |
+| `members[].iso` `marker` | スポットライトの背景に、国の形（Natural Earth 50m、パブリックドメイン。ISO 3文字コード。初回に `build/ne_admin0_50m.geojson` を自動ダウンロード）と、「おおよその位置」のマーカー `[経度, 緯度]`（where の地域の近く）を出す。国境線は目安。post.md に地図のクレジットが入る |
+| `members[].image` `image_credit` | 国の形の代わりに、背景に画像を出す（赤く暗く加工してゆっくり寄る）。**`image_credit`（権利者・出典・ライセンス）が必須**で、画面と post.md に出る。実写・AI生成の画像を使うときの口（実写は権利と、被害者が写っていないかの確認が要る。AI生成は TikTok の AI 表示ルールの確認が要る） |
+| `members[].why_after` | 「どこ？」から「何が危ない？」に切り替わるまでの秒数（既定 2.6。レベルが明かされてからの時間。読み上げが理由に入るあたりに合わせる） |
 | `names_note` `footnote` | 件数だけの段階に出す注記／画面下の常設の注記 |
+
+スポットライトの見せ方: 国名 →「レベルは？」→（1秒後）レベル・どこ？＋国の形と位置マーカー（大きく）→（`why_after` 後）地図が右上に縮み、「何が危ない？」の理由（種類のアイコン＋タグ＋一言）と、大きなアイコンの背景。理由の種類のアイコンは、タグの言葉から選ぶ（紛争→爆発、テロ→爆弾、犯罪・事件率→ドクロ、感染症→ウイルス、それ以外→警告）。
 
 文言の変数: `metric` `year` `asof`（取得日）`total` `n<レベル>`（例 `{n4}`）`n_high`（レベル3以上）`n_any` `excluded_note`。
 
@@ -115,7 +120,7 @@ estat:
 | `bg` | `top` `bottom`（背景のグラデーション）`fog`（下から立ちのぼる霧の色）`fog_height` `vignette`（四隅の暗さ）`grain`（ざらつき） |
 | `text` `muted` `accent` `title_color` `title_glow` `drips` | 文字色・補助色・強調色・タイトルの色・タイトルの光・血の滴り（色） |
 | `pill` `panel` `bar` | 上部の丸い枠・フックのパネル・進行バーの配色 |
-| `fx` | `shake`（揺れの大きさ）`flash`（色）`flash_alpha`。レベルが明かされる瞬間に1回だけ。点滅の繰り返しはしない |
+| `fx` | `shake`（揺れの大きさ）`flash`（色）`flash_alpha`。レベルが明かされる瞬間に1回だけ。点滅の繰り返しはしない。`embers: true` で、立ちのぼる火の粉 |
 | `named_colors` | hooks / cta の panel で使う色名（white / yellow / red / muted）の差し替え |
 
 声（`voice`）: `vvm: [n]`（`tts/vv/<n>.vvm` の追加モデル。`scripts/setup_voicevox.sh` の `EXTRA_VVM="1"` で配置）`style_id` `speed` `pitch`（低いほど不穏）`intonation`（小さいほど平坦）`credit`。

@@ -11,10 +11,11 @@ import subprocess
 import sys
 
 import numpy as np
-from PIL import Image, ImageChops, ImageDraw, ImageFilter
+from PIL import Image, ImageChops, ImageDraw, ImageFilter, ImageOps
 
 import loader
 import render
+import world
 from render import BG_BOT, BG_TOP, FPS, H, MAP_TOP, MUTED, W, WHITE, YELLOW, F, ease, fit_font, panel
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -254,6 +255,63 @@ def why_color(tag):
         if any(k in tag for k in keys):
             return col
     return (90, 110, 170)
+
+
+def why_kind(tag):
+    for keys, kind in ((('紛争', '武力', '戦', '攻撃'), 'blast'), (('テロ', '誤爆', '流弾'), 'bomb'), (('誘拐',), 'warn'),
+                       (('ギャング', '犯罪', '凶悪', '麻薬', '事件', '殺人', '観光地'), 'skull'), (('感染', 'マラリア', '疫'), 'virus'),
+                       (('死',), 'skull')):
+        if any(k in tag for k in keys):
+            return kind
+    return 'warn'
+
+
+def draw_icon(kind, size, color):
+    """危険の種類を表すアイコン（RGBA）。コードで描く簡易なもの"""
+    ss = 3
+    S = size * ss
+    im = Image.new('RGBA', (S, S), (0, 0, 0, 0))
+    d = ImageDraw.Draw(im)
+    c = tuple(color) + (255,)
+    cx = cy = S / 2
+    if kind == 'blast':                                   # 爆発（とげとげの星）
+        pts = []
+        for i in range(28):
+            r = S * (0.48 if i % 2 == 0 else 0.26) * (1.0 if i % 4 else 0.88)
+            a = math.pi * 2 * i / 28 - math.pi / 2
+            pts.append((cx + r * math.cos(a), cy + r * math.sin(a)))
+        d.polygon(pts, fill=c)
+        d.ellipse((cx - S * 0.15, cy - S * 0.15, cx + S * 0.15, cy + S * 0.15), fill=(255, 235, 200, 255))
+    elif kind == 'bomb':                                  # 爆弾（丸い胴体＋導火線＋火花）
+        d.ellipse((S * 0.14, S * 0.30, S * 0.78, S * 0.94), fill=c)
+        d.line((S * 0.62, S * 0.34, S * 0.80, S * 0.16, S * 0.88, S * 0.12), fill=c, width=int(S * 0.06))
+        for i in range(8):
+            a = math.pi * 2 * i / 8
+            d.line((S * 0.88, S * 0.12, S * 0.88 + S * 0.10 * math.cos(a), S * 0.12 + S * 0.10 * math.sin(a)), fill=(255, 220, 120, 255), width=int(S * 0.03))
+    elif kind == 'skull':                                 # ドクロ
+        d.ellipse((S * 0.16, S * 0.08, S * 0.84, S * 0.66), fill=c)
+        d.rounded_rectangle((S * 0.30, S * 0.52, S * 0.70, S * 0.88), int(S * 0.05), fill=c)
+        dark = (12, 0, 2, 255)
+        d.ellipse((S * 0.27, S * 0.32, S * 0.45, S * 0.52), fill=dark)
+        d.ellipse((S * 0.55, S * 0.32, S * 0.73, S * 0.52), fill=dark)
+        d.polygon([(cx, S * 0.52), (cx - S * 0.05, S * 0.62), (cx + S * 0.05, S * 0.62)], fill=dark)
+        for i in range(4):
+            x = S * (0.35 + 0.1 * i)
+            d.line((x, S * 0.72, x, S * 0.88), fill=dark, width=int(S * 0.025))
+    elif kind == 'virus':                                 # ウイルス（丸＋突起）
+        for i in range(12):
+            a = math.pi * 2 * i / 12
+            x, y = cx + S * 0.34 * math.cos(a), cy + S * 0.34 * math.sin(a)
+            d.line((cx, cy, x, y), fill=c, width=int(S * 0.05))
+            d.ellipse((x - S * 0.06, y - S * 0.06, x + S * 0.06, y + S * 0.06), fill=c)
+        d.ellipse((S * 0.24, S * 0.24, S * 0.76, S * 0.76), fill=c)
+        d.ellipse((S * 0.38, S * 0.38, S * 0.50, S * 0.50), fill=(12, 0, 2, 255))
+    else:                                                 # 警告（三角に「！」）
+        d.polygon([(cx, S * 0.08), (S * 0.94, S * 0.90), (S * 0.06, S * 0.90)], fill=c)
+        dark = (12, 0, 2, 255)
+        d.rounded_rectangle((cx - S * 0.04, S * 0.34, cx + S * 0.04, S * 0.64), int(S * 0.03), fill=dark)
+        d.ellipse((cx - S * 0.05, S * 0.70, cx + S * 0.05, S * 0.80), fill=dark)
+    return im.resize((size, size), Image.LANCZOS)
 
 
 # ---------- grid ----------
@@ -674,14 +732,90 @@ class Tiers:
             _cards[key] = L
         return _cards[key]
 
+    def spot_bg(self, f, m, a, dur):
+        """スポットライトの背景: 差し込んだ画像（member.image があるとき）。赤く暗くして、ゆっくり寄る"""
+        if not m.get('image'):
+            return
+        k0 = ease(a / 0.4)
+        key = ('img', m['image'])
+        if key not in _cards:
+            fp = m['image'] if os.path.isabs(m['image']) else os.path.join(HERE, '..', m['image'])
+            if not os.path.exists(fp):
+                raise SystemExit('画像 %s が見つかりません' % m['image'])
+            _cards[key] = ImageOps.fit(Image.open(fp).convert('RGB'), (W, H), method=Image.LANCZOS)
+        zoom = 1.0 + 0.08 * min(1.0, a / max(dur, 1.0))
+        im = _cards[key]
+        cw, ch = int(W / zoom), int(H / zoom)
+        im = im.crop(((W - cw) // 2, (H - ch) // 2, (W + cw) // 2, (H + ch) // 2)).resize((W, H), Image.BILINEAR)
+        im = Image.blend(ImageChops.multiply(im, Image.new('RGB', (W, H), (110, 110, 110))), Image.new('RGB', (W, H), (120, 0, 14)), 0.38)
+        top = Image.new('L', (W, H), 0)                                      # 上（タイトル）は隠さない
+        ImageDraw.Draw(top).rectangle((0, 620, W, H), fill=int(210 * k0))
+        f.paste(im, (0, 0), top.filter(ImageFilter.GaussianBlur(40)))
+
+    MAP_BOX = (1000, 320)             # 国の形を作る基準の枠
+    MAP_BIG = (40, 1160, 1000, 320)   # 前半: 大きく見せる枠
+    MAP_SMALL = (735, 940, 305, 190)  # 後半: 右上に縮んだ枠
+
+    def spot_map(self, f, m, a, why_t):
+        """国の形と、おおよその位置のマーカー。レベルが明かされたあと大きく出て、理由に移るとき右上に縮む"""
+        if m.get('image') or not m.get('iso') or a < 1.0:
+            return
+        key = ('sil', m['iso'])
+        if key not in _cards:
+            mask, proj = world.country_silhouette(m['iso'], self.MAP_BOX[0], self.MAP_BOX[1], margin=14)
+            edge = ImageChops.subtract(mask, mask.filter(ImageFilter.MinFilter(7)))
+            layer = Image.new('RGBA', mask.size, (0, 0, 0, 0))
+            layer.paste(Image.new('RGBA', mask.size, (120, 0, 16, 255)), (0, 0), mask.point(lambda v: int(v * 0.78)))
+            layer.paste(Image.new('RGBA', mask.size, (235, 30, 45, 255)), (0, 0), edge.filter(ImageFilter.GaussianBlur(8)).point(lambda v: min(255, int(v * 1.8))))
+            layer.paste(Image.new('RGBA', mask.size, (255, 80, 90, 255)), (0, 0), edge.point(lambda v: int(v * 0.85)))
+            _cards[key] = (layer, proj)
+        layer, proj = _cards[key]
+        k = ease((a - why_t) / 0.6) if why_t is not None else 0.0
+        rect = tuple(self.MAP_BIG[i] + (self.MAP_SMALL[i] - self.MAP_BIG[i]) * k for i in range(4))
+        sc = min(rect[2] / self.MAP_BOX[0], rect[3] / self.MAP_BOX[1])
+        dw, dh = max(1, int(self.MAP_BOX[0] * sc)), max(1, int(self.MAP_BOX[1] * sc))
+        x0, y0 = rect[0] + (rect[2] - dw) / 2, rect[1] + (rect[3] - dh) / 2
+        lay = layer.resize((dw, dh), Image.LANCZOS)
+        lay.putalpha(ImageChops.multiply(lay.getchannel('A'), Image.new('L', lay.size, int(255 * ease((a - 1.0) / 0.5)))))
+        f.paste(lay, (int(x0), int(y0)), lay)
+        if m.get('marker'):
+            px, py = proj(m['marker'][0], m['marker'][1])
+            x, y = x0 + px * sc, y0 + py * sc
+            d = ImageDraw.Draw(f, 'RGBA')
+            ph = (a - 1.0) % 1.2 / 1.2
+            r = (14 + 70 * ph) * max(sc, 0.45)
+            d.ellipse((x - r, y - r, x + r, y + r), outline=(255, 90, 90, int(230 * (1 - ph))), width=4)
+            rr = 11 * max(sc, 0.6)
+            d.ellipse((x - rr, y - rr, x + rr, y + rr), fill=(255, 245, 240, 255), outline=(200, 0, 20, 255), width=3)
+            if k < 0.5:
+                lab = F(28, 'Bold')
+                right = x > 700
+                d.text((x + (-22 if right else 22), y - 30), 'おおよその位置', font=lab, fill=(255, 235, 230, int(235 * (1 - 2 * k))),
+                       anchor='rm' if right else 'lm', stroke_width=3, stroke_fill=(20, 0, 4, 255))
+
+    def embers(self, f, t):
+        """立ちのぼる火の粉（恐怖演出のとき）。位置は時刻だけで決まる"""
+        if not (FX and FX.get('embers')):
+            return
+        rng = np.random.default_rng(5)
+        n = 46
+        xs, ph, sp, sz = rng.uniform(0, W, n), rng.uniform(0, 1, n), rng.uniform(70, 190, n), rng.uniform(2, 5.5, n)
+        d = ImageDraw.Draw(f, 'RGBA')
+        for i in range(n):
+            y = H - ((t * sp[i] + ph[i] * H) % (H + 60)) + 30
+            x = xs[i] + 22 * math.sin(t * 1.3 + i)
+            al = int(70 + 110 * (0.5 + 0.5 * math.sin(t * 5 + i * 1.7)))
+            col = (255, 70 + int(80 * (i % 3) / 2), 20, al)
+            d.ellipse((x - sz[i], y - sz[i], x + sz[i], y + sz[i]), fill=col)
+
     def spotlight(self, f, sg, it, a):
-        """1か国をじっくり見せる: 国名 →「？」→ レベル・地域・危険の理由 を順に出す"""
+        """1か国をじっくり見せる: 国名 →「？」→ レベル・地域（国の形つき）→ 危険の理由（地図は右上に縮む）"""
         tier, m = sg['tier'], it['member']
         col = tier['color']
         on = self._on(col)
+        self.spot_bg(f, m, a, it['dur'])
         d = ImageDraw.Draw(f, 'RGBA')
         k0 = ease(a / 0.3)
-        # 国名
         name_font = fit_font(d, m['short'], 170, 'Black', 960)
         d.text((540, self.BOARD_TOP + 110 - (1 - k0) * 30), m['short'], font=name_font, fill=WHITE + (int(255 * k0),), anchor='mm',
                stroke_width=3, stroke_fill=NAVY + (255,))
@@ -691,56 +825,86 @@ class Tiers:
             d.text((540, self.BOARD_TOP + 330), 'レベルは？', font=F(130, 'Accent'), fill=YELLOW + (int(255 * k0 * blink),), anchor='mm')
             return
         r = a - reveal
+        why = m.get('why') or []
+        why_t = reveal + float(m.get('why_after', 2.6)) if why else None         # 「何が危ない？」に移る時刻
+        phase_c = why_t is not None and a >= why_t
+        if phase_c:                                            # 最初の理由に対応する大きなアイコンを、うっすら背景に
+            wk = draw_icon(why_kind(why[0].get('tag', '')), 400, (170, 10, 24))
+            wk.putalpha(wk.getchannel('A').point(lambda v: int(v * 0.26 * ease((a - why_t) / 0.6))))
+            f.paste(wk, (640, 1080), wk)
         kb = ease(r / 0.35)
         by = self.BOARD_TOP + 255
         bw = 880
         d.rounded_rectangle((540 - bw / 2, by - 55, 540 + bw / 2, by + 55), 30, fill=col + (int(255 * kb),), outline=(255, 255, 255, int(180 * kb)), width=3)
         d.text((540, by + 2), '%s の地域を含む' % tier['title'], font=F(64), fill=on + (int(255 * kb),), anchor='mm')
         y = by + 100
-        # どこ？
+        # どこ？（地図の左。幅を狭めて、縮んだ地図と重ならないようにする）
         if m.get('where'):
             kw = ease((r - 0.35) / 0.35)
             d.text((60, y), 'どこ？', font=F(34, 'Bold'), fill=(170, 180, 215, int(255 * kw)), anchor='lm')
-            wf = F(46, 'Bold')
-            lines = wrap_text(d, m['where'], wf, 940)[:3]
+            wf = F(44, 'Bold')
+            lines = wrap_text(d, m['where'], wf, 660)[:3]
             for i, ln in enumerate(lines):
-                d.text((60, y + 50 + i * 58), ln, font=wf, fill=WHITE + (int(255 * kw),), anchor='lm')
-            y += 50 + len(lines) * 58 + 22
+                d.text((60, y + 48 + i * 54), ln, font=wf, fill=WHITE + (int(255 * kw),), anchor='lm')
+            y += 48 + len(lines) * 54 + 18
+        self.spot_map(f, m, a, why_t)
         # 何が危ない？
-        if m.get('why'):
-            d.text((60, y), '何が危ない？', font=F(34, 'Bold'), fill=(170, 180, 215, int(255 * ease((r - 0.7) / 0.3))), anchor='lm')
-            y += 56
-            for i, w in enumerate(m['why'][:3]):
-                kw = ease((r - 0.9 - i * 0.4) / 0.35)
-                if kw <= 0:
-                    continue
-                tc = why_color(w.get('tag', ''))
-                tag = w.get('tag', '')
-                tf = F(34, 'Bold')
-                tw = int(d.textlength(tag, font=tf)) + 36
-                avail = 1020 - (60 + tw + 18)
-                for size in (40, 36, 32):
-                    bf = F(size, 'Bold')
+        yw = max(y, 1136)
+        lf = F(34, 'Bold')
+        also = list(m.get('also', []))[:2]
+        also_h = sum(12 + 44 * min(2, len(wrap_text(d, 'レベル%d：%s' % (al['level'], al['where']), lf, 940))) for al in also)
+        if why and phase_c:
+            t0 = a - why_t
+            avail_h = 1470 - yw - 52 - also_h               # 「ほかの地域のレベル」の分を先に確保する
+            rows = None
+            for size in (40, 36, 32, 30):
+                bf = F(size, 'Bold')
+                tf = F(min(34, size), 'Bold')
+                laid = []
+                for w in why[:3]:
+                    tag = w.get('tag', '')
+                    tw = int(d.textlength(tag, font=tf)) + 36
+                    avail = 1020 - (60 + 62 + tw + 18)
                     lines = wrap_text(d, w['text'], bf, avail)
-                    if len(lines) <= 2:
-                        break
-                rh = max(62, 46 * len(lines) + 16)
-                d.rounded_rectangle((60, y, 60 + tw, y + 58), 29, fill=tc + (int(255 * kw),))
-                d.text((60 + tw / 2, y + 30), tag, font=tf, fill=WHITE + (int(255 * kw),), anchor='mm')
-                for j, ln in enumerate(lines[:2]):
-                    d.text((60 + tw + 18, y + 24 + j * 46), ln, font=bf, fill=WHITE + (int(255 * kw),), anchor='lm')
-                y += rh + 14
+                    laid.append((w, tag, tw, lines[:2], max(62, int(size * 1.15) * len(lines[:2]) + 16), size, min(34, size)))
+                if sum(x[4] + 14 for x in laid) <= avail_h:
+                    rows = laid
+                    break
+            if rows is None:                                    # どうしても入らないときは、最後の行を落とす（最小サイズで）
+                rows = laid
+                while len(rows) > 1 and sum(x[4] + 14 for x in rows) > avail_h:
+                    rows = rows[:-1]
+            d.text((60, yw), '何が危ない？', font=F(34, 'Bold'), fill=(170, 180, 215, int(255 * ease(t0 / 0.3))), anchor='lm')
+            yy = yw + 52
+            for i, (w, tag, tw, lines, rh, size, tsize) in enumerate(rows):
+                kw = ease((t0 - 0.3 - i * 0.4) / 0.35)
+                if kw > 0:
+                    tc = why_color(tag)
+                    ico = draw_icon(why_kind(tag), 52, tc)
+                    f.paste(ico, (60, yy + 3), ImageChops.multiply(ico.getchannel('A'), Image.new('L', ico.size, int(255 * kw))))
+                    x0 = 60 + 62
+                    d.rounded_rectangle((x0, yy, x0 + tw, yy + 58), 29, fill=tc + (int(255 * kw),))
+                    d.text((x0 + tw / 2, yy + 30), tag, font=F(tsize, 'Bold'), fill=WHITE + (int(255 * kw),), anchor='mm')
+                    bf = F(size, 'Bold')
+                    for j, ln in enumerate(lines):
+                        d.text((x0 + tw + 18, yy + 24 + j * int(size * 1.15)), ln, font=bf, fill=WHITE + (int(255 * kw),), anchor='lm')
+                yy += rh + 14
+            y = yy
         # ほかの地域のレベル
-        for i, al in enumerate(m.get('also', [])[:2]):
-            kw = ease((r - 2.2 - i * 0.3) / 0.35)
+        t_also = (a - why_t - 0.3 - 3 * 0.4) if why_t is not None else (r - 2.2)
+        for i, al in enumerate(also):
+            kw = ease((t_also - i * 0.3) / 0.35)
             if kw <= 0:
                 continue
             lc = next((t['color'] for t in T.TIERS if t['level'] == al['level']), (170, 180, 215))
             txt = 'レベル%d：%s' % (al['level'], al['where'])
-            lf = F(34, 'Bold')
+            nl = min(2, len(wrap_text(d, txt, lf, 940)))
+            if max(y, yw) + 12 + 44 * nl > 1472:                  # 下の注記にかかるなら出さない
+                break
+            y = max(y, yw) if why_t is None or not phase_c else y
             for j, ln in enumerate(wrap_text(d, txt, lf, 940)[:2]):
                 d.text((60, y + 10 + j * 44), ln, font=lf, fill=lc + (int(255 * kw),), anchor='lm')
-            y += 12 + 44 * min(2, len(wrap_text(d, txt, lf, 940)))
+            y += 12 + 44 * nl
 
     def events(self):
         """揺れ・フラッシュが入る時刻 [(開始, 長さ, 揺れの強さ, フラッシュの強さ)]。レベル3以上の発表と、レベルが明かされる瞬間"""
@@ -779,6 +943,7 @@ class Tiers:
 
     def _frame(self, t):
         f = BG.copy()
+        self.embers(f, t)
         if t < T.T_HOOK:
             self.legend(f, 0.55)
             hook_panel(f, t)
@@ -798,6 +963,10 @@ class Tiers:
                 active = next((it for it in sg['items'] if it['start'] <= t < it['start'] + it['dur']), None)
             if active is not None:
                 self.spotlight(f, sg, active, t - active['start'])
+                cr = active['member'].get('image_credit')
+                if active['member'].get('image') and cr:
+                    d2 = ImageDraw.Draw(f, 'RGBA')
+                    text_fit(d2, (540, 1508), '画像：' + cr, 24, 'Medium', (200, 170, 170, 220), 1000)
             elif tier['names']:
                 size, pos = self.layout(tier)
                 for i, it in enumerate(sg['items']):

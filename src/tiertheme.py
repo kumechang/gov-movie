@@ -22,7 +22,6 @@ SEC_PER_CHAR = theme.SEC_PER_CHAR
 class TierTheme:
     layout = 'tiers'
     is_pref = False
-    uses_map = False
 
     def __init__(self, spec, narration_json=None):
         self.spec = spec
@@ -78,10 +77,11 @@ class TierTheme:
                 if r is None:
                     raise ThemeError('members の国コード %s が取得データにありません' % code)
                 universe.append(dict(r, short=m.get('label', r['short']), where=m.get('where', ''), why=list(m.get('why', [])),
-                                     also=list(m.get('also', [])), say=m.get('say')))
+                                     also=list(m.get('also', [])), say=m.get('say'), iso=m.get('iso'), marker=m.get('marker'),
+                                     image=m.get('image'), image_credit=m.get('image_credit', '')))
             self.subset = True
         else:
-            universe = [dict(c, where='', why=[], also=[], say=None) for c in td['countries']]
+            universe = [dict(c, where='', why=[], also=[], say=None, iso=None, marker=None, image=None, image_credit='') for c in td['countries']]
             self.subset = False
         self.TIERS = []
         for t in tiers:
@@ -100,9 +100,12 @@ class TierTheme:
                         raise ThemeError('スポットライトの国 %s に say（読み上げ文）がありません' % m['short'])
                     if not (m['where'] or m['why']):
                         self.warnings.append('スポットライトの国 %s に where / why がありません（画面が国名とレベルだけになります）' % m['short'])
+            fast = bool(t.get('fast', False))          # 名前は読み上げず、チップをサッと一気に出す（前段を短くする）
+            if fast and spot:
+                raise ThemeError('レベル%s: fast と spotlight は同時に使えません' % t['level'])
             self.TIERS.append(dict(level=t['level'], title=t['title'], sub=t['sub'], color=tuple(t['color']),
-                                   names=bool(t.get('names', True)) or spot, spotlight=spot, say=t['say'], members=members,
-                                   count=len(members)))
+                                   names=bool(t.get('names', True)) or spot, spotlight=spot, fast=fast, say=t['say'],
+                                   members=members, count=len(members)))
         levels = [t['level'] for t in self.TIERS]
         if len(set(levels)) != len(levels):
             raise ThemeError('tiers の level が重複しています: %s' % levels)
@@ -117,6 +120,11 @@ class TierTheme:
                     raise ThemeError('レベル%s に同じ表示名があります: %s' % (t['level'], shorts))
         self.universe = universe
         self.footnote = s.get('footnote', '')
+        self.uses_map = any(m.get('iso') for m in universe)       # 国の形（Natural Earth）を使うときは地図のクレジットが要る
+        self.extra_credits = ['画像：%s' % m['image_credit'] for m in universe if m.get('image') and m.get('image_credit')]
+        for m in universe:
+            if m.get('image') and not m.get('image_credit'):
+                raise ThemeError('%s: image を使うときは、権利者・出典を image_credit に書いてください' % m['short'])
 
     # ---------- 文言テンプレートの変数 ----------
     def _vars(self):
@@ -145,7 +153,7 @@ class TierTheme:
             L['hook%d' % (i + 1)] = self.say(h['say'])
         for t in self.TIERS:
             L['tier:%s' % t['level']] = self.say(t['say'], level=t['level'], title=t['title'], sub=t['sub'], count=t['count'])
-            if t['names']:
+            if t['names'] and not t['fast']:
                 for m in t['members']:
                     L['item:' + m['code']] = self.say(m['say']) if t['spotlight'] else m['short']
         L['cta'] = self.say(self.spec['cta']['say'])
@@ -203,10 +211,16 @@ class TierTheme:
         for ti, tier in enumerate(self.TIERS):
             key = 'tier:%s' % tier['level']
             start = t
-            intro = max(2.0, self.nd(key) + 0.5)
+            intro = max(1.6 if tier['fast'] else 2.0, self.nd(key) + (0.3 if tier['fast'] else 0.5))
             t += intro
             items = []
-            if tier['names']:
+            if tier['fast']:
+                # 読み上げの途中から、チップが次々に出る（タタタ…と小さな音）
+                t0 = start + min(intro * 0.45, 1.4)
+                for i, m in enumerate(tier['members']):
+                    items.append(dict(name=m['short'], code=m['code'], start=t0 + i * 0.13, dur=0.13, key=None, member=m))
+                t = max(t, t0 + len(items) * 0.13 + 0.45)
+            elif tier['names']:
                 for m in tier['members']:
                     k = 'item:' + m['code']
                     d = max(4.2, self.nd(k) + 1.0) if tier['spotlight'] else max(0.5, self.nd(k) + 0.12)

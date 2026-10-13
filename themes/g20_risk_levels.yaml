@@ -52,7 +52,7 @@ style:
   pill: {fill: [90, 0, 8, 130], outline: [200, 30, 40, 170], text: [240, 205, 205]}
   panel: {fill: [10, 0, 2, 234], outline: [190, 20, 30, 150], stroke: [0, 0, 0, 255]}
   bar: {bg: [52, 10, 14], fill: [204, 24, 36]}
-  fx: {shake: 16, flash: [170, 0, 10], flash_alpha: 0.38}
+  fx: {shake: 16, flash: [170, 0, 10], flash_alpha: 0.38, embers: true}   # embers: 立ちのぼる火の粉
   named_colors:                   # hooks / cta の panel で使う色名の差し替え
     white: [238, 228, 222]
     yellow: [232, 188, 70]
@@ -71,11 +71,13 @@ tiers:
     title: 危険情報なし
     sub: 外務省の危険情報は出ていません
     color: [62, 108, 92]
+    fast: true                    # 名前は読み上げず、サッと流す
     say: "まず、危険情報が出ていない国。{count}か国。"
   - level: 1
     title: レベル1
     sub: 十分注意してください
     color: [196, 166, 48]
+    fast: true
     say: "レベル1。十分注意してください。{count}か国。"
   - level: 2
     title: レベル2
@@ -112,6 +114,8 @@ members:
   - {code: "0027", label: 南アフリカ}
   - code: "0052"
     label: メキシコ
+    iso: MEX                       # 背景の国の形（Natural Earth）
+    marker: [-99.50, 17.55]          # おおよその位置 [経度, 緯度]（where の地域の近く）
     where: ゲレロ州チルパンシンゴ市及びその周辺地域
     why:
       - tag: ギャング・凶悪犯罪
@@ -126,6 +130,8 @@ members:
     say: "メキシコ。ゲレロ州の一部が、レベル3です。犯罪組織の抗争で、殺人や誘拐が多数報告されています。"
   - code: "0966"
     label: サウジアラビア
+    iso: SAU                       # 背景の国の形（Natural Earth）
+    marker: [44.0, 17.5]          # おおよその位置 [経度, 緯度]（where の地域の近く）
     where: イエメンとの国境地帯
     why:
       - tag: 紛争・武力衝突
@@ -137,6 +143,8 @@ members:
     say: "サウジアラビア。イエメンとの国境地帯が、レベル3です。ホーシー派の攻撃で、空港でも、外国人が亡くなりました。"
   - code: "0090"
     label: トルコ
+    iso: TUR                       # 背景の国の形（Natural Earth）
+    marker: [37.1, 36.7]          # おおよその位置 [経度, 緯度]（where の地域の近く）
     where: シリアとの国境地帯
     also:
       - {level: 3, where: ディヤルバクル県及びイラクとの国境地帯}
@@ -153,6 +161,8 @@ members:
     say: "トルコ。シリアとの国境地帯が、レベル4です。武装組織との衝突が、散発しています。"
   - code: "0091"
     label: インド
+    iso: IND                       # 背景の国の形（Natural Earth）
+    marker: [74.0, 34.2]          # おおよその位置 [経度, 緯度]（where の地域の近く）
     where: 管理ライン（LoC）付近
     also:
       - level: 1
@@ -167,6 +177,8 @@ members:
     say: "インド。ジャンム・カシミール準州の、管理ライン付近が、レベル4です。ただし、デリーやムンバイなどの大都市は、レベル1です。"
   - code: "9007"
     label: ロシア
+    iso: RUS                       # 背景の国の形（Natural Earth）
+    marker: [36.6, 50.6]          # おおよその位置 [経度, 緯度]（where の地域の近く）
     where: ウクライナとの国境周辺地域
     also:
       - {level: 3, where: ウクライナとの国境周辺地域を除く地域（モスクワ市を含む）}
@@ -210,7 +222,7 @@ hooks:
       - [レベル1〜4, 50, muted, Bold]
 
 cta:
-  say: "ジーにじゅうのうち、レベル3以上の地域を含む国は、{n_high}か国。多くは、国の一部の地域です。渡航の前は、必ず外務省の情報を確認してね。気になる国は、コメントで教えてね。"
+  say: "ジーにじゅうのうち、レベル3以上の地域を含む国は、{n_high}か国。多くは、国の一部の地域です。渡航の前は、必ず外務省の情報を確認してね。"
   panel:
     - [レベル3以上を含む国, 48, white, Bold]
     - ["{n_high}か国", 190, red, Black]

@@ -234,7 +234,7 @@ def build_tiers(T, out_dir, voice=True):
         cues = [(sg['key'], sg['start'] + 0.12) for sg in hs]
         for sg in T.SEQ:
             cues.append((sg['key'], sg['start'] + 0.15))
-            cues += [(it['key'], it['start'] + 0.04) for it in sg['items']]
+            cues += [(it['key'], it['start'] + 0.04) for it in sg['items'] if it.get('key')]    # fast の段階は国名を読まない
         cues.append(('cta', T.T_COUNT_END + 0.25))
         V = _voice(T, out_dir, n, cues)
     return _finish(L, R, V, out_dir, n)

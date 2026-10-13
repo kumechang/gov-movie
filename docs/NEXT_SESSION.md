@@ -7,7 +7,7 @@
 - 1層目（テーマ YAML → 動画・投稿文まで1コマンド）: 完了。型は3つ: 地図ランキング（`prefecture_map`）、一覧型（`ranked_list`: grid / scroll / steps）、段階ボード（`tier_board`）。書き方は [THEME_SPEC.md](THEME_SPEC.md)。
 - 2層目（データ取得）: e-Stat（離婚率・合計特殊出生率）、外務省 海外安全情報オープンデータ（危険レベル）。どちらも2系統照合つき。
 - 動画の型の整理・国のデータの候補・作る順番・外務省データでの作り直しの経緯は [FORMATS.md](FORMATS.md)。**まずここを読む。**
-- 最新の動画: `themes/g20_risk_levels.yaml`（G20の危険レベル。恐怖演出）。ユーザーに動画を渡してあり、感想待ち。長さは105.7秒（スポットライトの読み上げが各7〜9秒、CTAが13秒。短くするなら say を詰めるか speed を上げる）。
+- 最新の動画: `themes/g20_risk_levels.yaml`（G20の危険レベル。恐怖演出）。93.4秒。ユーザーの感想: 演出（揺れ・フラッシュ・心音・声）は良い。前段が長いとの指摘で、危険情報なし・レベル1は `fast: true` にした。背景は、国の形・位置・アイコン・火の粉をコードで描いた。実写／AI画像を使うかは未決（`members[].image` で差し込める。出典の明記が必須）。
 - 恐怖演出の素材: フォントは `bash scripts/setup_fonts.sh`、声は `EXTRA_VVM="1" bash scripts/setup_voicevox.sh`（冥鳴ひまり。「VOICEVOX:冥鳴ひまり」のクレジットが必要）。
 - ブランチ: `claude/dreamy-bell-rwvipw`（PR #1 はマージ済み。続きの変更は新しい PR。ユーザーが頼むまで作らない）。
 
