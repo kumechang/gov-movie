@@ -11,6 +11,13 @@
 - 恐怖演出の素材: フォントは `bash scripts/setup_fonts.sh`、声は `EXTRA_VVM="1" bash scripts/setup_voicevox.sh`（冥鳴ひまり。「VOICEVOX:冥鳴ひまり」のクレジットが必要）。
 - ブランチ: `claude/dreamy-bell-rwvipw`（PR #1 はマージ済み。続きの変更は新しい PR。ユーザーが頼むまで作らない）。
 
+## 最新の作業（2026-10-13・後半）
+
+- 「◯◯だけど危険な国」シリーズの1本目として、トルコ×イスタンブールの動画（`themes/turkey_place_risk.yaml`、型は `place_vs_risk`）を作った。フック → 人気の根拠4場面（世界遺産・映画のロケ地・無形文化遺産・夜の写真）→ ターン（背景と音が恐怖演出に切り替わる）→ 危険情報の地域を地図に → イスタンブール県はレベル1 → 注意点 → 結び。約90秒。ユーザーの感想待ち。
+- 設計の要点: [FORMATS.md](FORMATS.md)「◯◯だけど危険な国」シリーズ、書き方は [THEME_SPEC.md](THEME_SPEC.md)「場所と危険情報」。
+- 次: ①この動画の感想を聞いて直す ②枠で見せる版（ASEAN・OECD・人間開発指数が非常に高い国など）の `members` 下書きの自動生成（公式ページから where / why の候補を原文のまま抜き出し、人が OK/NG を付ける）③別の国の `place_vs_risk`（タイ・メキシコ・フィリピンなど）。
+- 注意: Wikimedia の API は共有IPで 429 になりやすい。`facts.py` は1回失敗するとその実行ではAPIを使わず、`browser.py` 経由に切り替える。結果は `build/facts_cache.json`、写真は `build/images/` に残る。UNESCO の公式サイトはボット対策で自動取得できない（回避しない）。
+
 ## 新しいコンテナの立ち上げ手順
 
 `build/`（地図・生成物）と `tts/`（VOICEVOX）は git 管理外なので、新しい環境では作り直す。

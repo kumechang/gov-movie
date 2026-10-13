@@ -109,6 +109,30 @@ estat:
 
 文言の変数: `metric` `year` `asof`（取得日）`total` `n<レベル>`（例 `{n4}`）`n_high`（レベル3以上）`n_any` `excluded_note`。
 
+## 場所と危険情報（`template: place_vs_risk`）
+
+1か国の「人気の街」の根拠を見せたあと、外務省の危険情報を地図で見比べる型。「◯◯だけど危険な国」シリーズの1本ずつ版。
+実例: [turkey_place_risk.yaml](../themes/turkey_place_risk.yaml)（トルコ × イスタンブール）
+
+流れ: フック → 人気の根拠の場面（写真・落ち着いた配色。`calm_style`）→ ターン（背景と音が赤黒の恐怖演出に切り替わる）→ 危険情報の地域を地図に出す（レベルの高い順）→ 人気の街のレベル → 注意点 → 結び → CTA。
+大事な点: **人気の場所が危険情報の対象かどうかを、必ず明示する**（並べるだけだと「あの夜景も危ない」と誤解される）。`regions` に人気の街が属する地域（`place: true`）を1つ入れ、そのレベルを見せる。
+
+検証（どれか1つでも通らないと止まる）:
+- **危険情報**（`src/mofa.py`）: `members[].regions[].where` が公式の「危険レベル」の節にそのレベルで出てくること。`note` と `why[].evidence` が公式ページ本文にそのまま出てくること。
+- **人気の根拠**（`src/facts.py`）: Wikidata（CC0）の主張と ja.wikipedia の本文の両方で一致したものだけ使う。世界遺産・無形文化遺産は指定先（`designation`）と登録年、映画は撮影場所（`place.wikidata`）と公開年を確認する。結果は `build/<id>/fetch_report.txt`。
+- **写真**: Wikimedia Commons の API でライセンスを確認する。**CC0 / パブリックドメイン / CC BY だけ**使う（CC BY-SA・NC・ND は使わない）。作者・ライセンスが画面と post.md に出る。`photo.must_mention`（例 night）で、ファイル名・説明・カテゴリに語が出てくることも確認できる。
+- Wikimedia の API は回数制限が厳しい（429）。間隔をあけて取得し、`build/facts_cache.json`（事実）と `build/images/`（写真）に残す。2回目以降はネットワーク不要。
+
+| 項目 | 内容 |
+|---|---|
+| `members[0]` | 対象の国 1 件。`code` `label` `iso`（国の形）`why`（注意点 `[{tag, text, evidence}]`）`regions` |
+| `members[0].regions[]` | 地図に出す地域。`level` `where`（公式ページの文言）`say`（読み上げ）。危険な地域は `bands`（地図上のおおよその位置 `[[[経度,緯度],...],...]`。点が1つなら円 `radius_km`、2点以上なら帯 `width_km`）と `label_at`（レベルのチップの位置）、`note`（公式ページ本文の文言。任意）。人気の街の地域は `place: true` |
+| `place` | `name` `wikidata`（街の Q-id。映画の撮影場所の照合に使う）`marker`（`[経度, 緯度]`） |
+| `scenes[]` | 人気の根拠。`kind`: `heritage`（世界遺産）/ `ich`（無形文化遺産）/ `film`（映画のロケ地。`films: [{wikidata, name, year}]`）/ `night`（写真のみ。人気や順位の主張はしない）。`tag` `name` `headline` `lines` `say` `photo.file`（Commons のファイル名）`source_line` `min`（最短秒数） |
+| `turn` `caution` `closing` | ターン・注意点・結びの `say`（`turn.lines` / `closing.lines` は `[文, サイズ, 色名]`、`caution.head` は見出し） |
+| `calm_style` | ターンの前だけ `style` を上書きする（背景・タイトルの色など） |
+| 変数 | `asof`（取得日）`risk_date`（危険情報の最終更新日）`country` `place` `level` `place_level` |
+
 ## 見た目の設定（`style`）と声
 
 一覧型・段階ボードで使える。無ければ標準の見た目（紺色）。恐怖演出の実例は [g20_risk_levels.yaml](../themes/g20_risk_levels.yaml)。

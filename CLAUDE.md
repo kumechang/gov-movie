@@ -39,6 +39,7 @@ python3 -m unittest discover -s tests            # テスト
 - e-Stat からのデータ取得は実装済み（`src/fetch_estat.py`）。`source.fetch: estat` のテーマは、取得・検証（年・単位・欠損・全国値・2系統照合）が通らないと動画にしない。
 - 一覧型テンプレート（`template: ranked_list`、layout: grid/scroll/steps）を実装済み。型の全体像と今後の順番は [docs/FORMATS.md](docs/FORMATS.md)。
 - 外務省の海外安全情報（危険レベル）の取得・検証（`src/mofa.py`）と、段階ボード（`template: tier_board`）、恐怖演出の `style` を実装済み。G20の危険レベルの動画あり（`themes/g20_risk_levels.yaml`）。
+- 場所×危険情報の型（`template: place_vs_risk`）を実装済み。1か国の人気の場所（世界遺産・映画のロケ地・無形文化遺産・写真）を Wikidata × ja.wikipedia と Commons のライセンスで照合してから見せ、外務省の危険情報を地図で見比べる（`themes/turkey_place_risk.yaml`）。Wikimedia の API が 429 のときは `src/browser.py`（ヘッドレス Chromium）で通常のページを読む。
 - 未実装: 推移の棒グラフ、場所×年代、企業プロフィール、台本→統計表の選択（ROADMAP 3）。
 - **e-Stat の appId（環境変数 `ESTAT_APP_ID`）はコード・YAML・ドキュメント・コミット・ログに書かない。** URL や例外をそのまま表示しない（`estat.redact()` を通す）。
 - VOICEVOX は `scripts/setup_voicevox.sh` で配置できる（このクラウド環境で動作確認済み。公式 download ツールは GitHub API が使えず失敗するため、配布物を直接取得する）。

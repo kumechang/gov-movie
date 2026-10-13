@@ -19,6 +19,7 @@ import os
 import re
 import sys
 import time
+import unicodedata
 import urllib.error
 import urllib.request
 
@@ -165,7 +166,8 @@ def verify_pages(c, cache_path=None, log=print, sleep=time.sleep):
 
 
 def _squash(x):
-    return re.sub(r'\s+', '', x)
+    """空白を除き、全角・半角の違い（６と6、（と(）をそろえて比べる"""
+    return re.sub(r'\s+', '', unicodedata.normalize('NFKC', x))
 
 
 def where_is_faithful(section, level, where):
@@ -253,6 +255,12 @@ def check_members(spec, c, verified, excluded, problems):
             if not where_is_faithful(info.get('section', ''), r['level'], m['where']):
                 problems.append('%s: where「%s」が、公式ページの「危険レベル」の節にレベル%d の地域として出てきません（ページが更新された可能性。文言を確かめてください）'
                                 % (m['label'], m['where'], r['level']))
+        for rg in m.get('regions', []):             # 地図に出す地域ごとのレベル（place_vs_risk）
+            if not where_is_faithful(info.get('section', ''), rg['level'], rg['where']):
+                problems.append('%s: 地域「%s」が、公式ページの「危険レベル」の節にレベル%d として出てきません（ページが更新された可能性）'
+                                % (m['label'], rg['where'], rg['level']))
+            if rg.get('note') and _squash(rg['note']) not in _squash(info.get('body', '')):
+                problems.append('%s: 地域「%s」の note「%s」が、公式ページの本文にそのまま出てきません' % (m['label'], rg['where'], rg['note']))
         for w in m.get('why', []):
             ev = w.get('evidence', '')
             if not ev or _squash(ev) not in _squash(info.get('body', '')):

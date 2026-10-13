@@ -240,6 +240,50 @@ def build_tiers(T, out_dir, voice=True):
     return _finish(L, R, V, out_dir, n)
 
 
+def build_place(T, out_dir, voice=True):
+    """場所と危険情報（SpotTheme）用。人気の場面は明るいパッド、ターン（T_TURN）から不協和なうなりと心音に切り替わる。"""
+    n = int((T.T_END + 0.5) * SR)
+    L = np.zeros(n); R = np.zeros(n)
+    add = _adder(L, R, n)
+    t = np.arange(n) / SR
+    k_hot = np.clip((t - T.T_TURN) / 1.2, 0, 1)                 # ターンで滑らかに切り替える
+    bed = _pad(T, n) * (1 - k_hot) + _horror_bed(T, n) * k_hot
+    L += bed; R += bed
+    hs = T.HOOK_SEGS
+    add(noise_sweep(0.9, 300, 3000, 0.25), 0.0, 0, 1)
+    add(tone(220, 0.6, 5, 0.3), 0.2); add(tone(330, 0.5, 6, 0.2), 0.45)
+    for sg in hs[1:]:
+        add(tone(98, 0.9, 4, 0.5, (1, 0.2)), sg['start'])
+        add(noise_sweep(0.5, 500, 4000, 0.2), sg['start'] - 0.3)
+    for i, sg in enumerate(T.SCENE_SEGS):                     # 場面の切り替え: やわらかい音
+        add(tone(392 + 66 * i, 0.5, 6, 0.28, (1, 0.3, 0.1)), sg['start'], ((i % 2) * 2 - 1) * 0.25)
+        add(noise_sweep(0.5, 600, 3500, 0.12), sg['start'] - 0.2)
+    add(noise_sweep(1.2, 200, 2500, 0.3), T.T_TURN - 0.6)       # 「ところが」
+    add(tone(55, 2.0, 2.5, 0.9, (1, 0.2)), T.T_TURN)
+    for sg in T.MAP_SEGS:
+        if sg['kind'] == 'region':
+            hard = sg['region']['level']
+            add(tone(55, 1.6, 3, 0.85, (1, 0.2)), sg['start'])
+            add(tone(110 + 20 * hard, 0.9, 5, 0.4, (1, 0.5, 0.2)), sg['start'])
+            add(noise_sweep(0.5, 400, 3000, 0.2), sg['start'] - 0.3)
+        elif sg['kind'] == 'place':
+            add(tone(262, 0.5, 6, 0.3), sg['start']); add(tone(311, 0.6, 5, 0.25), sg['start'] + 0.12)
+        elif sg['kind'] == 'caution':
+            add(tone(65, 1.2, 4, 0.6, (1, 0.3)), sg['start'])
+    t2 = T.T_COUNT_END
+    for j, fx in enumerate((220.0, 261.6, 311.1, 370.0)):
+        add(tone(fx, 1.6, 3, 0.3), t2 + 0.1 + j * 0.12, ((j % 2) * 2 - 1) * 0.3)
+    add(tone(55.0, 2.5, 1.3, 0.5, (1, 0.2)), t2 + 0.1)
+    V = np.zeros(n)
+    if voice:
+        cues = [(sg['key'], sg['start'] + 0.12) for sg in hs]
+        cues += [(sg['key'], sg['start'] + 0.2) for sg in T.SCENE_SEGS]
+        cues += [(sg['key'], sg['start'] + 0.25) for sg in T.MAP_SEGS]
+        cues.append(('cta', T.T_COUNT_END + 0.25))
+        V = _voice(T, out_dir, n, cues)
+    return _finish(L, R, V, out_dir, n)
+
+
 if __name__ == '__main__':
     args = [a for a in sys.argv[1:] if not a.startswith('--')]
     T = theme.load(args[0])

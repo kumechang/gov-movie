@@ -38,7 +38,7 @@ def main(argv):
         print(fetch_report)
         open(os.path.join(out_dir, 'fetch_report.txt'), 'w', encoding='utf-8').write(fetch_report + '\n')
     T0 = loader.make_theme(spec)
-    is_list = spec.get('template') in ('ranked_list', 'tier_board')
+    is_list = spec.get('template') in ('ranked_list', 'tier_board', 'place_vs_risk')
 
     step('テーマの検証')
     narration_json = os.path.join(out_dir, 'narration.json')
@@ -70,9 +70,10 @@ def main(argv):
     import audio
     raw, final = os.path.join(out_dir, 'out.mp4'), os.path.join(out_dir, 'final.mp4')
     if is_list:
-        wav = (audio.build_tiers if T.layout == 'tiers' else audio.build_list)(T, out_dir, voice=use_voice)
-        step('映像の書き出し（一覧型: %s）' % T.layout)
+        wav = {'tiers': audio.build_tiers, 'place': audio.build_place}.get(T.layout, audio.build_list)(T, out_dir, voice=use_voice)
+        step('映像の書き出し（%s）' % T.layout)
         import render_list
+        import render_spot  # noqa: F401  （place の描画クラスを render_list に登録する）
         render_list.render_video(raw, wav, render_list.init(T, geo_pkl))
     else:
         wav = audio.build(T, out_dir, voice=use_voice)
