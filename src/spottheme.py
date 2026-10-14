@@ -28,6 +28,48 @@ def _km(a, b):
     return 6371.0 * 2 * math.asin(math.sqrt(h))
 
 
+def _in_ring(pt, ring):
+    """点 [経度, 緯度] が多角形（リング）の内側か（光線法）"""
+    x, y = pt
+    inside = False
+    n = len(ring)
+    for i in range(n):
+        x1, y1 = ring[i][0], ring[i][1]
+        x2, y2 = ring[(i + 1) % n][0], ring[(i + 1) % n][1]
+        if (y1 > y) != (y2 > y) and x < (x2 - x1) * (y - y1) / (y2 - y1) + x1:
+            inside = not inside
+    return inside
+
+
+def _seg_km(pt, a, b):
+    """点から線分 a-b までの距離（km。局所の平面近似）"""
+    k = math.cos(math.radians(pt[1]))
+    px, py = pt[0] * k * 111.32, pt[1] * 110.57
+    ax, ay = a[0] * k * 111.32, a[1] * 110.57
+    bx, by = b[0] * k * 111.32, b[1] * 110.57
+    dx, dy = bx - ax, by - ay
+    t = 0.0 if dx == dy == 0 else max(0.0, min(1.0, ((px - ax) * dx + (py - ay) * dy) / (dx * dx + dy * dy)))
+    return math.hypot(px - (ax + t * dx), py - (ay + t * dy))
+
+
+def _in_region(pt, r):
+    """人気の場所の座標が、地図に描く地域の中か。州・県で塗る地域は、州の中で、かつ例外の円の外。帯・円の地域は、その幅・半径の中。国境で決まる地域は None（別に確かめる）"""
+    if r.get('border'):
+        return None
+    if r.get('polys'):
+        if any(_km(pt, h[:2]) <= h[2] for h in r.get('holes', [])):
+            return False
+        if any(_in_ring(pt, ring) for ring in r['polys']):
+            return True
+    for run in r.get('bands', []):
+        if len(run) == 1:
+            if _km(pt, run[0]) <= float(r.get('radius_km', 0)):
+                return True
+        elif any(_seg_km(pt, a, b) <= float(r.get('width_km', 0)) / 2 for a, b in zip(run, run[1:])):
+            return True
+    return False
+
+
 def _dense(band, step_km=10.0):
     """折れ線を、約 step_km ごとの点に刻む（最も近い点を探すため）"""
     if len(band) == 1:
@@ -119,7 +161,7 @@ class SpotTheme(TierTheme):
                 q.update(status='region', rg=r)
             elif p.get('in_region'):
                 r = by_where.get(p['in_region'])
-                if r is None or not r.get('bands'):
+                if r is None or not (r.get('bands') or r.get('polys')):
                     raise ThemeError('places[%d] %s: in_region「%s」が危険地域（bands あり）にありません' % (i, p['name'], p['in_region']))
                 q.update(status='in_region', rg=r)
             elif p.get('absent') is True:
@@ -132,6 +174,8 @@ class SpotTheme(TierTheme):
         border_pts = [tuple(pt) for r in self.regions if r.get('border') for run in r['bands'] for pt in run]
         for p in self.places:                          # 国境までの距離（地図上の概算）。in_region の主張が、距離と食い違わないことも確かめる
             p['border_km'] = min((_km(p['marker'], pt) for pt in border_pts), default=None)
+            if p['status'] == 'in_region' and _in_region(p['marker'], p['rg']) is False:
+                raise ThemeError('places %s: 座標が、地図に描く地域「%s」の中にありません（州・帯・円の範囲を確かめてください）' % (p['name'], p['rg']['where']))
             if p['status'] == 'in_region' and p['rg'].get('border') and p['border_km'] > p['rg']['edge_km']:
                 raise ThemeError('places %s: 国境まで約%dkm あり、「%s」（国境から%skm以内）の中とは言えません（座標か地域を確かめてください）'
                                  % (p['name'], p['border_km'], p['rg']['where'], p['rg']['border']['km']))

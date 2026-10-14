@@ -1,0 +1,257 @@
+# 場所と危険情報の型（place_vs_risk）: 「危険と隣り合わせの観光地帯 エジプト編」。
+# シナイ半島のシャルム・エル・シェイク・ダハブ（アカバ湾沿岸＝レベル1の細い帯）と、聖カタリナ修道院（世界遺産。南シナイ県の内陸＝レベル2）の魅力を根拠つきで見せたあと、
+# 北シナイ県（レベル3）・南シナイ県（レベル2）・沿岸の帯（レベル1）を、Natural Earth の州の境界と円・帯から地図に塗って見比べる。
+# 人気の根拠は ja / en の Wikipedia で照合し、写真は Commons のライセンスを確認する（src/facts.py）。
+# 危険レベル・地域・理由の文言は、公式の危険情報ページの本文に出てくることを毎回自動で確かめる（src/mofa.py）。書き方は docs/THEME_SPEC.md「場所と危険情報」。
+
+id: egypt_place_risk
+template: place_vs_risk
+
+metric: 外務省の危険レベル
+year: 2026
+unit: レベル（1〜4）
+
+source:
+  name: 外務省 海外安全情報オープンデータ
+  note: "（危険レベルは{asof}時点）"
+  table: 海外安全情報オープンデータ 国別（country/0020.xml）と、エジプトの危険情報ページ
+  url: https://www.ezairyu.mofa.go.jp/html/opendata/index.html
+  license:
+    checked: 2026-10-13
+    terms_url: https://www.ezairyu.mofa.go.jp/html/opendata/support/terms.html
+    commercial: true
+    credit_lines:
+      - 外務省 海外安全情報オープンデータ 提供情報（https://www.ezairyu.mofa.go.jp/html/opendata/index.html）を加工して作成
+      - 出典：外務省 海外安全情報オープンデータ（https://www.ezairyu.mofa.go.jp/html/opendata/index.html）（{asof}に利用）
+      - 地域・危険の理由の文言：外務省 海外安全ホームページ エジプトの危険情報（https://www.anzen.mofa.go.jp/）を要約
+  fetch: mofa_risk
+
+verification: >-
+  危険レベルは外務省の国別XML（country/0020.xml）の値を、公式の危険情報ページ本文と照合して使う。
+  画面の地域（レベル3: 北シナイ県／レベル2: 南シナイ県のアカバ湾沿岸以外／レベル1: ダハブからシャルム・エル・シェイクまでのアカバ湾沿岸地域）は、公式ページの「危険レベル」の節に
+  その文言が出てきて、直後のレベル表示が一致することを毎回自動で確かめる。地域の注記と注意点の文言は、公式ページの本文にそのまま出てくることを確かめる。
+  地図の塗り分けは、Natural Earth 10m の州・県の境界（目安）から。沿岸の細い帯（レベル1）は、公式の文言に幅の定めが無いため、位置を示す概算の帯（ダハブとシャルム・エル・シェイクを結ぶ線から約10km）。
+  観光地の魅力（シャルム・エル・シェイクとダハブがダイビングの名所であること、聖カタリナ修道院が2002年に世界遺産になったこと）は、ja / en の Wikipedia の本文で確かめる
+  （同じ Wikipedia の別言語版なので、独立した2系統とは言えない）。
+  写真は Wikimedia Commons でライセンス（CC0 / パブリックドメイン / CC BY）と作者を確認し、画面と概要欄に出典を載せる。
+  地図上の位置・範囲は、おおよその目安として画面に明記する。結果は build/egypt_place_risk/fetch_report.txt。
+
+mofa:
+  max_age_hours: 24
+
+# ---------- 見た目 ----------
+# style は本編（ターン以降）の恐怖演出。calm_style で、ターンの前（人気の場面）だけ落ち着いた色に差し替える。
+style:
+  look: horror
+  fonts:
+    Black: assets/fonts/KaiseiTokumin-ExtraBold.ttf
+    Bold: assets/fonts/KaiseiTokumin-ExtraBold.ttf
+    Accent: assets/fonts/YujiBoku-Regular.ttf
+  bg: {top: [3, 0, 1], bottom: [28, 2, 5], fog: [120, 0, 12], fog_height: 0.38, vignette: 0.78, grain: 0.03}
+  text: [238, 228, 222]
+  muted: [168, 128, 128]
+  accent: [226, 34, 44]
+  title_color: [206, 18, 30]
+  title_glow: [150, 0, 8]
+  drips: [150, 0, 10]
+  pill: {fill: [90, 0, 8, 130], outline: [200, 30, 40, 170], text: [240, 205, 205]}
+  panel: {fill: [10, 0, 2, 234], outline: [190, 20, 30, 150], stroke: [0, 0, 0, 255]}
+  bar: {bg: [52, 10, 14], fill: [204, 24, 36]}
+  fx: {shake: 16, flash: [170, 0, 10], flash_alpha: 0.38, embers: true}
+  named_colors:
+    white: [238, 228, 222]
+    yellow: [232, 188, 70]
+    red: [226, 26, 38]
+    muted: [168, 128, 128]
+
+calm_style:
+  bg: {top: [12, 22, 44], bottom: [34, 52, 88], vignette: 0.55, grain: 0.02}
+  title_color: [244, 236, 224]
+  title_glow: null
+  drips: null
+  pill: {fill: [255, 255, 255, 30], outline: [255, 255, 255, 80], text: [236, 232, 224]}
+
+# ---------- 画面の固定文言 ----------
+title: 危険と隣り合わせの観光地帯
+title_small: エジプト編｜外務省の危険情報と見比べる
+subtitle: "魅力と、危険情報の地域（{asof}時点）"
+footnote: "危険情報の最終更新：{risk_date}｜地図の位置・範囲はおおよそです"
+
+# 地図は、シナイ半島を拡大して見せる（bbox = [経度の最小, 緯度の最小, 経度の最大, 緯度の最大]）
+map:
+  bbox: [32.2, 27.4, 35.3, 31.6]
+
+# ---------- 対象の国と、地図に出す地域 ----------
+# provinces: Natural Earth の州・県の英語名（その州全体を塗る）。holes は、地域から抜く例外（[経度, 緯度, 半径km]）。bands（2点以上）＋ width_km は、位置を示す帯。
+members:
+  - code: "0020"
+    label: エジプト
+    iso: EGY
+    regions:
+      - level: 3
+        where: 北シナイ県
+        display: 北シナイ県
+        provinces: ["Shamal Sina'"]
+        note: エジプト政府によるテロリスト掃討作戦が展開されています
+        label_at: [33.7, 30.75]
+        say: "シナイ半島の北、北シナイ県は、レベル3。渡航は止めてください。"
+      - level: 2
+        where: 南シナイ県ダハブからシャルム・エル・シェイクまでのアカバ湾沿岸地域を除く同県全域
+        display: 南シナイ県（沿岸をのぞく）
+        provinces: ["Janub Sina'"]
+        holes:
+          - [34.51, 28.50, 13]
+          - [34.48, 28.35, 13]
+          - [34.44, 28.18, 13]
+          - [34.40, 28.02, 13]
+          - [34.33, 27.91, 16]
+        note: エジプト政府の治安対策強化により治安情勢が安定していることから、危険情報をレベル3から2へ引き下げます
+        label_at: [33.25, 29.4]
+        say: "その南、南シナイ県の内陸は、レベル2です。2026年9月に、レベル3から、2に、引き下げられました。せいカタリナ修道院は、この中にあります。"
+      - level: 1
+        where: ダハブからシャルム・エル・シェイクまでのアカバ湾沿岸地域
+        display: ダハブ〜シャルムの沿岸
+        bands:
+          - [[34.51, 28.50], [34.48, 28.35], [34.44, 28.18], [34.40, 28.02], [34.33, 27.91]]
+        width_km: 20
+        clip: true
+        place_note: レベル2の地域にはさまれた、細い沿岸の帯です
+        label_at: [35.05, 28.05]
+        say: "アカバ湾の沿岸、ダハブから、シャルム・エル・シェイクまでが、レベル1。レベル2の地域に、はさまれた、細い帯です。"
+    why:
+      - tag: テロ
+        text: 北シナイ県では、政府のテロリスト掃討作戦が続いている
+        evidence: エジプト政府によるテロリスト掃討作戦が展開されています
+      - tag: 事件
+        text: 2018年12月、ギザのピラミッド周辺で、外国人観光客が死傷する爆発事件
+        evidence: 2018年12月にはギザ市のピラミッドエリア周辺で外国人観光客が死傷する爆発事件
+      - tag: 注意
+        text: 砂漠への移動は、信頼できる旅行会社と、ガイドの帯同を強く推奨
+        evidence: 現地ガイドの帯同を得ることを強く推奨します
+
+# 人気の場所（地図に印を出す。座標は Wikipedia・Wikidata の位置。概算）。
+places:
+  - {name: シャルム・エル・シェイク, label: シャルム, marker: [34.33, 27.91], in_region: ダハブからシャルム・エル・シェイクまでのアカバ湾沿岸地域, side: below-right}
+  - {name: ダハブ, marker: [34.51, 28.50], in_region: ダハブからシャルム・エル・シェイクまでのアカバ湾沿岸地域, side: above-right}
+  - {name: 聖カタリナ修道院, label: 聖カタリナ, marker: [33.976, 28.556], in_region: 南シナイ県ダハブからシャルム・エル・シェイクまでのアカバ湾沿岸地域を除く同県全域, side: left}
+
+# ---------- 魅力の紹介（根拠は ja / en の Wikipedia で照合。photo.file は Commons のファイル名） ----------
+scenes:
+  - kind: wikipedia
+    tag: ダイビングの名所
+    place: シャルム・エル・シェイク
+    name: シャルム・エル・シェイク
+    headline: シャルム・エル・シェイク
+    lines: ["紅海に面したリゾート", "世界有数のダイビングの名所"]
+    wikipedia:
+      - {lang: ja, title: シャルム・エル・シェイク, contains: [ダイビング, リゾート]}
+      - {lang: en, title: Sharm El Sheikh, contains: [diving, resort]}
+    source_line: 出典：ja / en Wikipedia で確認
+    photo_note: 写真は、シャルム・エル・シェイクのサンゴ礁
+    photo: {file: "File:Коралловые рифы бухты Корал Бей.jpg"}
+    min: 5.2
+    say: "まず、シャルム・エル・シェイク。紅海に面した、リゾートです。世界有数の、ダイビングの名所です。"
+  - kind: wikipedia
+    tag: ダイビングの名所
+    place: ダハブ
+    name: ダハブ
+    headline: ダハブ
+    lines: ["ダイビングスポットとして名高い町", "かつては小さな漁村だった"]
+    wikipedia:
+      - {lang: ja, title: ダハブ, contains: [ダイビング]}
+      - {lang: en, title: Dahab, contains: [diving]}
+    source_line: 出典：ja / en Wikipedia で確認
+    photo: {file: "File:Shoreline in Dahab.jpg"}
+    min: 5.2
+    say: "次に、ダハブ。ダイビングスポットとして、名高い町です。"
+  - kind: wikipedia
+    tag: 世界遺産
+    place: 聖カタリナ修道院
+    name: 聖カタリナ修道院
+    headline: 聖カタリナ修道院
+    lines: ["シナイ山のふもとの修道院", "2002年に世界遺産に登録"]
+    wikipedia:
+      - {lang: ja, title: 聖カタリナ修道院, contains: [世界遺産, "2002", シナイ山]}
+      - {lang: en, title: "Saint Catherine's Monastery", contains: ["2002", UNESCO]}
+    source_line: 出典：ja / en Wikipedia で確認
+    photo: {file: "File:Saint Catherine Sinai.jpg"}
+    min: 5.2
+    say: "そして、せいカタリナ修道院。シナイ山の、ふもとにあり、2002年に、世界遺産になりました。"
+
+# ---------- ターンと結び ----------
+turn:
+  say: "でも、この地域は、外務省が出している、危険地帯と、隣り合わせなんです。"
+  lines:
+    - ["でも…", 130, red]
+    - ["危険地帯と隣り合わせ", 64, white]
+
+caution:
+  head: 外務省は、こう伝えています
+  say: "外務省は、北シナイ県では、テロリストの掃討作戦が、続いていると伝えています。また、2018年には、ギザのピラミッドの周辺で、外国人観光客が死傷する、爆発事件がありました。砂漠への移動は、旅行会社と、ガイドを、強く勧めています。"
+
+closing:
+  say: "人気のリゾートと、世界遺産が、危険な地域と、隣り合わせです。行く前に、外務省の最新の情報を、必ず確認してください。"
+  lines:
+    - ["隣り合わせの観光地帯", 58, white]
+    - ["出発前に必ず確認", 54, yellow]
+
+extra_credits:
+  - "人気の根拠：ja / en Wikipedia で確認"
+
+# ---------- 声 ----------
+voice:
+  vvm: [1]
+  style_id: 14
+  speed: 1.12
+  pitch: -0.03
+  intonation: 0.9
+  credit: VOICEVOX:冥鳴ひまり
+
+# ---------- 構成 ----------
+hooks:
+  - say: "危険と、隣り合わせの、観光地帯。エジプト編。"
+    min: 3.0
+    gap: 0.4
+    y: 400
+    fade: 0.4
+    panel:
+      - [危険と隣り合わせの観光地帯, 50, muted, Bold]
+      - [エジプト編, 120, white, Black]
+  - say: "危険と、隣り合わせの、観光地帯を、知っていますか？"
+    min: 3.6
+    gap: 0.4
+    y: 380
+    fade: 0.35
+    panel:
+      - [危険と隣り合わせの, 64, white, Bold]
+      - [観光地帯, 150, red, Black]
+      - [知っていますか？, 60, yellow, Black]
+  - say: "今日は、エジプトに存在する、危険と隣り合わせの、観光地帯を、紹介します。"
+    min: 3.8
+    gap: 0.4
+    y: 400
+    fade: 0.35
+    panel:
+      - [今日は, 56, muted, Bold]
+      - [エジプトの, 90, white, Black]
+      - [観光地帯を紹介, 84, yellow, Black]
+
+cta:
+  say: "世界の意外な、旅行リスクを、地図と、公的情報で、解説しています。次の地域も、紹介します。フォローしてね。気になる国は、コメントで教えてください。"
+  panel:
+    - [世界の意外な旅行リスクを, 46, white, Bold]
+    - [地図と公的情報で解説, 56, white, Black]
+    - [次の地域も紹介します, 46, white, Bold]
+    - [フォローしてね, 76, yellow, Black]
+    - [気になる国はコメントで ↓, 44, white, Bold]
+
+# ---------- 投稿用テキスト（post.md として自動生成） ----------
+post:
+  title: "【{asof}時点】危険と隣り合わせの観光地帯 エジプト編。シナイ半島のリゾートと世界遺産、外務省の危険情報"
+  description: >-
+    エジプトのシナイ半島には、ダイビングの名所のシャルム・エル・シェイクとダハブ、2002年に世界遺産になった聖カタリナ修道院があります。
+    外務省の危険情報では、北シナイ県はレベル3（渡航中止勧告）、南シナイ県の内陸はレベル2（2026年9月にレベル3から引き下げ）で、
+    シャルム・エル・シェイクとダハブがあるアカバ湾沿岸の地域だけがレベル1です。北シナイ県ではテロリストの掃討作戦が続いていると外務省は伝えています。
+    危険情報は国全体ではなく地域ごとに違います。地域と理由は、外務省の危険情報ページの記載を要約しました。渡航前には、必ず外務省の最新の情報を確認してください。
+  pinned_comment: 次に見たい国は、どこですか？コメントで教えてください！
+  hashtags: ["#危険と隣り合わせの観光地帯", "#エジプト", "#シナイ半島", "#シャルムエルシェイク", "#外務省", "#危険情報", "#海外旅行"]

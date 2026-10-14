@@ -212,3 +212,23 @@ class AdminRingsTest(unittest.TestCase):
         rings = self.world.admin1_rings('AAA', ['Alpha'], lat_max=2)
         ys = [p[1] for r in rings for p in r]
         self.assertTrue(max(ys) <= 2 + 1e-9)
+
+
+class InRegionTest(unittest.TestCase):
+    """人気の場所の座標が、地図に描く地域の中か（州・帯・円・例外の円）"""
+
+    def test_polys_with_holes(self):
+        sq = [[0, 0], [10, 0], [10, 10], [0, 10], [0, 0]]
+        r = {'polys': [sq], 'holes': [[5, 5, 50]]}
+        self.assertFalse(spottheme._in_region([5, 5.1], r))      # 例外の円の中
+        self.assertTrue(spottheme._in_region([1, 1], r))
+        self.assertFalse(spottheme._in_region([20, 20], r))      # 州の外
+
+    def test_band_width(self):
+        r = {'bands': [[[0, 0], [0, 1]]], 'width_km': 20}
+        self.assertTrue(spottheme._in_region([0.05, 0.5], r))    # 約5km
+        self.assertFalse(spottheme._in_region([0.3, 0.5], r))    # 約33km
+
+    def test_circle_and_border(self):
+        self.assertTrue(spottheme._in_region([0, 0.05], {'bands': [[[0, 0]]], 'radius_km': 10}))
+        self.assertIsNone(spottheme._in_region([0, 0], {'border': {'km': 30}, 'bands': [[[0, 0]]]}))
