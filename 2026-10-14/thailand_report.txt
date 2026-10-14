@@ -1,0 +1,28 @@
+テーマ thailand_place_risk: タイ（2026年10月14日 時点）場所×危険情報
+国の最大レベル: 3
+危険情報の地域: レベル3 カンボジアとの国境付近（シーサケート県、スリン県、ブリラム県、ウボンラチャタニ県サケーオ県、チャンタブリ県、トラート県のカンボジア国境から30km以内） / レベル2 カンボジアとの国境付近（シーサケート県、スリン県、ブリラム県、ウボンラチャタニ県サケーオ県、チャンタブリ県、トラート県のカンボジア国境から30kmを超えて50km以内の地域）
+人気の場所: バンコク（危険情報の地域に載っていない） / パッタヤー（危険情報の地域に載っていない） / アランヤプラテート（レベル3 の地域内）
+距離: バンコク から レベル3 の地域まで 約170 km（地図上の概算）
+人気の根拠: バンコク（wikipedia） / パッタヤー（wikipedia） / アランヤプラテート（wikipedia）
+動画長: フック 14.7秒 / 人気の場面 14.7〜36.5秒 / 発表終了 100.9秒 / 全体 113.9秒
+
+[取得] 外務省 海外安全情報オープンデータ（国別 207 か国）  取得日時 2026-10-14T13:58:40
+  国別XMLの最終更新: 2026/10/14 13:50:43
+  最大レベル別（照合できた国）: レベル4 34 か国 / レベル3 29 か国 / レベル2 24 か国 / レベル1 34 か国 / 危険情報なし 84 か国
+[照合] 公式の危険情報ページ本文との照合: 123 か国中 121 か国が一致
+  ×除外 ニューカレドニア（仏領）（XML最大レベル2）: XMLの最大レベル2 が、危険情報ページ本文（レベル1）に出てこない
+  ×除外 パレスチナ（XML最大レベル3）: XMLの最大レベル3 が、危険情報ページ本文（レベルの記載なし）に出てこない
+  （感染症危険レベルは使わない。参考: パレスチナ[3, 2]、コンゴ民主共和国[1]、ウガンダ[1]）
+[対象の検証] 指定した 1 か国
+  タイ: レベル3（地域・理由の文言を公式ページ本文と照合済み）
+
+[人気の根拠の照合] Wikidata（CC0）× ja.wikipedia、写真は Commons のライセンスを確認
+  バンコク: ja.wikipedia「バンコク」（首都、ワット・アルン）
+  バンコク: en.wikipedia「Bangkok」（capital、Wat Arun）
+  写真 File:Phra Prang Wat Arun during day.jpg: CC BY 4.0 ／ This Photo was taken by Supanut Arunoprayote.／CC BY 4.0／Wikimedia Commons
+  パッタヤー: ja.wikipedia「パッタヤー」（ビーチ、バンコク）
+  パッタヤー: en.wikipedia「Pattaya」（beach、Bangkok）
+  写真 File:Pattaya Beach, Pattaya Bay, Thailand.jpg: CC BY 4.0 ／ Vyacheslav Argenberg／CC BY 4.0／Wikimedia Commons
+  アランヤプラテート: ja.wikipedia「アランヤプラテート郡」（国境、アンコール）
+  アランヤプラテート: en.wikipedia「Aranyaprathet」（Bangkok、Siem Reap、Angkor Wat）
+  写真 File:Привет Королевство Таиланд - panoramio.jpg: CC BY 3.0 ／ Александр Попрыгин／CC BY 3.0／Wikimedia Commons
