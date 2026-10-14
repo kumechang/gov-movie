@@ -155,9 +155,11 @@ class PlaceRisk(rl.Tiers):
             mask, proj = world.country_silhouette(T.country['iso'], w, h, margin=26, bbox=(T.spec.get('map') or {}).get('bbox'))
             edge = ImageChops.subtract(mask, mask.filter(ImageFilter.MinFilter(7)))
             layer = Image.new('RGBA', mask.size, (0, 0, 0, 0))
-            layer.paste(Image.new('RGBA', mask.size, (92, 16, 24, 255)), (0, 0), mask.point(lambda v: int(v * 0.86)))
-            layer.paste(Image.new('RGBA', mask.size, (214, 40, 52, 255)), (0, 0), edge.filter(ImageFilter.GaussianBlur(7)).point(lambda v: min(255, int(v * 1.6))))
-            layer.paste(Image.new('RGBA', mask.size, (255, 96, 104, 255)), (0, 0), edge.point(lambda v: int(v * 0.8)))
+            mc = (getattr(rl, 'STYLE', None) or {}).get('map') or {}          # 地図の国の色（style.map: {fill, glow, edge}。無ければ赤。落ち着いた見た目のときは青系にする）
+            fill, glow, line = (tuple(mc.get(k, d)) for k, d in (('fill', (92, 16, 24)), ('glow', (214, 40, 52)), ('edge', (255, 96, 104))))
+            layer.paste(Image.new('RGBA', mask.size, fill + (255,)), (0, 0), mask.point(lambda v: int(v * 0.86)))
+            layer.paste(Image.new('RGBA', mask.size, glow + (255,)), (0, 0), edge.filter(ImageFilter.GaussianBlur(7)).point(lambda v: min(255, int(v * 1.6))))
+            layer.paste(Image.new('RGBA', mask.size, line + (255,)), (0, 0), edge.point(lambda v: int(v * 0.8)))
             self.cache['map'] = (layer, proj)
             full = Image.new('L', (W, H), 0)                       # 国の形（全画面の位置）。国境から○km以内の地域を、国の内側だけに切り取るのに使う
             full.paste(mask, (x0, y0))
