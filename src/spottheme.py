@@ -316,6 +316,8 @@ class SpotTheme(TierTheme):
             add('place', 'place:%d' % i, 4.6, 1.0, region=g['region'], places=g['places'], index=i)
         if self.absent_places:
             add('others', 'others', 4.0, 1.0, places=self.absent_places)
+            if self.dist and self.dist['src']['status'] == 'absent':          # 載っていない場所から、レベル3の地域までの距離
+                add('distance', 'distance', 4.0, 0.9, dist=self.dist)
         if s.get('caution'):
             add('caution', 'caution', 5.0, 0.9)
         add('closing', 'closing', 5.0, 1.0)

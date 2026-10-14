@@ -126,6 +126,12 @@ class SpotThemeTest(unittest.TestCase):
     def tearDown(self):
         self.tmp.cleanup()
 
+    def test_distance_from_absent_place_follows_others(self):
+        spec = place_spec(self.img, distance={'from': '田舎', 'level': 4, 'say': '約{dist_km}キロ'})
+        T = spottheme.SpotTheme(spec)
+        self.assertEqual([sg['kind'] for sg in T.MAP_SEGS], ['turn', 'region', 'place', 'others', 'distance', 'caution', 'closing'])
+        self.assertEqual(T.dist['src']['name'], '田舎')
+
     def test_structure_and_timeline(self):
         T = spottheme.SpotTheme(place_spec(self.img))
         self.assertEqual(T.level, 4)
