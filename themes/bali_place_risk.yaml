@@ -126,41 +126,41 @@ scenes:
     tag: 世界遺産
     place: バリ島
     name: バリ州の文化的景観
-    headline: バリ島
-    lines: ["棚田と水利のシステムが", "2012年に世界遺産に登録"]
+    headline: バリ島の棚田
+    lines: ["9世紀から続く、水を分け合う仕組み「スバック」", "棚田の景観が、2012年に世界遺産に"]
     wikipedia:
-      - {lang: ja, title: バリ州の文化的景観, contains: [世界遺産, "2012", スバック]}
-      - {lang: en, title: Subak (irrigation), contains: [Bali, UNESCO]}
+      - {lang: ja, title: バリ州の文化的景観, contains: ["9世紀", スバック, 世界遺産]}
+      - {lang: en, title: Subak (irrigation), contains: ["9th century", UNESCO]}
     source_line: 出典：ja / en Wikipedia で確認
     photo: {file: "File:Bali- Jatiluwih rice terraces - 50281829456.jpg"}
-    min: 5.2
-    say: "まず、バリ島。棚田と、水を分け合う、スバックの仕組みが、2012年に、世界遺産になりました。"
+    min: 8.0
+    say: "まず、バリ島の、棚田。九世紀から続く、水を分け合う仕組み、スバックが、この景観を、守ってきました。二千十二年に、世界遺産になりました。"
   - kind: wikipedia
     tag: 芸術の村
     place: バリ島
     name: ウブド
     headline: ウブド
-    lines: ["ガムラン音楽、バリ舞踊、バリ絵画", "芸術の村として知られる"]
+    lines: ["ガムラン音楽、バリ舞踊、バリ絵画の、芸術の村", "外国人観光客が、年に300万人以上"]
     wikipedia:
       - {lang: ja, title: ウブド, contains: [芸術, ガムラン]}
-      - {lang: en, title: Ubud, contains: [art, culture]}
+      - {lang: en, title: Ubud, contains: ["three million foreign tourists"]}
     source_line: 出典：ja / en Wikipedia で確認
     photo: {file: "File:Ubud, Balinese dance, Group, Bali, Indonesia.jpg"}
-    min: 5.0
-    say: "次に、ウブド。音楽や、舞踊、絵画で知られる、芸術の村です。"
+    min: 7.0
+    say: "次に、ウブド。音楽、舞踊、絵画で知られる、芸術の村です。外国人観光客が、年に、三百万人以上、訪れるとされます。"
   - kind: wikipedia
-    tag: 寺院
+    tag: 海の寺院
     place: バリ島
     name: ウルワツ寺院
     headline: ウルワツ寺院
-    lines: ["バリ島南端の、海に突き出た岩の上の寺院"]
+    lines: ["11世紀に建てられた、海の霊をまつる寺院", "断崖の上で、毎日夕方6時にケチャダンス"]
     wikipedia:
-      - {lang: ja, title: ウルワツ寺院, contains: [寺院, バリ島]}
-      - {lang: en, title: Uluwatu Temple, contains: [cliff, temple]}
+      - {lang: ja, title: ウルワツ寺院, contains: ["11世紀", 海の霊]}
+      - {lang: en, title: Uluwatu Temple, contains: [cliff, Kecak, "6pm"]}
     source_line: 出典：ja / en Wikipedia で確認
     photo: {file: "File:Luhur Uluwatu Temple - 2015.02 - panoramio.jpg"}
-    min: 5.0
-    say: "そして、ウルワツ寺院。島の南の端の、海に突き出た岩の上に、あります。"
+    min: 8.0
+    say: "そして、ウルワツ寺院。十一世紀に建てられた、海の霊を、まつる寺院で、島の南の端の、断崖の上に、あります。毎日、夕方六時には、断崖の上で、ケチャダンスが、上演されます。"
 
 # ---------- ターンと結び ----------
 turn:

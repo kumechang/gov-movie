@@ -177,9 +177,14 @@ class SpotTheme(TierTheme):
         border_pts = [tuple(pt) for r in self.regions if r.get('border') for run in r['bands'] for pt in run]
         for p in self.places:                          # 国境までの距離（地図上の概算）。in_region の主張が、距離と食い違わないことも確かめる
             p['border_km'] = min((_km(p['marker'], pt) for pt in border_pts), default=None)
+            if p.get('border_with'):                   # 隣国の国境までの距離（地図上の概算）。場面の文言で {border_km_N} として使える
+                runs = world.border_runs(self.country['iso'], p['border_with'])
+                if not runs:
+                    raise ThemeError('places %s: %s との国境線が見つかりません' % (p['name'], p['border_with']))
+                p['border_km'] = min(_km(p['marker'], pt) for run in runs for pt in _dense(run))
             if p['status'] == 'in_region' and _in_region(p['marker'], p['rg']) is False:
                 raise ThemeError('places %s: 座標が、地図に描く地域「%s」の中にありません（州・帯・円の範囲を確かめてください）' % (p['name'], p['rg']['where']))
-            if p['status'] == 'in_region' and p['rg'].get('border') and p['border_km'] > p['rg']['edge_km']:
+            if p['status'] == 'in_region' and p['rg'].get('border') and not p.get('border_with') and p['border_km'] > p['rg']['edge_km']:
                 raise ThemeError('places %s: 国境まで約%dkm あり、「%s」（国境から%skm以内）の中とは言えません（座標か地域を確かめてください）'
                                  % (p['name'], p['border_km'], p['rg']['where'], p['rg']['border']['km']))
         names = [p['name'] for p in self.places]

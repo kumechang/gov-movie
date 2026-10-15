@@ -138,45 +138,45 @@ places:
 # ---------- 魅力の紹介（根拠は ja / en の Wikipedia で照合。photo.file は Commons のファイル名） ----------
 scenes:
   - kind: wikipedia
-    tag: ダイビングの名所
-    place: シャルム・エル・シェイク
-    name: シャルム・エル・シェイク
-    headline: シャルム・エル・シェイク
-    lines: ["紅海に面したリゾート", "世界有数のダイビングの名所"]
+    tag: 世界遺産
+    place: 聖カタリナ修道院
+    name: 聖カタリナ修道院
+    headline: 聖カタリナ修道院
+    lines: ["モーセが十戒を授かった、シナイ山のふもと", "世界最古の修道院とされる。2002年に世界遺産"]
     wikipedia:
-      - {lang: ja, title: シャルム・エル・シェイク, contains: [ダイビング, リゾート]}
-      - {lang: en, title: Sharm El Sheikh, contains: [diving, resort]}
+      - {lang: ja, title: 聖カタリナ修道院, contains: [世界最古, モーセ, シナイ山, "2002"]}
+      - {lang: en, title: "Saint Catherine's Monastery", contains: [oldest, "2002", UNESCO]}
     source_line: 出典：ja / en Wikipedia で確認
-    photo_note: 写真は、シャルム・エル・シェイクのサンゴ礁
-    photo: {file: "File:Коралловые рифы бухты Корал Бей.jpg"}
-    min: 5.2
-    say: "まず、シャルム・エル・シェイク。紅海に面した、リゾートです。世界有数の、ダイビングの名所です。"
+    photo: {file: "File:Saint Catherine Sinai.jpg"}
+    min: 8.0
+    say: "まず、せいカタリナ修道院。モーセが、十戒を授かった、とされる、シナイ山の、ふもとにあります。六世紀に建てられ、今も続く、世界最古の修道院とされ、2002年に、世界遺産になりました。"
   - kind: wikipedia
     tag: ダイビングの名所
     place: ダハブ
     name: ダハブ
     headline: ダハブ
-    lines: ["ダイビングスポットとして名高い町", "かつては小さな漁村だった"]
+    lines: ["ベドウィンの暮らす、小さな漁村が", "ダイビングの名所になった町"]
     wikipedia:
-      - {lang: ja, title: ダハブ, contains: [ダイビング]}
-      - {lang: en, title: Dahab, contains: [diving]}
+      - {lang: ja, title: ダハブ, contains: [ベドウィン, 漁村, ダイビング]}
+      - {lang: en, title: Dahab, contains: [Bedouin, diving]}
     source_line: 出典：ja / en Wikipedia で確認
     photo: {file: "File:Shoreline in Dahab.jpg"}
-    min: 5.2
-    say: "次に、ダハブ。ダイビングスポットとして、名高い町です。"
+    min: 7.0
+    say: "次に、ダハブ。かつては、ベドウィンの暮らす、小さな漁村でした。いまは、世界でも名高い、ダイビングの名所として、多くの観光客が訪れます。"
   - kind: wikipedia
-    tag: 世界遺産
-    place: 聖カタリナ修道院
-    name: 聖カタリナ修道院
-    headline: 聖カタリナ修道院
-    lines: ["シナイ山のふもとの修道院", "2002年に世界遺産に登録"]
+    tag: 紅海のリゾート
+    place: シャルム・エル・シェイク
+    name: シャルム・エル・シェイク
+    headline: シャルム・エル・シェイク
+    lines: ["「平和の都市」の愛称を持つ、紅海のリゾート", "世界有数のダイビングの名所"]
     wikipedia:
-      - {lang: ja, title: 聖カタリナ修道院, contains: [世界遺産, "2002", シナイ山]}
-      - {lang: en, title: "Saint Catherine's Monastery", contains: ["2002", UNESCO]}
+      - {lang: ja, title: シャルム・エル・シェイク, contains: [平和, 愛称, ダイビング]}
+      - {lang: en, title: Sharm El Sheikh, contains: ["City of Peace", diving]}
     source_line: 出典：ja / en Wikipedia で確認
-    photo: {file: "File:Saint Catherine Sinai.jpg"}
-    min: 5.2
-    say: "そして、せいカタリナ修道院。シナイ山の、ふもとにあり、2002年に、世界遺産になりました。"
+    photo_note: 写真は、シャルム・エル・シェイクのサンゴ礁
+    photo: {file: "File:Коралловые рифы бухты Корал Бей.jpg"}
+    min: 7.0
+    say: "そして、シャルム・エル・シェイク。「平和の都市」という愛称を持つ、紅海のリゾートです。世界有数の、ダイビングの名所として、知られています。"
 
 # ---------- ターンと結び ----------
 turn:

@@ -112,59 +112,56 @@ members:
         where: ガジアンテプ、シャンルウルファの県都以北
         display: ガジアンテプ県・シャンルウルファ県（県都以北）
         place_note: 食文化の都市ガジアンテプと、世界遺産ギョベクリ・テペがある県です
-        say: "ガジアンテプと、シャンルウルファは、シリアに近い県。県都以北は、レベル1です。"
+        say: "ガジアンテプと、ギョベクリ・テペのある、シャンルウルファは、シリアに近い県。県都以北は、レベル1です。"
 
 # 人気の場所（地図に印を出す）。region（その地域のレベルがある）／in_region（危険地域の中）／absent（危険情報の地域に載っていない）。side は印のどちら側に名前を出すか。
 places:
-  - {name: ガジアンテプ, marker: [37.38, 37.07], region: ガジアンテプ、シャンルウルファの県都以北, side: left}
-  - {name: シャンルウルファ, marker: [38.79, 37.16], region: ガジアンテプ、シャンルウルファの県都以北, side: above}
+  - {name: ガジアンテプ, marker: [37.38, 37.07], region: ガジアンテプ、シャンルウルファの県都以北, side: left, border_with: SYR}
+  - {name: ギョベクリ・テペ, marker: [38.92, 37.22], region: ガジアンテプ、シャンルウルファの県都以北, side: above, border_with: SYR}
   - {name: ディヤルバクル, marker: [40.23, 37.91], in_region: ディヤルバクル県及びイラクとの国境地帯, side: above}
 
 # ---------- 魅力の紹介（根拠は Wikidata × ja.wikipedia で照合。photo.file は Commons のファイル名） ----------
 scenes:
   - kind: wikipedia
-    tag: 食文化
-    place: ガジアンテプ
-    name: ガジアンテプ（ピスタチオ・食文化の都市）
-    headline: ガジアンテプの食
-    lines: ["ピスタチオで有名な街", "ユネスコの食文化の都市に2015年に指定"]
-    wikipedia:
-      - {lang: ja, title: ガズィアンテプ, contains: ["2015", ピスタチオ]}
-      - {lang: en, title: Gaziantep, contains: ["2015", City of Gastronomy, UNESCO]}
-    source_line: 出典：UNESCO City of Gastronomy（ja / en Wikipedia で確認）
-    photo_note: 写真は、ピスタチオのバクラヴァ
-    photo: {file: "File:Baklava sunumu.jpg"}
-    min: 5.2
-    say: "まず、ガジアンテプ。ピスタチオで、有名な街です。ユネスコの、食文化の都市にも、指定されています。"
-  - kind: heritage
-    tag: 世界遺産
-    place: シャンルウルファ
+    tag: 世界最古級の神殿
+    place: ギョベクリ・テペ
     name: ギョベクリ・テペ
     headline: ギョベクリ・テペ
-    lines: ["シャンルウルファ県の遺跡", "2018年に世界遺産に登録"]
-    wikidata: Q214944
-    designation: Q9259
-    year: 2018
-    wp_contains: [ギョベクリ]
-    source_line: 出典：UNESCO 世界遺産リスト（Wikidata・ja.Wikipedia で確認）
+    lines: ["紀元前1万年ごろ、石柱の神殿", "5.5m・約15トンの石柱が、円を描く", "シリア国境まで 約{border_km_1}km（地図上の概算）"]
+    wikipedia:
+      - {lang: ja, title: ギョベクリ・テペ, contains: ["紀元前1万年", 石柱, "15トン", 狩猟採集]}
+      - {lang: en, title: "Göbekli Tepe", contains: [pillars, megaliths]}
+    source_line: 出典：ja / en Wikipedia で確認（2018年に世界遺産）
     photo: {file: "File:Göbeklitepe 2015-21.jpg"}
-    min: 5.0
-    say: "次に、シャンルウルファの、ギョベクリ・テペ。2018年に、世界遺産になりました。"
-  - kind: heritage
+    min: 8.0
+    say: "まず、ギョベクリ・テペ。紀元前一万年ごろ、農耕が始まる前の、狩猟採集の人々が、築いた石柱の神殿です。高さ五・五メートル、重さ十五トンの石柱が、円を描いて、並んでいます。シリア国境まで、約{border_km_1}キロです。"
+  - kind: wikipedia
+    tag: 食文化
+    place: ガジアンテプ
+    name: ガジアンテプ
+    headline: ガジアンテプ
+    lines: ["ピスタチオたっぷりのバクラヴァ", "2013年、トルコで初めてEUの保護の対象に", "シリア国境まで 約{border_km_0}km（地図上の概算）"]
+    wikipedia:
+      - {lang: ja, title: ガズィアンテプ, contains: [ピスタチオ, 国境]}
+      - {lang: en, title: Gaziantep, contains: [baklava, "protected designation of origin", "City of Gastronomy"]}
+    source_line: 出典：ja / en Wikipedia で確認（2015年にユネスコの食文化の都市）
+    photo_note: 写真は、トルコのピスタチオのバクラヴァ
+    photo: {file: "File:Pistachio Baklava from Sarigerme, Turkey (49070918302).jpg"}
+    min: 8.0
+    say: "次に、ガジアンテプ。ピスタチオで有名な、食の街です。ここの、バクラバは、二千十三年、トルコで初めて、EUの、原産地の保護の対象に、なりました。シリア国境まで、約{border_km_0}キロです。"
+  - kind: wikipedia
     tag: 世界遺産
     place: ディヤルバクル
-    name: ディヤルバクル城塞とヘヴセル庭園の文化的景観
+    name: ディヤルバクル城塞
     headline: ディヤルバクル城塞
-    lines: ["ディヤルバクル城塞とヘヴセル庭園の文化的景観", "2015年に世界遺産に登録"]
-    wikidata: Q20963673
-    wp_title: ディヤルバクル城塞とヘヴセル庭園の文化的景観
-    designation: Q9259
-    year: 2015
-    wp_contains: [ディヤルバクル]
-    source_line: 出典：UNESCO 世界遺産リスト（Wikidata・ja.Wikipedia で確認）
+    lines: ["万里の長城に次ぐ、世界第2位の長さと言われる城壁", "黒い玄武岩の壁。2015年に世界遺産に登録"]
+    wikipedia:
+      - {lang: ja, title: ディヤルバクル城塞とヘヴセル庭園の文化的景観, contains: [万里の長城, 玄武岩, "82の塔"]}
+      - {lang: en, title: Diyarbakır, contains: [basalt, "UNESCO World Heritage"]}
+    source_line: 出典：ja / en Wikipedia で確認
     photo: {file: "File:Walls of Diyarbakir - panoramio.jpg"}
-    min: 5.0
-    say: "そして、ディヤルバクル。黒い城壁の城塞も、2015年に、世界遺産になりました。"
+    min: 7.5
+    say: "そして、ディヤルバクル。万里の長城に次いで、世界で二番目に長い、と言われる城壁です。黒い玄武岩で築かれ、外側の城壁には、八十二の塔が、並びます。二千十五年に、世界遺産になりました。"
 
 # ---------- ターンと結び ----------
 turn:
