@@ -142,6 +142,9 @@ class SpotTheme(TierTheme):
                     r['polys'] = world.admin1_rings(self.country['iso'], r['provinces'], r.get('lat_max'), r.get('lat_min'))
                 except KeyError as e:
                     raise ThemeError('地域「%s」: %s' % (r['where'], e.args[0]))
+        for r in self.regions:                         # rings: 州の境界データが無い地域（未承認の地域など）を、座標の多角形で書く（概算。位置の目安）
+            if r.get('rings'):
+                r['polys'] = list(r.get('polys', [])) + [[tuple(pt) for pt in ring] for ring in r['rings']]
         self.danger = [r for r in self.regions if r.get('bands') or r.get('polys')]
         for r in self.danger:
             if not r.get('say'):
@@ -209,7 +212,7 @@ class SpotTheme(TierTheme):
                 raise ThemeError('distance.level=%s の危険地域がありません' % d['level'])
             cand = []
             for r in targets:
-                for b in r['bands']:
+                for b in list(r.get('bands', [])) + [list(ring) + [ring[0]] for ring in r.get('polys', [])]:      # 帯・円と、州の外周（閉じた折れ線）
                     for pt in _dense(b):
                         cand.append((_km(src['marker'], pt) - r.get('edge_km', 0.0), pt, r))
             d_edge, pt, r = min(cand, key=lambda x: x[0])

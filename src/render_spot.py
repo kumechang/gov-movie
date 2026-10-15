@@ -251,7 +251,8 @@ class PlaceRisk(rl.Tiers):
                     d.line((a[0] + (b[0] - a[0]) * i / n, a[1] + (b[1] - a[1]) * i / n, a[0] + (b[0] - a[0]) * (i + 1) / n, a[1] + (b[1] - a[1]) * (i + 1) / n),
                            fill=(255, 245, 230, 235), width=4)
             if k >= 1:
-                self.chip(d, (a[0] + b[0]) / 2, (a[1] + b[1]) / 2 - 8, '約%skm' % '{:,}'.format(dist['dist']['km_round']), (40, 40, 52), 32)
+                near = ((a[0] - b[0]) ** 2 + (a[1] - b[1]) ** 2) ** 0.5 < 120         # 線が短いときは、チップが印や名前に重ならないよう、上にずらす
+                self.chip(d, (a[0] + b[0]) / 2, (a[1] + b[1]) / 2 - (62 if near else 8), '約%skm' % '{:,}'.format(dist['dist']['km_round']), (40, 40, 52), 32)
         # 人気の場所の印（地図が出たときから、いつも出ている）
         for p in T.places:
             px, py = self.to_px(p['marker'])
