@@ -68,6 +68,15 @@ class ParseTest(unittest.TestCase):
         sec = '●A州のイエメンとの国境地帯を除く地域\nレベル2：x\n●イエメンとの国境地帯\nレベル3：y'
         self.assertTrue(mofa.where_is_faithful(sec, 3, 'イエメンとの国境地帯'))
 
+    def test_where_with_level_label_first(self):
+        # ミャンマーのように、「●レベル3：」の見出しのあとに地域を並べる書き方は、直前の見出しのレベルで判定する
+        sec = '【危険レベル】\n●レベル3：渡航は止めてください。\n(1)ラカイン州マウンドー県\n(2)シャン州1地域（コーカン自治地帯）\n●レベル2:不要不急の渡航は止めてください。\n《継続》上記レベル3以外の地域'
+        f = mofa.where_is_faithful
+        self.assertTrue(f(sec, 3, 'シャン州1地域（コーカン自治地帯）'))
+        self.assertFalse(f(sec, 2, 'シャン州1地域（コーカン自治地帯）'))
+        self.assertTrue(f(sec, 2, '上記レベル3以外の地域'))
+        self.assertFalse(f(sec, 3, '上記レベル3以外の地域'))
+
 
 def fake_cache(pages=None):
     def c(code, name, risk, area='10'):

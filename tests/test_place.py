@@ -230,6 +230,12 @@ class InRegionTest(unittest.TestCase):
         self.assertTrue(spottheme._in_region([1, 1], r))
         self.assertFalse(spottheme._in_region([20, 20], r))      # 州の外
 
+    def test_distance_from_inside_hole_is_to_hole_edge(self):
+        sq = [[0, 0], [10, 0], [10, 10], [0, 10], [0, 0]]
+        r = {'polys': [sq], 'holes': [[5, 5, 50]]}
+        self.assertAlmostEqual(spottheme._region_km([5, 5], r), 50.0, places=3)        # 穴の中心から、穴の縁まで
+        self.assertEqual(spottheme._region_km([1, 1], r), 0.0)
+
     def test_band_width(self):
         r = {'bands': [[[0, 0], [0, 1]]], 'width_km': 20}
         self.assertTrue(spottheme._in_region([0.05, 0.5], r))    # 約5km

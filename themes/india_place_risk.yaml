@@ -1,0 +1,272 @@
+# 場所と危険情報の型（place_vs_risk）: 「危険と隣り合わせの観光地帯 インド編」。
+# 外務省の危険情報（インド）: レベル4＝ジャンム・カシミール準州・ラダックの管理ライン（LoC）付近／レベル3＝ジャンム・カシミール準州（スリナガル及びその近郊・LoC付近・ラダックを除く）／レベル2＝スリナガル及びその近郊／レベル1＝ラダック連邦直轄領・上記以外のインド全域（デリーなど）。
+# 近くにレベル3・4がある人気の観光地として、アムリトサル（黄金寺院。レベル1。パキスタンのラホールまで約50km）・スリナガル（ダル湖。レベル2だが、周りはレベル3）・レー（ラダック。レベル1）を見せる。
+# 州の境界は Natural Earth（目安）。スリナガルの「近郊」の範囲、LoC「付近」の範囲は公式に書かれていないので、図を目安として塗る（画面と概要欄で明記）。地図の線は国の境界を主張するものではなく、外務省の危険情報の地域を示す目安。
+# 北東部諸州（レベル2）・中東部（レベル2）は、この回の地図の範囲の外なので図には出さない。
+# 人気の根拠は ja / en の Wikipedia で照合し、写真は Commons のライセンスを確認する（src/facts.py）。
+# 危険レベル・地域・理由の文言は、公式の危険情報ページの本文に出てくることを毎回自動で確かめる（src/mofa.py）。書き方は docs/THEME_SPEC.md「場所と危険情報」。
+
+id: india_place_risk
+template: place_vs_risk
+
+metric: 外務省の危険レベル
+year: 2026
+unit: レベル（1〜4）
+
+source:
+  name: 外務省 海外安全情報オープンデータ
+  note: "（危険レベルは{asof}時点）"
+  table: 海外安全情報オープンデータ 国別（country/0091.xml）と、インドの危険情報ページ
+  url: https://www.ezairyu.mofa.go.jp/html/opendata/index.html
+  license:
+    checked: 2026-10-13
+    terms_url: https://www.ezairyu.mofa.go.jp/html/opendata/support/terms.html
+    commercial: true
+    credit_lines:
+      - 外務省 海外安全情報オープンデータ 提供情報（https://www.ezairyu.mofa.go.jp/html/opendata/index.html）を加工して作成
+      - 出典：外務省 海外安全情報オープンデータ（https://www.ezairyu.mofa.go.jp/html/opendata/index.html）（{asof}に利用）
+      - 地域・危険の理由の文言：外務省 海外安全ホームページ インドの危険情報（https://www.anzen.mofa.go.jp/）を要約
+  fetch: mofa_risk
+
+verification: >-
+  危険レベルは外務省の国別XML（country/0091.xml）の値を、公式の危険情報ページ本文と照合して使う。
+  画面の地域（レベル4: 管理ライン（LoC）付近／レベル3: ジャンム・カシミール準州（スリナガル及びその近郊、LoC付近、ラダック連邦直轄領を除く地域）／レベル2: スリナガル及びその近郊／レベル1: ラダック連邦直轄領・上記以外のインド全域）は、公式ページの「危険レベル」の節にその文言が出てきて、直後のレベル表示が一致することを毎回自動で確かめる。
+  地域の注記と注意点の文言は、公式ページの本文にそのまま出てくることを確かめる。
+  地図の範囲は概算: 州・準州は Natural Earth の境界（目安）。スリナガルの近郊は、市の位置を中心にした円（公式に範囲の定めがない）。管理ライン（LoC）付近は、線の周辺の幅約30kmの帯（目安。公式に範囲の定めがない）。
+  観光地からレベル3・レベル4の地域までの距離は、座標とこの図形からの概算（5km単位）。
+  観光地の根拠は、ja / en の Wikipedia の本文で確かめる（同じ Wikipedia の別言語版なので、独立した2系統とは言えない）。
+  写真は Wikimedia Commons でライセンス（CC0 / パブリックドメイン / CC BY）と作者を確認し、画面と概要欄に出典を載せる。結果は build/india_place_risk/fetch_report.txt。
+
+mofa:
+  max_age_hours: 24
+
+
+# ---------- 見た目 ----------
+# style は本編（ターン以降）の恐怖演出。calm_style で、ターンの前（人気の場面）だけ落ち着いた色に差し替える。
+style:
+  look: horror
+  fonts:
+    Black: assets/fonts/KaiseiTokumin-ExtraBold.ttf
+    Bold: assets/fonts/KaiseiTokumin-ExtraBold.ttf
+    Accent: assets/fonts/YujiBoku-Regular.ttf
+  bg: {top: [3, 0, 1], bottom: [28, 2, 5], fog: [120, 0, 12], fog_height: 0.38, vignette: 0.78, grain: 0.03}
+  text: [238, 228, 222]
+  muted: [168, 128, 128]
+  accent: [226, 34, 44]
+  title_color: [206, 18, 30]
+  title_glow: [150, 0, 8]
+  drips: [150, 0, 10]
+  pill: {fill: [90, 0, 8, 130], outline: [200, 30, 40, 170], text: [240, 205, 205]}
+  panel: {fill: [10, 0, 2, 234], outline: [190, 20, 30, 150], stroke: [0, 0, 0, 255]}
+  bar: {bg: [52, 10, 14], fill: [204, 24, 36]}
+  fx: {shake: 16, flash: [170, 0, 10], flash_alpha: 0.38, embers: true}
+  named_colors:
+    white: [238, 228, 222]
+    yellow: [232, 188, 70]
+    red: [226, 26, 38]
+    muted: [168, 128, 128]
+
+calm_style:
+  bg: {top: [12, 22, 44], bottom: [34, 52, 88], vignette: 0.55, grain: 0.02}
+  title_color: [244, 236, 224]
+  title_glow: null
+  drips: null
+  pill: {fill: [255, 255, 255, 30], outline: [255, 255, 255, 80], text: [236, 232, 224]}
+
+
+# ---------- 画面の固定文言 ----------
+title: 危険と隣り合わせの観光地帯
+title_small: インド編｜外務省の危険情報と見比べる
+subtitle: "魅力と、危険情報の地域（{asof}時点）"
+footnote: "危険情報の最終更新：{risk_date}｜地図の位置・範囲はおおよそです"
+
+# 地図: インド北部（ジャンム・カシミール準州・ラダック連邦直轄領・パンジャーブ州）を見せる（bbox = [経度の最小, 緯度の最小, 経度の最大, 緯度の最大]）
+map:
+  bbox: [72.6, 30.2, 79.8, 35.8]
+
+
+# ---------- 対象の国と、地図に出す地域 ----------
+# provinces: Natural Earth の州の名前。bands（2点以上）＋ width_km: 線の帯。bands（1点）＋ radius_km: 円。holes: 地域から抜く円 [経度, 緯度, 半径km]。
+members:
+  - code: "0091"
+    label: インド
+    iso: IND
+    regions:
+      - level: 4
+        where: 管理ライン（LoC）付近
+        display: 管理ライン（LoC）付近
+        bands:
+          - [[74.4, 32.55], [74.15, 32.95], [74.05, 33.45], [73.8, 33.85], [73.75, 34.35], [74.25, 34.65], [74.85, 34.7], [75.6, 34.6], [76.1, 34.6], [76.4, 35.0], [77.0, 35.45]]
+        width_km: 30
+        clip: true
+        label_at: [75.9, 33.2]
+        note: 管理ライン付近において両軍間での銃撃戦などが継続的に発生しています
+        say: "管理ライン、LoCの付近は、レベル4。退避してください。渡航は、止めてください。"
+      - level: 3
+        where: ジャンム・カシミール準州（スリナガル及びその近郊、管理ライン(LoC)付近、ラダック連邦直轄領を除く地域）
+        display: ジャンム・カシミール準州
+        provinces: [Jammu and Kashmir]
+        holes:
+          - [74.80, 34.08, 25]
+        label_at: [75.0, 33.0]
+        note: 爆弾テロや、インド軍・治安当局との銃撃戦が頻発し
+        say: "ジャンム・カシミール準州は、レベル3。どのような目的でも、渡航は止めてください。"
+      - level: 2
+        where: ジャンム・カシミール準州スリナガル及びその近郊
+        display: スリナガルとその近郊
+        bands:
+          - [[74.80, 34.08]]
+        radius_km: 25
+        label_at: [74.6, 34.9]
+        say: "ただし、スリナガルと、その近郊だけは、レベル2です。周りは、レベル3です。"
+      - level: 1
+        where: ラダック連邦直轄領
+        display: ラダック連邦直轄領
+        provinces: [Ladakh]
+        label_at: [78.2, 33.3]
+        say: "ラダック連邦直轄領は、レベル1です。"
+      - level: 1
+        where: 上記以外のインド全域（デリー、コルカタ、チェンナイ、ムンバイ、ベンガルールなどの大都市を含む地域）
+        display: 上記以外のインド全域（デリーなど）
+        place_note: アムリトサルは、この中です
+        say: "アムリトサルを含む、上記以外のインド全域は、レベル1です。"
+    why:
+      - tag: テロ
+        text: 分離独立などを掲げる過激派が、各地でテロ活動
+        evidence: 各地でテロ活動を行っています
+      - tag: 犯罪
+        text: 観光地で、窃盗・詐欺・睡眠薬強盗などが頻発
+        evidence: 都市部や観光地を中心に、窃盗、詐欺や睡眠薬を用いた強盗・強姦などの犯罪が頻発しています
+      - tag: 注意
+        text: スリナガルとレーは、陸路を避け、空路で
+        evidence: レーを訪問する際は、陸路での移動を避け、空路を利用してください
+
+# 人気の場所（地図に印を出す。座標は Wikipedia の位置。概算）。
+places:
+  - {name: アムリトサル, marker: [74.8723, 31.6340], region: 上記以外のインド全域（デリー、コルカタ、チェンナイ、ムンバイ、ベンガルールなどの大都市を含む地域）, side: below}
+  - {name: スリナガル, marker: [74.7973, 34.0837], in_region: ジャンム・カシミール準州スリナガル及びその近郊, side: below-left}
+  - {name: レー, marker: [77.5770, 34.1526], in_region: ラダック連邦直轄領, side: below}
+
+# ---------- 魅力の紹介（根拠は ja / en の Wikipedia で照合。photo.file は Commons のファイル名） ----------
+scenes:
+  - kind: wikipedia
+    tag: 黄金寺院
+    place: アムリトサル
+    name: アムリトサル
+    headline: アムリトサル
+    lines: ["黄金寺院では、毎日10万食以上の無料の食事", "西へ約50kmで、パキスタンのラホール", "レベル3の地域まで 約{zone3_km_0}km（地図上の概算）"]
+    wikipedia:
+      - {lang: ja, title: アムリトサル, contains: [黄金寺院, ラホール]}
+      - {lang: en, title: Golden Temple, contains: [langar, "100,000"]}
+    source_line: 出典：ja / en Wikipedia で確認
+    photo: {file: "PHOTO_AMRITSAR"}
+    min: 8.0
+    say: "まず、アムリトサル。シク教の聖地、黄金寺院の街です。寺院では、毎日、十万食以上の、無料の食事が、ふるまわれます。西へ、約五十キロで、パキスタンの、ラホールです。レベル3の地域まで、約{zone3_km_0}キロです。"
+  - kind: wikipedia
+    tag: 湖と庭園
+    place: スリナガル
+    name: スリナガル
+    headline: スリナガル
+    lines: ["ダル湖に浮かぶ、ハウスボート", "ムガル帝国の皇帝が、避暑に使った庭園", "周りは、レベル3"]
+    wikipedia:
+      - {lang: en, title: Srinagar, contains: [houseboats, "Dal Lake", Mughal]}
+      - {lang: en, title: Dal Lake, contains: [Shalimar, houseboats]}
+    source_line: 出典：en Wikipedia で確認（外務省の文言は公式ページ）
+    photo: {file: "PHOTO_SRINAGAR"}
+    min: 8.0
+    say: "次に、スリナガル。ダル湖に、ハウスボートが、浮かぶ街です。ムガル帝国の皇帝が、夏を過ごした、庭園が、残っています。でも、この街の周りは、すべて、レベル3です。"
+  - kind: wikipedia
+    tag: 天空の街
+    place: レー
+    name: レー
+    headline: レー
+    lines: ["標高3,500mの、高地の街", "王宮の跡と、白い仏塔", "レベル4の地域まで 約{zone4_km_2}km（地図上の概算）"]
+    wikipedia:
+      - {lang: en, title: Leh, contains: ["3,500", "Leh Palace", "Shanti Stupa"]}
+      - {lang: en, title: Ladakh, contains: [Leh]}
+    source_line: 出典：en Wikipedia で確認（外務省の文言は公式ページ）
+    photo: {file: "PHOTO_LEH"}
+    min: 7.5
+    say: "そして、レー。標高三千五百メートルの、高地の街です。王宮の跡と、白い仏塔が、あります。レベル4の地域まで、約{zone4_km_2}キロです。"
+
+# ---------- ターンと結び ----------
+turn:
+  say: "でも、この人気の観光地は、外務省が出している、危険地帯と、隣り合わせなんです。"
+  lines:
+    - ["でも…", 130, red]
+    - ["危険地帯と隣り合わせ", 64, white]
+
+caution:
+  head: 外務省は、こう伝えています
+  say: "外務省は、各地で、テロ活動が行われていると、伝えています。観光地を中心に、窃盗や詐欺、睡眠薬を使った強盗なども、頻発しています。スリナガルや、レーを訪ねるときは、陸路を避け、空路を使うよう、求めています。"
+
+closing:
+  say: "人気の観光地の、すぐ近くに、レベル3と、レベル4が、あります。スリナガルは、レベル2、レーと、アムリトサルは、レベル1です。行く前に、外務省の最新の情報を、必ず確認してください。"
+  lines:
+    - ["隣り合わせの観光地帯", 58, white]
+    - ["出発前に必ず確認", 54, yellow]
+
+extra_credits:
+  - "人気の根拠：ja / en Wikipedia で確認（スリナガル・レーは en のみ）"
+
+
+# ---------- 声 ----------
+voice:
+  vvm: [1]
+  style_id: 14
+  speed: 1.12
+  pitch: -0.03
+  intonation: 0.9
+  credit: VOICEVOX:冥鳴ひまり
+
+
+# ---------- 構成 ----------
+hooks:
+  - say: "危険と、隣り合わせの、観光地帯。インド編。"
+    min: 3.0
+    gap: 0.4
+    y: 400
+    fade: 0.4
+    panel:
+      - [危険と隣り合わせの観光地帯, 50, muted, Bold]
+      - [インド編, 120, white, Black]
+  - say: "危険と、隣り合わせの、観光地帯を、知っていますか？"
+    min: 3.6
+    gap: 0.4
+    y: 380
+    fade: 0.35
+    panel:
+      - [危険と隣り合わせの, 64, white, Bold]
+      - [観光地帯, 150, red, Black]
+      - [知っていますか？, 60, yellow, Black]
+  - say: "今日は、インドに存在する、危険と隣り合わせの、観光地帯を、紹介します。"
+    min: 3.8
+    gap: 0.4
+    y: 400
+    fade: 0.35
+    panel:
+      - [今日は, 56, muted, Bold]
+      - [インドの, 90, white, Black]
+      - [観光地帯を紹介, 84, yellow, Black]
+
+cta:
+  say: "世界の意外な、旅行リスクを、地図と、公的情報で、解説しています。次の地域も、紹介します。フォローしてね。気になる国は、コメントで教えてください。"
+  panel:
+    - [世界の意外な旅行リスクを, 46, white, Bold]
+    - [地図と公的情報で解説, 56, white, Black]
+    - [次の地域も紹介します, 46, white, Bold]
+    - [フォローしてね, 76, yellow, Black]
+    - [気になる国はコメントで ↓, 44, white, Bold]
+
+
+# ---------- 投稿用テキスト（post.md として自動生成） ----------
+post:
+  title: "【{asof}時点】危険と隣り合わせの観光地帯 インド編。スリナガルも、アムリトサルも、外務省のレベル3の近く"
+  description: >-
+    インドの人気の観光地、黄金寺院のアムリトサル、ダル湖のスリナガル、標高3,500mのレー。
+    外務省の危険情報では、ジャンム・カシミール準州・ラダックの管理ライン（LoC）付近がレベル4（退避勧告）。ジャンム・カシミール準州（スリナガル及びその近郊、LoC付近、ラダックを除く）がレベル3（渡航中止勧告）。スリナガル及びその近郊はレベル2、ラダック連邦直轄領と、上記以外のインド全域（デリーなど）はレベル1です。
+    アムリトサルからレベル3の地域までは約{zone3_km_0}km、レーからレベル4の地域までは約{zone4_km_2}km（地図上の概算）。
+    外務省は、各地でテロ活動が行われていること、観光地を中心に窃盗・詐欺・睡眠薬を使った強盗などが頻発していること、スリナガルやレーを訪ねるときは陸路を避け空路を使うことを伝えています。
+    危険情報は国全体ではなく地域ごとに違います。地域と理由は、外務省の危険情報ページの記載を要約しました。渡航前には、必ず外務省の最新の情報を確認してください。
+  pinned_comment: 次に見たい国は、どこですか？コメントで教えてください！
+  hashtags: ["#危険と隣り合わせの観光地帯", "#インド", "#アムリトサル", "#スリナガル", "#レー", "#外務省", "#危険情報", "#海外旅行"]

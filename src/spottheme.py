@@ -58,6 +58,10 @@ def _region_km(pt, r):
     if r.get('polys'):
         if any(_in_ring(pt, ring) for ring in r['polys']) and not any(_km(pt, h[:2]) <= h[2] for h in r.get('holes', [])):
             return 0.0
+        for h in r.get('holes', []):                 # 穴（例外の円）の中の点は、穴の縁が、地域までの距離
+            if _km(pt, h[:2]) <= h[2] and any(_in_ring(h[:2], ring) for ring in r['polys']):
+                d = h[2] - _km(pt, h[:2])
+                best = d if best is None else min(best, d)
         for ring in r['polys']:
             for a, b in zip(ring, list(ring[1:]) + [ring[0]]):
                 d = _seg_km(pt, a, b)

@@ -1,0 +1,297 @@
+# 場所と危険情報の型（place_vs_risk）: 「危険と隣り合わせの観光地帯 ミャンマー編」。
+# 外務省の危険情報（ミャンマー）: レベル3＝ラカイン州北部・チン州パレワ地区・シャン州コーカン自治地帯・カチン州ライザー周辺・カレン州ミヤワディ地区・戒厳令が発令された63地区／レベル2＝上記以外の地域。
+# 戒厳令の地区に近い人気の観光地として、バガン（マグウェ地域の戒厳令の地区が約30km）・マンダレー（コンバウン朝の最後の都）・パアン（カレン州の州都）を見せる。
+# 州の境界は Natural Earth（目安）。戒厳令の地区は郡（地区）の単位で、境界のデータが無いので、地区の中心の位置の円（半径20km、目安）で、観光地に近いものだけを図示する（63地区のすべてではない。画面にも書く）。
+# 地図の線は国の境界を主張するものではなく、外務省の危険情報の地域を示す目安。
+# 人気の根拠は ja / en の Wikipedia で照合し、写真は Commons のライセンスを確認する（src/facts.py）。
+# 危険レベル・地域・理由の文言は、公式の危険情報ページの本文に出てくることを毎回自動で確かめる（src/mofa.py）。書き方は docs/THEME_SPEC.md「場所と危険情報」。
+# このページはレベルの見出し（●レベル3：）のあとに地域を並べる書き方なので、直前の見出しのレベルで確かめる（mofa.where_is_faithful）。
+
+id: myanmar_place_risk
+template: place_vs_risk
+
+metric: 外務省の危険レベル
+year: 2026
+unit: レベル（1〜4）
+
+source:
+  name: 外務省 海外安全情報オープンデータ
+  note: "（危険レベルは{asof}時点）"
+  table: 海外安全情報オープンデータ 国別（country/0095.xml）と、ミャンマーの危険情報ページ
+  url: https://www.ezairyu.mofa.go.jp/html/opendata/index.html
+  license:
+    checked: 2026-10-13
+    terms_url: https://www.ezairyu.mofa.go.jp/html/opendata/support/terms.html
+    commercial: true
+    credit_lines:
+      - 外務省 海外安全情報オープンデータ 提供情報（https://www.ezairyu.mofa.go.jp/html/opendata/index.html）を加工して作成
+      - 出典：外務省 海外安全情報オープンデータ（https://www.ezairyu.mofa.go.jp/html/opendata/index.html）（{asof}に利用）
+      - 地域・危険の理由の文言：外務省 海外安全ホームページ ミャンマーの危険情報（https://www.anzen.mofa.go.jp/）を要約
+  fetch: mofa_risk
+
+verification: >-
+  危険レベルは外務省の国別XML（country/0095.xml）の値を、公式の危険情報ページ本文と照合して使う。
+  画面の地域（レベル3: ラカイン州北部・チン州パレワ地区、シャン州コーカン自治地帯、カチン州ライザー周辺、カレン州ミヤワディ地区、戒厳令が発令された63地区／レベル2: 上記以外）は、公式ページの「危険レベル」の節に、その見出し（●レベル3：）のあとの項目として出てくることを毎回自動で確かめる。
+  地域の注記と注意点の文言は、公式ページの本文にそのまま出てくることを確かめる。
+  地図の範囲は概算: 州は Natural Earth の州境（目安）。ラカイン州北部は州を緯度で切った目安。コーカン自治地帯・ライザー周辺・ミヤワディ地区は、町の位置を中心にした円（公式に範囲の定めがない）。
+  戒厳令が発令された63地区は、境界のデータが無いので、観光地に近い地区だけを、地区の中心の位置の円（半径20km）で図示した（63地区のすべてではない）。
+  観光地からレベル3の地域までの距離は、座標とこの図形からの概算（5km単位）。
+  観光地の根拠は、ja / en の Wikipedia の本文で確かめる（同じ Wikipedia の別言語版なので、独立した2系統とは言えない）。
+  写真は Wikimedia Commons でライセンス（CC0 / パブリックドメイン / CC BY）と作者を確認し、画面と概要欄に出典を載せる。結果は build/myanmar_place_risk/fetch_report.txt。
+
+mofa:
+  max_age_hours: 24
+
+
+# ---------- 見た目 ----------
+# style は本編（ターン以降）の恐怖演出。calm_style で、ターンの前（人気の場面）だけ落ち着いた色に差し替える。
+style:
+  look: horror
+  fonts:
+    Black: assets/fonts/KaiseiTokumin-ExtraBold.ttf
+    Bold: assets/fonts/KaiseiTokumin-ExtraBold.ttf
+    Accent: assets/fonts/YujiBoku-Regular.ttf
+  bg: {top: [3, 0, 1], bottom: [28, 2, 5], fog: [120, 0, 12], fog_height: 0.38, vignette: 0.78, grain: 0.03}
+  text: [238, 228, 222]
+  muted: [168, 128, 128]
+  accent: [226, 34, 44]
+  title_color: [206, 18, 30]
+  title_glow: [150, 0, 8]
+  drips: [150, 0, 10]
+  pill: {fill: [90, 0, 8, 130], outline: [200, 30, 40, 170], text: [240, 205, 205]}
+  panel: {fill: [10, 0, 2, 234], outline: [190, 20, 30, 150], stroke: [0, 0, 0, 255]}
+  bar: {bg: [52, 10, 14], fill: [204, 24, 36]}
+  fx: {shake: 16, flash: [170, 0, 10], flash_alpha: 0.38, embers: true}
+  named_colors:
+    white: [238, 228, 222]
+    yellow: [232, 188, 70]
+    red: [226, 26, 38]
+    muted: [168, 128, 128]
+
+calm_style:
+  bg: {top: [12, 22, 44], bottom: [34, 52, 88], vignette: 0.55, grain: 0.02}
+  title_color: [244, 236, 224]
+  title_glow: null
+  drips: null
+  pill: {fill: [255, 255, 255, 30], outline: [255, 255, 255, 80], text: [236, 232, 224]}
+
+
+# ---------- 画面の固定文言 ----------
+title: 危険と隣り合わせの観光地帯
+title_small: ミャンマー編｜外務省の危険情報と見比べる
+subtitle: "魅力と、危険情報の地域（{asof}時点）"
+footnote: "危険情報の最終更新：{risk_date}｜地図の位置・範囲はおおよそです"
+
+# 地図: ミャンマー全体の北〜南（ラカイン州からカレン州まで）を見せる（bbox = [経度の最小, 緯度の最小, 経度の最大, 緯度の最大]）
+map:
+  bbox: [91.8, 15.6, 99.6, 25.3]
+
+
+# ---------- 対象の国と、地図に出す地域 ----------
+# provinces: Natural Earth の州の名前。provinces_clip: 州の北部だけを塗る。bands（1点）＋ radius_km: 円。
+members:
+  - code: "0095"
+    label: ミャンマー
+    iso: MMR
+    regions:
+      - level: 3
+        where: ラカイン州マウンドー県（マウンドー地区、ブーディータウン地区）、シットウェ県（シットウェ地区（除く市街地）、パウトー地区、ポンナジュン地区、ラテータウン地区）、ミャウウー県（ミャウウー地区、チャウトー地区、ミンビャー地区、ミェボン地区）、チン州パレワ地区
+        display: ラカイン州北部・チン州パレワ地区
+        provinces_clip:
+          - {name: Rakhine, lat_min: 19.9}
+        bands:
+          - [[92.85, 21.30]]
+        radius_km: 25
+        label_at: [93.2, 22.4]
+        say: "ラカイン州の北部と、チン州の、パレワ地区は、レベル3です。"
+      - level: 3
+        where: シャン州1地域（コーカン自治地帯）
+        display: シャン州のコーカン自治地帯
+        bands:
+          - [[98.76, 23.69]]
+        radius_km: 40
+        label_at: [98.6, 24.5]
+        say: "シャン州の、コーカン自治地帯も、レベル3です。"
+      - level: 3
+        where: カチン州1地域（ライザー周辺）
+        display: カチン州のライザー周辺
+        bands:
+          - [[97.56, 24.76]]
+        radius_km: 30
+        label_at: [97.2, 25.1]
+        say: "カチン州の、ライザー周辺も、レベル3です。"
+      - level: 3
+        where: カレン州ミヤワディ地区
+        display: カレン州のミヤワディ地区
+        bands:
+          - [[98.51, 16.69]]
+        radius_km: 25
+        note: 日本人を含む外国人が特殊詐欺に加担させられる事案が発生しています
+        label_at: [98.5, 17.6]
+        say: "タイとの国境の、カレン州ミヤワディ地区も、レベル3です。特殊詐欺の拠点に、日本人を含む外国人が、加担させられる事案が、起きています。"
+      - level: 3
+        where: 2025年7月31日時点で戒厳令が発令された地区(計63地区（うち33地区は新規、その他30地区は継続）
+        display: 戒厳令が出た63地区（図は近くの地区のみ）
+        bands:
+          - [[94.47, 21.45]]
+          - [[94.2, 21.22]]
+          - [[94.1, 21.69]]
+          - [[94.85, 21.62]]
+          - [[95.24, 21.63]]
+          - [[95.69, 21.9]]
+          - [[96.5, 22.92]]
+          - [[97.03, 22.54]]
+          - [[97.28, 22.62]]
+          - [[98.24, 16.56]]
+          - [[98.13, 16.03]]
+        radius_km: 20
+        note: 一部の戒厳令の対象地区では、空爆を含む戦闘が発生しており、多数の死傷者が出ています
+        label_at: [96.0, 23.7]
+        say: "戒厳令が出ている、六十三の地区も、レベル3です。一部では、空爆を含む戦闘が、起きています。"
+      - level: 2
+        where: 上記レベル3以外の地域
+        display: 上記以外の地域
+        provinces: ['Rakhine', 'Chin', 'Kachin', 'Sagaing', 'Shan', 'Kayah', 'Kayin', 'Mon', 'Tanintharyi', 'Ayeyarwady', 'Yangon', 'Bago', 'Magway', 'Mandalay']
+        label_at: [96.6, 19.6]
+        place_note: バガンも、マンダレーも、パアンも、この中です
+        say: "上記以外の地域は、レベル2です。バガンも、マンダレーも、パアンも、この中です。"
+    why:
+      - tag: 戦闘
+        text: 国軍の空爆や迫撃砲による攻撃。局地的に激しい戦闘
+        evidence: 国軍は空爆や迫撃砲を用いた大規模な攻撃等を行っており、局地的に激しい戦闘が発生しています
+      - tag: 偶発
+        text: 衝突は、特定の場所や時間に起きるとは限らず、誰でも巻き込まれる
+        evidence: 誰でも巻き込まれる可能性があります
+      - tag: 国境
+        text: 陸路での入国は危険
+        evidence: 陸路でのミャンマーへの入国は危険です
+
+# 人気の場所（地図に印を出す。座標は Wikipedia の位置。概算）。
+places:
+  - {name: バガン, marker: [94.86, 21.1725], in_region: 上記レベル3以外の地域, side: below}
+  - {name: マンダレー, marker: [96.0844, 21.9830], in_region: 上記レベル3以外の地域, side: above-right}
+  - {name: パアン, marker: [97.6333, 16.8906], in_region: 上記レベル3以外の地域, side: below}
+
+# ---------- 魅力の紹介（根拠は ja / en の Wikipedia で照合。photo.file は Commons のファイル名） ----------
+scenes:
+  - kind: wikipedia
+    tag: 世界遺産
+    place: バガン
+    name: バガン
+    headline: バガン
+    lines: ["3000を超えるといわれる、仏塔の平原", "世界三大仏教遺跡のひとつ", "レベル3の地域まで 約{zone3_km_0}km（地図上の概算）"]
+    wikipedia:
+      - {lang: ja, title: バガン, contains: [世界三大仏教遺跡, 3000を超える, 世界遺産]}
+      - {lang: en, title: Bagan, contains: ["10,000 Buddhist temples", "2,300 temples"]}
+    source_line: 出典：ja / en Wikipedia で確認
+    photo: {file: "PHOTO_BAGAN"}
+    min: 8.0
+    say: "まず、バガン。三千を超えるといわれる、仏塔が、並ぶ平原です。アンコール・ワットと並ぶ、世界三大仏教遺跡の、ひとつです。レベル3の地域まで、約{zone3_km_0}キロです。"
+  - kind: wikipedia
+    tag: 王朝の都
+    place: マンダレー
+    name: マンダレー
+    headline: マンダレー
+    lines: ["ビルマで独立を保った、最後の王朝の都", "王宮を囲む、城壁と堀", "レベル3の地域まで 約{zone3_km_1}km（地図上の概算）"]
+    wikipedia:
+      - {lang: ja, title: マンダレー, contains: [最後の王朝, コンバウン王朝, 城壁]}
+      - {lang: en, title: Mandalay, contains: ["Mandalay Palace", "last royal capital", moat]}
+    source_line: 出典：ja / en Wikipedia で確認
+    photo: {file: "PHOTO_MANDALAY"}
+    min: 8.0
+    say: "次に、マンダレー。ビルマで、独立を保った、最後の王朝の、都でした。王宮は、城壁と、堀に、囲まれています。レベル3の地域まで、約{zone3_km_1}キロです。"
+  - kind: wikipedia
+    tag: 洞窟と丘
+    place: パアン
+    name: パアン
+    headline: パアン
+    lines: ["カレン州の州都。丘の上に、パゴダ", "州で最大かつ最長の洞窟", "レベル3の地域まで 約{zone3_km_2}km（地図上の概算）"]
+    wikipedia:
+      - {lang: ja, title: パアン, contains: [最大かつ最長, 洞窟, 州都]}
+      - {lang: en, title: Hpa-an, contains: [Zwegabin, caves]}
+    source_line: 出典：ja / en Wikipedia で確認
+    photo: {file: "PHOTO_HPAAN"}
+    min: 7.5
+    say: "そして、パアン。カレン州の、州都です。石灰岩の丘と、洞窟が、点在しています。州で、最大かつ最長の、洞窟も、あります。レベル3の地域まで、約{zone3_km_2}キロです。"
+
+# ---------- ターンと結び ----------
+turn:
+  say: "でも、この人気の観光地は、外務省が出している、危険地帯と、隣り合わせなんです。"
+  lines:
+    - ["でも…", 130, red]
+    - ["危険地帯と隣り合わせ", 64, white]
+
+caution:
+  head: 外務省は、こう伝えています
+  say: "外務省は、国軍による、空爆や迫撃砲の攻撃で、局地的に、激しい戦闘が起きていると、伝えています。衝突は、予見できる、特定の場所や時間に、起きるとは限らず、誰でも、巻き込まれる可能性があります。陸路での入国も、危険です。"
+
+closing:
+  say: "人気の観光地の、近くに、レベル3の地区が、あります。この国は、レベル3以外の地域も、レベル2です。行く前に、外務省の最新の情報を、必ず確認してください。"
+  lines:
+    - ["隣り合わせの観光地帯", 58, white]
+    - ["出発前に必ず確認", 54, yellow]
+
+extra_credits:
+  - "人気の根拠：ja / en Wikipedia で確認"
+
+
+# ---------- 声 ----------
+voice:
+  vvm: [1]
+  style_id: 14
+  speed: 1.12
+  pitch: -0.03
+  intonation: 0.9
+  credit: VOICEVOX:冥鳴ひまり
+
+
+# ---------- 構成 ----------
+hooks:
+  - say: "危険と、隣り合わせの、観光地帯。ミャンマー編。"
+    min: 3.0
+    gap: 0.4
+    y: 400
+    fade: 0.4
+    panel:
+      - [危険と隣り合わせの観光地帯, 50, muted, Bold]
+      - [ミャンマー編, 120, white, Black]
+  - say: "危険と、隣り合わせの、観光地帯を、知っていますか？"
+    min: 3.6
+    gap: 0.4
+    y: 380
+    fade: 0.35
+    panel:
+      - [危険と隣り合わせの, 64, white, Bold]
+      - [観光地帯, 150, red, Black]
+      - [知っていますか？, 60, yellow, Black]
+  - say: "今日は、ミャンマーに存在する、危険と隣り合わせの、観光地帯を、紹介します。"
+    min: 3.8
+    gap: 0.4
+    y: 400
+    fade: 0.35
+    panel:
+      - [今日は, 56, muted, Bold]
+      - [ミャンマーの, 90, white, Black]
+      - [観光地帯を紹介, 84, yellow, Black]
+
+cta:
+  say: "世界の意外な、旅行リスクを、地図と、公的情報で、解説しています。次の地域も、紹介します。フォローしてね。気になる国は、コメントで教えてください。"
+  panel:
+    - [世界の意外な旅行リスクを, 46, white, Bold]
+    - [地図と公的情報で解説, 56, white, Black]
+    - [次の地域も紹介します, 46, white, Bold]
+    - [フォローしてね, 76, yellow, Black]
+    - [気になる国はコメントで ↓, 44, white, Bold]
+
+
+# ---------- 投稿用テキスト（post.md として自動生成） ----------
+post:
+  title: "【{asof}時点】危険と隣り合わせの観光地帯 ミャンマー編。バガンも、外務省のレベル3の近く"
+  description: >-
+    ミャンマーの人気の観光地、仏塔の平原バガン、王朝の都マンダレー、洞窟の街パアン。
+    外務省の危険情報では、ラカイン州北部・チン州パレワ地区・シャン州コーカン自治地帯・カチン州ライザー周辺・カレン州ミヤワディ地区・戒厳令が発令された63地区がレベル3（渡航中止勧告）。それ以外の地域はレベル2です。
+    バガンからレベル3の地域までは約{zone3_km_0}km、マンダレーからは約{zone3_km_1}km、パアンからは約{zone3_km_2}km（戒厳令の地区のうち、観光地に近いものだけを図にした、地図上の概算）。
+    外務省は、国軍による空爆や迫撃砲の攻撃で局地的に激しい戦闘が発生していること、衝突は特定の場所や時間に起きるとは限らず誰でも巻き込まれる可能性があること、陸路での入国は危険であることを伝えています。
+    危険情報は国全体ではなく地域ごとに違います。地域と理由は、外務省の危険情報ページの記載を要約しました。渡航前には、必ず外務省の最新の情報を確認してください。
+  pinned_comment: 次に見たい国は、どこですか？コメントで教えてください！
+  hashtags: ["#危険と隣り合わせの観光地帯", "#ミャンマー", "#バガン", "#マンダレー", "#パアン", "#外務省", "#危険情報", "#海外旅行"]

@@ -187,18 +187,26 @@ def _squash(x):
 
 
 def where_is_faithful(section, level, where):
-    """画面に出す「地域の文言」が、公式ページの「危険レベル」の節にそのまま出てきて、その直後のレベル表示が level であること"""
+    """画面に出す「地域の文言」が、公式ページの「危険レベル」の節にそのまま出てきて、そのレベル表示が level であること。
+    ページの書き方は2通り: 地域の後にレベル（「…地域 レベル4：」）／節の先頭からレベルの見出しが先（「●レベル3：…」に続けて地域を並べる）。
+    後者は、節が「●レベルN」で始まるときだけ、直前のレベルの見出しを使う（どちらの書き方でも、直後・直前の1つの表示だけを見る）"""
     sec, w = _squash(section), _squash(where)
     if not w:
         return False
+    label_first = re.match(r'【[^】]*】●レベル[1-4]', sec) is not None
     start = 0
     while True:
         i = sec.find(w, start)
         if i < 0:
             return False
-        m = re.search(r'レベル([1-4])', sec[i + len(w):])
-        if m and int(m.group(1)) == level:
-            return True
+        if label_first:
+            marks = re.findall(r'●レベル([1-4])', sec[:i])
+            if marks and int(marks[-1]) == level:
+                return True
+        else:
+            m = re.search(r'レベル([1-4])', sec[i + len(w):])
+            if m and int(m.group(1)) == level:
+                return True
         start = i + 1
 
 
