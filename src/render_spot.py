@@ -276,7 +276,10 @@ class PlaceRisk(rl.Tiers):
         k = ease(a / 0.35)
         d.rounded_rectangle((60, y - 46, 60 + 300, y + 46), 28, fill=r['color'] + (int(255 * k),), outline=(255, 255, 255, int(190 * k)), width=3)
         d.text((210, y + 2), 'レベル%d' % r['level'], font=F(64), fill=(255, 255, 255, int(255 * k)), anchor='mm')
-        d.text((390, y), r['sub'], font=fit_font(d, r['sub'], 42, 'Bold', 620), fill=rl.WHITE + (int(255 * k),), anchor='lm',
+        size = 42
+        while size > 26 and d.textlength(r['sub'], font=F(size, 'Bold')) > 650:        # 「渡航は止めてください（渡航中止勧告）」が右にはみ出さないように縮める
+            size -= 2
+        d.text((390, y), r['sub'], font=F(size, 'Bold'), fill=rl.WHITE + (int(255 * k),), anchor='lm',
                stroke_width=3, stroke_fill=rl.NAVY + (255,))
 
     def info_region(self, f, sg, a):
