@@ -163,11 +163,11 @@ def wp_text(title, lang='ja'):
 
 
 # ---------- Commons ----------
-_OK_LICENSE = re.compile(r'^(CC0.*|Public domain|PD.*|CC BY \d\.\d)$', re.I)
+_OK_LICENSE = re.compile(r'^(CC0.*|Public domain|PD.*|CC BY(-SA)? \d\.\d)$', re.I)      # CC BY-SA も使う（ユーザーが許可。作者・ライセンスを画面と概要欄に出す）
 
 
 def license_ok(short):
-    return bool(_OK_LICENSE.match((short or '').strip())) and not re.search(r'\b(SA|NC|ND)\b', short or '', re.I)
+    return bool(_OK_LICENSE.match((short or '').strip())) and not re.search(r'\b(NC|ND)\b', short or '', re.I)
 
 
 def _strip(s):
@@ -314,7 +314,7 @@ def check_scene(sc, place_qid):
     if ph:
         info = commons_file(ph['file'])
         if not license_ok(info['license']):
-            problems.append('%s: 写真 %s のライセンス「%s」は使えません（CC0 / パブリックドメイン / CC BY のみ）' % (name, ph['file'], info['license']))
+            problems.append('%s: 写真 %s のライセンス「%s」は使えません（CC0 / パブリックドメイン / CC BY / CC BY-SA のみ）' % (name, ph['file'], info['license']))
         if ph.get('must_mention'):                 # 例: night。ファイル名・説明・カテゴリのどれかに出てくること（夜景の写真かどうかの確認）
             hay = ' '.join([info['title'], info['desc']] + info['categories']).lower()
             if ph['must_mention'].lower() not in hay:

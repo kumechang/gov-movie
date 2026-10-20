@@ -35,7 +35,7 @@ verification: >-
   アフガニスタン国境の周辺・管理ライン（LoC）の周辺・クエッタ市は、公式に範囲の定めがないので、国境・線から約20〜30kmの帯、または市を中心にした円で示した目安。地図の線は国の境界を主張するものではなく、外務省の危険情報の地域を示す目安。
   観光地からレベル3・レベル4の地域までの距離は、座標とこの図形からの概算（5km単位）。
   観光地の根拠は、ja / en の Wikipedia の本文で確かめる（同じ Wikipedia の別言語版なので、独立した2系統とは言えない）。
-  写真は Wikimedia Commons でライセンス（CC0 / パブリックドメイン / CC BY）と作者を確認し、画面と概要欄に出典を載せる。結果は build/pakistan_place_risk/fetch_report.txt。
+  写真は Wikimedia Commons でライセンス（CC0 / パブリックドメイン / CC BY / CC BY-SA）と作者を確認し、画面と概要欄に出典を載せる。結果は build/pakistan_place_risk/fetch_report.txt。
 
 mofa:
   max_age_hours: 24
@@ -172,10 +172,10 @@ scenes:
     headline: ラホール
     lines: ["ムガル帝国の都。パキスタン最大規模のモスク", "ラホール城とシャーラマール庭園は、世界遺産", "インドとの国境付近の街"]
     wikipedia:
-      - {lang: ja, title: ラホール, contains: [バードシャーヒー・モスク, 最大規模, 世界遺産, インドとの国境付近]}
+      - {lang: ja, title: ラホール, contains: [バードシャーヒー・モスク, 最大規模, 世界遺産, 国境付近]}
       - {lang: en, title: Lahore, contains: [Badshahi, Mughal]}
     source_line: 出典：ja / en Wikipedia で確認
-    photo: {file: "File:Badshahi Mosque (Lahore).jpg"}
+    photo: {file: "File:Badshahi Mosque in Lahore ,Pakistan 03.jpg"}
     min: 7.5
     say: "まず、ラホール。ムガル帝国の都だった、古都です。バードシャーヒー・モスクは、パキスタンで最大規模。ラホール城も、世界遺産です。インドとの国境の、すぐ近くです。"
   - kind: wikipedia
@@ -188,7 +188,7 @@ scenes:
       - {lang: ja, title: タキシラ, contains: [世界遺産, ガンダーラ, 紀元前6世紀]}
       - {lang: en, title: Taxila, contains: [Dharmarajika, Haripur]}
     source_line: 出典：ja / en Wikipedia で確認
-    photo: {file: "File:Dharmarajika stupa, Taxila.jpg"}
+    photo: {file: "File:Dharmarajika stupa & Monastery Taxila.jpg"}
     min: 8.0
     say: "次に、タキシラ。紀元前六世紀に、さかのぼる、ガンダーラの、古都です。世界遺産の、仏教遺跡が、残っています。レベル3の地域まで、約{zone3_km_1}キロです。"
   - kind: wikipedia
@@ -198,10 +198,10 @@ scenes:
     headline: フンザ
     lines: ["4月は、杏の花でピンクに染まる「桃源郷」", "北西は、アフガニスタンとの国境", "レベル4の地域まで 約{zone4_km_2}km（地図上の概算）"]
     wikipedia:
-      - {lang: ja, title: フンザ, contains: [桃源郷, 杏の花, アフガニスタンとの国境]}
+      - {lang: ja, title: フンザ, contains: [桃源郷, 杏, ピンク色, 国境と接し]}
       - {lang: en, title: Hunza Valley, contains: [Baltit, Wakhan]}
     source_line: 出典：ja / en Wikipedia で確認
-    photo: {file: "File:Baltit Fort, Karimabad, Hunza Valley.jpg"}
+    photo: {file: "File:Hunza Valley 2024.jpg"}
     min: 8.0
     say: "そして、フンザ。四月には、杏の花で、ピンクに染まる、桃源郷と、呼ばれる谷です。北西は、アフガニスタンとの、国境です。レベル4の地域まで、約{zone4_km_2}キロです。"
 

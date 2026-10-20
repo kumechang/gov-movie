@@ -38,9 +38,9 @@ HERITAGE = entity('歴史地域', '歴史地域', {'P1435': [claim('P1435', 'Q92
 
 class FactsTest(unittest.TestCase):
     def test_license_ok(self):
-        for ok in ('CC BY 4.0', 'CC BY 2.0', 'CC0', 'Public domain', 'CC0 1.0'):
+        for ok in ('CC BY 4.0', 'CC BY 2.0', 'CC0', 'Public domain', 'CC0 1.0', 'CC BY-SA 4.0', 'CC BY-SA 3.0'):
             self.assertTrue(facts.license_ok(ok), ok)
-        for ng in ('CC BY-SA 4.0', 'CC BY-NC 2.0', 'CC BY-ND 3.0', 'All rights reserved', ''):
+        for ng in ('CC BY-NC-SA 4.0', 'CC BY-NC 2.0', 'CC BY-ND 3.0', 'All rights reserved', ''):
             self.assertFalse(facts.license_ok(ng), ng)
 
     def test_designation_years(self):
@@ -64,7 +64,7 @@ class FactsTest(unittest.TestCase):
         self.assertTrue(facts.check_scene(bad, 'Q406')[0])                             # 公開年が違う
 
     def test_photo_license_blocks(self):
-        preload(**{'cm:File:a.jpg': dict(title='File:a.jpg', thumb='x', page='', w=1, h=1, license='CC BY-SA 4.0', artist='A', credit='', desc='', categories=[], attribution_required='true')})
+        preload(**{'cm:File:a.jpg': dict(title='File:a.jpg', thumb='x', page='', w=1, h=1, license='CC BY-NC 4.0', artist='A', credit='', desc='', categories=[], attribution_required='true')})
         p, _ = facts.check_scene(dict(kind='night', name='夜', photo=dict(file='File:a.jpg')), 'Q406')
         self.assertTrue(p)
 
