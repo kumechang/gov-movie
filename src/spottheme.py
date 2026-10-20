@@ -52,6 +52,25 @@ def _seg_km(pt, a, b):
     return math.hypot(px - (ax + t * dx), py - (ay + t * dy))
 
 
+def _region_km(pt, r):
+    """点から、地図に描く地域の縁までの距離（km。地域の中なら 0）。州・県（polys）、帯・円（bands）に対応。範囲は概算"""
+    best = None
+    if r.get('polys'):
+        if any(_in_ring(pt, ring) for ring in r['polys']) and not any(_km(pt, h[:2]) <= h[2] for h in r.get('holes', [])):
+            return 0.0
+        for ring in r['polys']:
+            for a, b in zip(ring, list(ring[1:]) + [ring[0]]):
+                d = _seg_km(pt, a, b)
+                best = d if best is None else min(best, d)
+    for run in r.get('bands', []):
+        if len(run) == 1:
+            d = max(0.0, _km(pt, run[0]) - float(r.get('radius_km', 0)))
+        else:
+            d = max(0.0, min(_seg_km(pt, a, b) for a, b in zip(run, run[1:])) - float(r.get('width_km', 0)) / 2)
+        best = d if best is None else min(best, d)
+    return best
+
+
 def _in_region(pt, r):
     """人気の場所の座標が、地図に描く地域の中か。州・県で塗る地域は、州の中で、かつ例外の円の外。帯・円の地域は、その幅・半径の中。国境で決まる地域は None（別に確かめる）"""
     if r.get('border'):
@@ -136,10 +155,13 @@ class SpotTheme(TierTheme):
                 if not runs:
                     raise ThemeError('地域「%s」: %s との国境線が見つかりません' % (r['where'], b['with']))
                 r.update(bands=[[list(p) for p in run] for run in runs], width_km=2 * float(b['km']), clip=True, edge_km=float(b['km']))
-        for r in self.regions:                         # 州・県の単位で決まる地域は、Natural Earth の州の境界から塗る（provinces: 英語名）
-            if r.get('provinces'):
+        for r in self.regions:                         # 州・県の単位で決まる地域は、Natural Earth の州の境界から塗る（provinces: 英語名。provinces_clip: 州の南部だけ・北部だけを塗る [{name, lat_max, lat_min}]）
+            if r.get('provinces') or r.get('provinces_clip'):
                 try:
-                    r['polys'] = world.admin1_rings(self.country['iso'], r['provinces'], r.get('lat_max'), r.get('lat_min'))
+                    polys = world.admin1_rings(self.country['iso'], r['provinces'], r.get('lat_max'), r.get('lat_min')) if r.get('provinces') else []
+                    for c in r.get('provinces_clip', []):
+                        polys += world.admin1_rings(self.country['iso'], [c['name']], c.get('lat_max'), c.get('lat_min'))
+                    r['polys'] = polys
                 except KeyError as e:
                     raise ThemeError('地域「%s」: %s' % (r['where'], e.args[0]))
         for r in self.regions:                         # rings: 州の境界データが無い地域（未承認の地域など）を、座標の多角形で書く（概算。位置の目安）
@@ -177,6 +199,11 @@ class SpotTheme(TierTheme):
         border_pts = [tuple(pt) for r in self.regions if r.get('border') for run in r['bands'] for pt in run]
         for p in self.places:                          # 国境までの距離（地図上の概算）。in_region の主張が、距離と食い違わないことも確かめる
             p['border_km'] = min((_km(p['marker'], pt) for pt in border_pts), default=None)
+            p['zone_km'] = {}
+            for r in self.danger:                      # レベルごとの、危険地域の縁までの距離（地図上の概算）。場面の文言で {zone3_km_N} のように使える
+                d = _region_km(p['marker'], r)
+                if d is not None and (r['level'] not in p['zone_km'] or d < p['zone_km'][r['level']]):
+                    p['zone_km'][r['level']] = d
             if p.get('border_with'):                   # 隣国の国境までの距離（地図上の概算）。場面の文言で {border_km_N} として使える
                 runs = world.border_runs(self.country['iso'], p['border_with'])
                 if not runs:
@@ -255,6 +282,8 @@ class SpotTheme(TierTheme):
         for i, p in enumerate(self.places):
             if p.get('border_km') is not None:
                 v['border_km_%d' % i] = int(round(p['border_km'] / 5.0)) * 5
+            for lv, d in (p.get('zone_km') or {}).items():
+                v['zone%d_km_%d' % (lv, i)] = int(round(d / 5.0)) * 5
         for sc in self.scenes:                         # 場面の文言でも、{border_km_0} のような変数が使える
             for k in ('lines', 'photo_note', 'source_line'):
                 if sc.get(k):

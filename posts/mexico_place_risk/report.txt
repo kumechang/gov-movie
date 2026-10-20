@@ -1,0 +1,28 @@
+テーマ mexico_place_risk: メキシコ（2026年10月20日 時点）場所×危険情報
+国の最大レベル: 3
+危険情報の地域: レベル3 ゲレロ州チルパンシンゴ市及びその周辺地域 / レベル2 グアナファト州セラヤ市とサラマンカ市を含む南部地域、ゲレロ州（チルパンシンゴ市及びその周辺地域並びにタスコ市を除く）、コリマ州、サカテカス州、シナロア州、チワワ州フアレス市、バハ・カリフォルニア州ティファナ市、ミチョアカン州（一部地域を除く） / レベル2 タマウリパス州、ハリスコ州トマトラン市とチャパラ湖等を含む南部地域
+人気の場所: アカプルコ（レベル2 の地域内） / タスコ（レベル1） / グアナファト（レベル1）
+距離: なし
+人気の根拠: アカプルコ（wikipedia） / タスコ（wikipedia） / グアナファト（wikipedia）
+動画長: フック 15.2秒 / 人気の場面 15.2〜59.7秒 / 発表終了 139.5秒 / 全体 152.5秒
+
+[取得] 外務省 海外安全情報オープンデータ（国別 207 か国）  取得日時 2026-10-20T22:04:42
+  国別XMLの最終更新: 2026/10/20 21:54:47
+  最大レベル別（照合できた国）: レベル4 34 か国 / レベル3 29 か国 / レベル2 24 か国 / レベル1 34 か国 / 危険情報なし 84 か国
+[照合] 公式の危険情報ページ本文との照合: 123 か国中 121 か国が一致
+  ×除外 ニューカレドニア（仏領）（XML最大レベル2）: XMLの最大レベル2 が、危険情報ページ本文（レベル1）に出てこない
+  ×除外 パレスチナ（XML最大レベル3）: XMLの最大レベル3 が、危険情報ページ本文（レベルの記載なし）に出てこない
+  （感染症危険レベルは使わない。参考: パレスチナ[3, 2]、コンゴ民主共和国[1]、ウガンダ[1]）
+[対象の検証] 指定した 1 か国
+  メキシコ: レベル3（地域・理由の文言を公式ページ本文と照合済み）
+
+[人気の根拠の照合] Wikidata（CC0）× ja.wikipedia、写真は Commons のライセンスを確認
+  アカプルコ: ja.wikipedia「アカプルコ」（リゾート、マニラ・ガレオン）
+  アカプルコ: en.wikipedia「Acapulco」（largest beach、Hollywood）
+  写真 File:Acapulco Bay 2010.jpg: CC BY 2.0 ／ Sally from Willamette Valley - Oregon, USA／CC BY 2.0／Wikimedia Commons
+  タスコ: en.wikipedia「Taxco」（silver、Santa Prisca、jewelry）
+  タスコ: en.wikipedia「Guerrero」（Taxco）
+  写真 File:Taxco, Santa Prisca.jpg: CC BY 4.0 ／ Lianette Alamo／CC BY 4.0／Wikimedia Commons
+  グアナファト: ja.wikipedia「グアナフアト」（世界遺産、ミイラ博物館、トンネル）
+  グアナファト: en.wikipedia「Guanajuato, Guanajuato」（mummies、UNESCO）
+  写真 File:Basílica Colegiata de Nuestra Señora de Guanajuato, Guanajuato Capital, Mexico.jpg: CC BY 4.0 ／ Peter K Burian／CC BY 4.0／Wikimedia Commons

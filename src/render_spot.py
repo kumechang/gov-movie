@@ -209,7 +209,11 @@ class PlaceRisk(rl.Tiers):
             glow.putalpha(ImageChops.multiply(glow.getchannel('A'), self.cache['mask'].filter(ImageFilter.MaxFilter(5))))
         pulse = 0.75 + 0.25 * math.sin(t * 5)
         glow.putalpha(glow.getchannel('A').point(lambda v: min(255, int(v * 1.5 * pulse))))
-        return Image.alpha_composite(glow, lay)
+        out = Image.alpha_composite(glow, lay)
+        box = Image.new('L', out.size, 0)                          # 地図の枠の外（州が地図からはみ出す部分）は描かない
+        ImageDraw.Draw(box).rectangle((MAP_RECT[0], MAP_RECT[1], MAP_RECT[0] + MAP_RECT[2], MAP_RECT[1] + MAP_RECT[3]), fill=255)
+        out.putalpha(ImageChops.multiply(out.getchannel('A'), box))
+        return out
 
     def chip(self, d, cx, cy, text, col, size=34):
         font = F(size, 'Bold')
