@@ -37,7 +37,7 @@ verification: >-
   戒厳令が発令された63地区は、境界のデータが無いので、観光地に近い地区だけを、地区の中心の位置の円（半径20km）で図示した（63地区のすべてではない）。
   観光地からレベル3の地域までの距離は、座標とこの図形からの概算（5km単位）。
   観光地の根拠は、ja / en の Wikipedia の本文で確かめる（同じ Wikipedia の別言語版なので、独立した2系統とは言えない）。
-  写真は Wikimedia Commons でライセンス（CC0 / パブリックドメイン / CC BY）と作者を確認し、画面と概要欄に出典を載せる。結果は build/myanmar_place_risk/fetch_report.txt。
+  写真は Wikimedia Commons でライセンス（CC0 / パブリックドメイン / CC BY / CC BY-SA）と作者を確認し、画面と概要欄に出典を載せる。結果は build/myanmar_place_risk/fetch_report.txt。
 
 mofa:
   max_age_hours: 24
@@ -165,10 +165,10 @@ scenes:
     headline: バガン
     lines: ["3000を超えるといわれる、仏塔の平原", "世界三大仏教遺跡のひとつ", "レベル3の地域まで 約{zone3_km_0}km（地図上の概算）"]
     wikipedia:
-      - {lang: ja, title: バガン, contains: [世界三大仏教遺跡, 3000を超える, 世界遺産]}
-      - {lang: en, title: Bagan, contains: ["10,000 Buddhist temples", "2,300 temples"]}
+      - {lang: ja, title: バガン, contains: [仏教遺跡, 3000を超える, 世界遺産]}
+      - {lang: en, title: Bagan, contains: ["2,300 temples", "Archaeological Zone"]}
     source_line: 出典：ja / en Wikipedia で確認
-    photo: {file: "PHOTO_BAGAN"}
+    photo: {file: "File:The amazing world of Bagan - Flickr - radkuch.13.jpg"}
     min: 8.0
     say: "まず、バガン。三千を超えるといわれる、仏塔が、並ぶ平原です。アンコール・ワットと並ぶ、世界三大仏教遺跡の、ひとつです。レベル3の地域まで、約{zone3_km_0}キロです。"
   - kind: wikipedia
@@ -181,7 +181,7 @@ scenes:
       - {lang: ja, title: マンダレー, contains: [最後の王朝, コンバウン王朝, 城壁]}
       - {lang: en, title: Mandalay, contains: ["Mandalay Palace", "last royal capital", moat]}
     source_line: 出典：ja / en Wikipedia で確認
-    photo: {file: "PHOTO_MANDALAY"}
+    photo: {file: "File:Mandalay Palace moat seen from Mandalay Hill.jpg"}
     min: 8.0
     say: "次に、マンダレー。ビルマで、独立を保った、最後の王朝の、都でした。王宮は、城壁と、堀に、囲まれています。レベル3の地域まで、約{zone3_km_1}キロです。"
   - kind: wikipedia
@@ -194,7 +194,7 @@ scenes:
       - {lang: ja, title: パアン, contains: [最大かつ最長, 洞窟, 州都]}
       - {lang: en, title: Hpa-an, contains: [Zwegabin, caves]}
     source_line: 出典：ja / en Wikipedia で確認
-    photo: {file: "PHOTO_HPAAN"}
+    photo: {file: "File:Zwe Ga Bin Mountain.jpg"}
     min: 7.5
     say: "そして、パアン。カレン州の、州都です。石灰岩の丘と、洞窟が、点在しています。州で、最大かつ最長の、洞窟も、あります。レベル3の地域まで、約{zone3_km_2}キロです。"
 
