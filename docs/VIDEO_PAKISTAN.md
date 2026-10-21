@@ -1,6 +1,6 @@
 # パキスタン編の流れ（絵コンテ）
 
-「危険と隣り合わせの観光地帯 パキスタン編」（`themes/pakistan_place_risk.yaml`）。全体は約142秒（1080×1920）。共通の枠は [VIDEO_TURKEY.md](VIDEO_TURKEY.md)、方針は [SERIES.md](SERIES.md)。
+「危険と隣り合わせの観光地帯 パキスタン編」（`themes/pakistan_place_risk.yaml`）。全体は約132秒（1080×1920）。共通の枠は [VIDEO_TURKEY.md](VIDEO_TURKEY.md)、方針は [SERIES.md](SERIES.md)。
 
 ## 一言で
 

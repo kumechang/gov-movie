@@ -1,6 +1,6 @@
 # メキシコ編の流れ（絵コンテ）
 
-「危険と隣り合わせの観光地帯 メキシコ編」（`themes/mexico_place_risk.yaml`）。全体は約152秒（1080×1920）。共通の枠は [VIDEO_TURKEY.md](VIDEO_TURKEY.md)、書き方の方針は [SERIES.md](SERIES.md)。
+「危険と隣り合わせの観光地帯 メキシコ編」（`themes/mexico_place_risk.yaml`）。全体は約142秒（1080×1920）。共通の枠は [VIDEO_TURKEY.md](VIDEO_TURKEY.md)、書き方の方針は [SERIES.md](SERIES.md)。
 
 ## 一言で
 
