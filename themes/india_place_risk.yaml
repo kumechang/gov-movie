@@ -35,7 +35,7 @@ verification: >-
   地図の範囲は概算: 州・準州は Natural Earth の境界（目安）。スリナガルの近郊は、市の位置を中心にした円（公式に範囲の定めがない）。管理ライン（LoC）付近は、線の周辺の幅約30kmの帯（目安。公式に範囲の定めがない）。
   観光地からレベル3・レベル4の地域までの距離は、座標とこの図形からの概算（5km単位）。
   観光地の根拠は、ja / en の Wikipedia の本文で確かめる（同じ Wikipedia の別言語版なので、独立した2系統とは言えない）。
-  写真は Wikimedia Commons でライセンス（CC0 / パブリックドメイン / CC BY）と作者を確認し、画面と概要欄に出典を載せる。結果は build/india_place_risk/fetch_report.txt。
+  写真は Wikimedia Commons でライセンス（CC0 / パブリックドメイン / CC BY / CC BY-SA）と作者を確認し、画面と概要欄に出典を載せる。結果は build/india_place_risk/fetch_report.txt。
 
 mofa:
   max_age_hours: 24
@@ -159,7 +159,7 @@ scenes:
       - {lang: ja, title: アムリトサル, contains: [黄金寺院, ラホール]}
       - {lang: en, title: Golden Temple, contains: [langar, "100,000"]}
     source_line: 出典：ja / en Wikipedia で確認
-    photo: {file: "PHOTO_AMRITSAR"}
+    photo: {file: "File:Golden Temple, Amritsar 01.jpg"}
     min: 8.0
     say: "まず、アムリトサル。シク教の聖地、黄金寺院の街です。寺院では、毎日、十万食以上の、無料の食事が、ふるまわれます。西へ、約五十キロで、パキスタンの、ラホールです。レベル3の地域まで、約{zone3_km_0}キロです。"
   - kind: wikipedia
@@ -172,7 +172,7 @@ scenes:
       - {lang: en, title: Srinagar, contains: [houseboats, "Dal Lake", Mughal]}
       - {lang: en, title: Dal Lake, contains: [Shalimar, houseboats]}
     source_line: 出典：en Wikipedia で確認（外務省の文言は公式ページ）
-    photo: {file: "PHOTO_SRINAGAR"}
+    photo: {file: "File:Dal and the shikhara.jpg"}
     min: 8.0
     say: "次に、スリナガル。ダル湖に、ハウスボートが、浮かぶ街です。ムガル帝国の皇帝が、夏を過ごした、庭園が、残っています。でも、この街の周りは、すべて、レベル3です。"
   - kind: wikipedia
@@ -180,14 +180,14 @@ scenes:
     place: レー
     name: レー
     headline: レー
-    lines: ["標高3,500mの、高地の街", "王宮の跡と、白い仏塔", "レベル4の地域まで 約{zone4_km_2}km（地図上の概算）"]
+    lines: ["標高3,500mの、高地の街", "レー王宮と、シャンティ・ストゥーパ", "レベル4の地域まで 約{zone4_km_2}km（地図上の概算）"]
     wikipedia:
       - {lang: en, title: Leh, contains: ["3,500", "Leh Palace", "Shanti Stupa"]}
       - {lang: en, title: Ladakh, contains: [Leh]}
     source_line: 出典：en Wikipedia で確認（外務省の文言は公式ページ）
-    photo: {file: "PHOTO_LEH"}
+    photo: {file: "File:Leh Palace from Old Town.jpg"}
     min: 7.5
-    say: "そして、レー。標高三千五百メートルの、高地の街です。王宮の跡と、白い仏塔が、あります。レベル4の地域まで、約{zone4_km_2}キロです。"
+    say: "そして、レー。標高三千五百メートルの、高地の街です。レー王宮と、シャンティ・ストゥーパが、あります。レベル4の地域まで、約{zone4_km_2}キロです。"
 
 # ---------- ターンと結び ----------
 turn:
