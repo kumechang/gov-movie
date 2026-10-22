@@ -7,3 +7,6 @@ tts/
 __pycache__/
 *.pyc
 .DS_Store
+
+# 演出用フォント（scripts/setup_fonts.sh で配置）
+assets/fonts/

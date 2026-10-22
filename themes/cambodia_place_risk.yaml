@@ -1,0 +1,255 @@
+# 場所と危険情報の型（place_vs_risk）: 「危険と隣り合わせの観光地帯 カンボジア編」。
+# 世界遺産（アンコール・コー・ケー・プレアヴィヒア寺院）の魅力を、根拠つきで見せたあと、外務省の危険情報（タイ国境から30km以内がレベル3 など）を地図で見比べる。
+# 「国境から○km以内」の地域は、国境線のデータ（Natural Earth）から描き、観光地が範囲内かどうかも座標から計算して確かめる（src/world.py・src/spottheme.py）。
+# 人気の根拠は Wikidata × ja.wikipedia で照合し、写真は Commons のライセンスを確認する（src/facts.py）。
+# 危険レベル・地域・理由の文言は、公式の危険情報ページの本文に出てくることを毎回自動で確かめる（src/mofa.py）。書き方は docs/THEME_SPEC.md「場所と危険情報」。
+
+id: cambodia_place_risk
+template: place_vs_risk
+
+metric: 外務省の危険レベル
+year: 2026
+unit: レベル（1〜4）
+
+source:
+  name: 外務省 海外安全情報オープンデータ
+  note: "（危険レベルは{asof}時点）"
+  table: 海外安全情報オープンデータ 国別（country/0855.xml）と、カンボジアの危険情報ページ
+  url: https://www.ezairyu.mofa.go.jp/html/opendata/index.html
+  license:
+    checked: 2026-10-13
+    terms_url: https://www.ezairyu.mofa.go.jp/html/opendata/support/terms.html
+    commercial: true
+    credit_lines:
+      - 外務省 海外安全情報オープンデータ 提供情報（https://www.ezairyu.mofa.go.jp/html/opendata/index.html）を加工して作成
+      - 出典：外務省 海外安全情報オープンデータ（https://www.ezairyu.mofa.go.jp/html/opendata/index.html）（{asof}に利用）
+      - 地域・危険の理由の文言：外務省 海外安全ホームページ カンボジアの危険情報（https://www.anzen.mofa.go.jp/）を要約
+  fetch: mofa_risk
+
+verification: >-
+  危険レベルは外務省の国別XML（country/0855.xml）の値を、公式の危険情報ページ本文と照合して使う。
+  画面の地域（タイ国境から30km以内・30kmを越えて50km以内・上記以外の全土）は、公式ページの「危険レベル」の節に
+  その文言が出てきて、直後のレベル表示が一致することを毎回自動で確かめる。地域の注記と注意点の文言は、公式ページの本文にそのまま出てくることを確かめる。
+  「国境から30km以内」の範囲は、国境線（Natural Earth 50m。目安）から描く。観光地が範囲内かどうか、国境からの距離は、Wikidata の座標（CC0）と国境線から計算した概算（5km単位）で、
+  範囲内と主張する場所は、計算上も範囲内であることを確かめる（外れると止まる）。アンコールからレベル3の地域までの距離も同じ方法の概算（10km単位）。
+  世界遺産の登録年は、Wikidata（CC0）の主張と ja.wikipedia の本文の両方で一致したものだけを使う。
+  写真は Wikimedia Commons でライセンス（CC0 / パブリックドメイン / CC BY）と作者を確認し、画面と概要欄に出典を載せる。
+  地図上の位置・範囲は、おおよその目安として画面に明記する。結果は build/cambodia_place_risk/fetch_report.txt。
+
+mofa:
+  max_age_hours: 24
+
+# ---------- 見た目 ----------
+# style は本編（ターン以降）の恐怖演出。calm_style で、ターンの前（人気の場面）だけ落ち着いた色に差し替える。
+style:
+  look: horror
+  fonts:
+    Black: assets/fonts/KaiseiTokumin-ExtraBold.ttf
+    Bold: assets/fonts/KaiseiTokumin-ExtraBold.ttf
+    Accent: assets/fonts/YujiBoku-Regular.ttf
+  bg: {top: [3, 0, 1], bottom: [28, 2, 5], fog: [120, 0, 12], fog_height: 0.38, vignette: 0.78, grain: 0.03}
+  text: [238, 228, 222]
+  muted: [168, 128, 128]
+  accent: [226, 34, 44]
+  title_color: [206, 18, 30]
+  title_glow: [150, 0, 8]
+  drips: [150, 0, 10]
+  pill: {fill: [90, 0, 8, 130], outline: [200, 30, 40, 170], text: [240, 205, 205]}
+  panel: {fill: [10, 0, 2, 234], outline: [190, 20, 30, 150], stroke: [0, 0, 0, 255]}
+  bar: {bg: [52, 10, 14], fill: [204, 24, 36]}
+  fx: {shake: 16, flash: [170, 0, 10], flash_alpha: 0.38, embers: true}
+  named_colors:
+    white: [238, 228, 222]
+    yellow: [232, 188, 70]
+    red: [226, 26, 38]
+    muted: [168, 128, 128]
+
+calm_style:
+  bg: {top: [12, 22, 44], bottom: [34, 52, 88], vignette: 0.55, grain: 0.02}
+  title_color: [244, 236, 224]
+  title_glow: null
+  drips: null
+  pill: {fill: [255, 255, 255, 30], outline: [255, 255, 255, 80], text: [236, 232, 224]}
+
+# ---------- 画面の固定文言 ----------
+title: 危険と隣り合わせの観光地帯
+title_small: カンボジア編｜外務省の危険情報と見比べる
+subtitle: "魅力と、危険情報の地域（{asof}時点）"
+footnote: "危険情報の最終更新：{risk_date}｜地図の位置・範囲はおおよそです"
+
+# 地図は、北部（国境の地域と3つの世界遺産）を拡大して見せる（bbox = [経度の最小, 緯度の最小, 経度の最大, 緯度の最大]）
+map:
+  bbox: [102.2, 12.7, 106.1, 15.0]
+
+# ---------- 対象の国と、地図に出す地域 ----------
+# border: 「国境から○km以内」の地域は、国境線のデータから帯を作る（with は相手の国の ISO3 コード。km は国境からの距離）。
+members:
+  - code: "0855"
+    label: カンボジア
+    iso: KHM
+    regions:
+      - level: 3
+        where: タイ国境から30km以内の地域
+        display: タイ国境から30km以内
+        border: {with: THA, km: 30}
+        note: 両国軍の間で銃撃、砲撃や空爆を伴う衝突が発生しました
+        place_note: 世界遺産プレアヴィヒア寺院は、この中です
+        label_at: [102.75, 14.5]
+        say: "タイとの国境から、30キロ以内は、レベル3。渡航は止めてください。プレアヴィヒア寺院は、この中にあります。"
+      - level: 2
+        where: タイ国境から30kmを越えて50km以内の地域
+        display: タイ国境から30kmを越えて50km以内
+        border: {with: THA, km: 50}
+        label_at: [102.55, 13.45]
+        say: "その外側、50キロまでは、レベル2です。"
+      - level: 1
+        where: 上記以外の全土
+        display: 上記以外の全土
+        say: "アンコールと、コー・ケーは、レベル1です。"
+    why:
+      - tag: 紛争・武力衝突
+        text: 2025年7月以降、国境付近で両国軍が衝突
+        evidence: 両国軍の間で銃撃、砲撃や空爆を伴う衝突が発生しました
+      - tag: 紛争・武力衝突
+        text: 国境から50kmを超える地域でも空爆。80km近い地域の例も
+        evidence: 国境から80km近い地域での攻撃例も報告されました
+      - tag: 監禁・強制労働
+        text: 好条件の仕事と誘われ、監禁される事案
+        evidence: 好条件の仕事があるとして勧誘された外国人が監禁状態下で不法行為に強制的に従事させられる事案が発生しています
+
+# 人気の場所（地図に印を出す。座標は Wikidata）。
+places:
+  - {name: アンコール, marker: [103.8591, 13.4409], region: 上記以外の全土, side: below}
+  - {name: コー・ケー, marker: [104.5473, 13.7499], region: 上記以外の全土, side: right}
+  - {name: プレアヴィヒア寺院, marker: [104.6803, 14.3906], in_region: タイ国境から30km以内の地域, side: above-right}
+
+# アンコールから、レベル3の地域までの距離（国境線と座標から計算した概算）
+distance:
+  from: アンコール
+  level: 3
+  round: 10
+  say: "アンコールから、レベル3の地域までは、直線で、約{dist_km}キロです。"
+
+# ---------- 魅力の紹介（根拠は Wikidata × ja.wikipedia で照合。photo.file は Commons のファイル名） ----------
+scenes:
+  - kind: heritage
+    tag: 世界遺産
+    place: アンコール
+    name: アンコール
+    headline: アンコール
+    lines: ["アンコール遺跡群", "1992年に世界遺産に登録"]
+    wikidata: Q2397751
+    wp_title: アンコール遺跡
+    designation: Q9259
+    year: 1992
+    wp_contains: [アンコール]
+    source_line: 出典：UNESCO 世界遺産リスト（Wikidata・ja.Wikipedia で確認）
+    photo: {file: "File:ថ្ងៃរះនៅប្រាសាទអង្គរវត្ត១៤ - Sunnrise at Angkor Wat 14.jpg"}
+    min: 5.0
+    say: "まず、アンコール。1992年に、世界遺産に登録されました。"
+  - kind: heritage
+    tag: 世界遺産
+    place: コー・ケー
+    name: コー・ケー
+    headline: コー・ケー
+    lines: ["コー・ケーの考古遺跡", "2023年に世界遺産に登録"]
+    wikidata: Q1778458
+    designation: Q9259
+    year: 2023
+    wp_contains: [コー・ケー]
+    source_line: 出典：UNESCO 世界遺産リスト（Wikidata・ja.Wikipedia で確認）
+    photo: {file: "File:Koh Ker - Prasat Thom - Prang.jpg"}
+    min: 4.6
+    say: "次に、コー・ケー。2023年に、世界遺産になりました。"
+  - kind: heritage
+    tag: 世界遺産
+    place: プレアヴィヒア寺院
+    name: プレアヴィヒア寺院
+    headline: プレアヴィヒア寺院
+    lines: ["2008年に世界遺産に登録", "タイ国境まで 約{border_km_2}km（地図上の概算）"]
+    wikidata: Q45949
+    designation: Q9259
+    year: 2008
+    wp_contains: [プレアヴィヒア]
+    source_line: 出典：UNESCO 世界遺産リスト（Wikidata・ja.Wikipedia で確認）
+    photo: {file: "File:Temple of Preah Vihear - view (41).jpg"}
+    min: 5.4
+    say: "そして、プレアヴィヒア寺院。2008年に、世界遺産になりました。タイとの国境の、すぐ近くです。"
+
+# ---------- ターンと結び ----------
+turn:
+  say: "でも、この地域は、外務省が出している、危険地帯と、隣り合わせなんです。"
+  lines:
+    - ["でも…", 130, red]
+    - ["危険地帯と隣り合わせ", 64, white]
+
+caution:
+  head: 外務省は、こう伝えています
+  say: "外務省は、国境付近で、両国軍の衝突があったと伝えています。また、好条件の仕事と誘われて、監禁される事案にも、注意を呼びかけています。"
+
+closing:
+  say: "世界遺産の寺院が、危険な地域の、すぐそばにあります。行く前に、外務省の最新の情報を、必ず確認してください。"
+  lines:
+    - ["隣り合わせの観光地帯", 58, white]
+    - ["出発前に必ず確認", 54, yellow]
+
+extra_credits:
+  - "人気の根拠：UNESCO 世界遺産リスト（Wikidata（CC0）・ja Wikipedia で確認）"
+
+# ---------- 声 ----------
+voice:
+  vvm: [1]
+  style_id: 14
+  speed: 1.12
+  pitch: -0.03
+  intonation: 0.9
+  credit: VOICEVOX:冥鳴ひまり
+
+# ---------- 構成 ----------
+hooks:
+  - say: "危険と、隣り合わせの、観光地帯。カンボジア編。"
+    min: 3.0
+    gap: 0.4
+    y: 400
+    fade: 0.4
+    panel:
+      - [危険と隣り合わせの観光地帯, 50, muted, Bold]
+      - [カンボジア編, 130, white, Black]
+  - say: "危険と、隣り合わせの、観光地帯を、知っていますか？"
+    min: 3.6
+    gap: 0.4
+    y: 380
+    fade: 0.35
+    panel:
+      - [危険と隣り合わせの, 64, white, Bold]
+      - [観光地帯, 150, red, Black]
+      - [知っていますか？, 60, yellow, Black]
+  - say: "今日は、カンボジアに存在する、危険と隣り合わせの、観光地帯を、紹介します。"
+    min: 3.8
+    gap: 0.4
+    y: 400
+    fade: 0.35
+    panel:
+      - [今日は, 56, muted, Bold]
+      - [カンボジアの, 96, white, Black]
+      - [観光地帯を紹介, 84, yellow, Black]
+
+cta:
+  say: "世界の意外な、旅行リスクを、地図と、公的情報で、解説しています。次の地域も、紹介します。フォローしてね。気になる国は、コメントで教えてください。"
+  panel:
+    - [世界の意外な旅行リスクを, 46, white, Bold]
+    - [地図と公的情報で解説, 56, white, Black]
+    - [次の地域も紹介します, 46, white, Bold]
+    - [フォローしてね, 76, yellow, Black]
+    - [気になる国はコメントで ↓, 44, white, Bold]
+
+# ---------- 投稿用テキスト（post.md として自動生成） ----------
+post:
+  title: "【{asof}時点】危険と隣り合わせの観光地帯 カンボジア編。世界遺産と、タイ国境の危険情報"
+  description: >-
+    カンボジアの世界遺産、アンコール、コー・ケー、プレアヴィヒア寺院。ところが外務省の危険情報では、タイとの国境から30km以内はレベル3（渡航中止勧告）、
+    30kmを越えて50km以内はレベル2。プレアヴィヒア寺院は国境のすぐ近くで、レベル3の範囲内です。アンコールとコー・ケーは「上記以外の全土」でレベル1ですが、
+    外務省は、国境から80km近い地域での攻撃例も報告されたと伝えています。就労目的の勧誘にも注意が必要です。
+    危険情報は国全体ではなく地域ごとに違います。地域と理由は、外務省の危険情報ページの記載を要約しました。渡航前には、必ず外務省の最新の情報を確認してください。
+  pinned_comment: 次に見たい国は、どこですか？コメントで教えてください！
+  hashtags: ["#危険と隣り合わせの観光地帯", "#カンボジア", "#アンコールワット", "#プレアヴィヒア寺院", "#世界遺産", "#外務省", "#危険情報", "#海外旅行"]

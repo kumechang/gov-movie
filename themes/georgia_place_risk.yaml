@@ -1,0 +1,256 @@
+# 場所と危険情報の型（place_vs_risk）: 「危険と隣り合わせの観光地帯 ジョージア編」。
+# 外務省の危険情報（ジョージア）: レベル3＝ツヒンヴァリ/南オセチア及びその周辺地域、アブハジア及びその周辺地域／レベル2＝ロシアとの国境周辺地域／レベル1＝上記を除く全土（トビリシ市を含む）。
+# 危険地域に近い観光地として、スヴァネティ（世界遺産。アブハジアとロシアに近い山岳地帯）・ズグディディ（ダディアニ宮殿。アブハジアのすぐ近く）・ゴリ（スターリンの生誕地。南オセチアの近く）を見せる。
+# 公式ページは、「及びその周辺地域」「国境周辺地域」の範囲を書いていない。図は位置の目安で、範囲は公式に定められていない、と画面と概要欄で伝える。
+# 人気の根拠は ja / en の Wikipedia で照合し（ゴリは ja 版に項目が無いため en のみ）、写真は Commons のライセンスを確認する（src/facts.py）。
+# 危険レベル・地域・理由の文言は、公式の危険情報ページの本文に出てくることを毎回自動で確かめる（src/mofa.py）。書き方は docs/THEME_SPEC.md「場所と危険情報」。
+
+id: georgia_place_risk
+template: place_vs_risk
+
+metric: 外務省の危険レベル
+year: 2026
+unit: レベル（1〜4）
+
+source:
+  name: 外務省 海外安全情報オープンデータ
+  note: "（危険レベルは{asof}時点）"
+  table: 海外安全情報オープンデータ 国別（country/0995.xml）と、ジョージアの危険情報ページ
+  url: https://www.ezairyu.mofa.go.jp/html/opendata/index.html
+  license:
+    checked: 2026-10-13
+    terms_url: https://www.ezairyu.mofa.go.jp/html/opendata/support/terms.html
+    commercial: true
+    credit_lines:
+      - 外務省 海外安全情報オープンデータ 提供情報（https://www.ezairyu.mofa.go.jp/html/opendata/index.html）を加工して作成
+      - 出典：外務省 海外安全情報オープンデータ（https://www.ezairyu.mofa.go.jp/html/opendata/index.html）（{asof}に利用）
+      - 地域・危険の理由の文言：外務省 海外安全ホームページ ジョージアの危険情報（https://www.anzen.mofa.go.jp/）を要約
+  fetch: mofa_risk
+
+verification: >-
+  危険レベルは外務省の国別XML（country/0995.xml）の値を、公式の危険情報ページ本文と照合して使う。
+  画面の地域（レベル3: ツヒンヴァリ/南オセチア及びその周辺地域、アブハジア及びその周辺地域／レベル2: ロシアとの国境周辺地域／レベル1: 上記を除く全土）は、公式ページの「危険レベル」の節に
+  その文言が出てきて、直後のレベル表示が一致することを毎回自動で確かめる。地域の注記と注意点の文言は、公式ページの本文にそのまま出てくることを確かめる。
+  地図の範囲は概算: アブハジアは Natural Earth の州境（目安）、南オセチアは境界データが無いため座標の多角形（位置の目安）。「及びその周辺地域」「ロシアとの国境周辺地域」の範囲は、公式に定められていない
+  （図のロシア国境周辺は、国境から約20kmの帯。目安）。観光地の位置と、レベル3の地域までの距離は、座標から計算した概算。
+  観光地の根拠（スヴァネティが世界遺産であること、ズグディディのダディアニ宮殿にナポレオンのデスマスクがあること、ゴリがスターリンの生誕地であること）は、ja / en の Wikipedia の本文で確かめる
+  （ゴリは ja 版に項目が無いため en のみ。同じ Wikipedia の別言語版なので、独立した2系統とは言えない）。
+  写真は Wikimedia Commons でライセンス（CC0 / パブリックドメイン / CC BY）と作者を確認し、画面と概要欄に出典を載せる。結果は build/georgia_place_risk/fetch_report.txt。
+
+mofa:
+  max_age_hours: 24
+
+# ---------- 見た目 ----------
+# style は本編（ターン以降）の恐怖演出。calm_style で、ターンの前（人気の場面）だけ落ち着いた色に差し替える。
+style:
+  look: horror
+  fonts:
+    Black: assets/fonts/KaiseiTokumin-ExtraBold.ttf
+    Bold: assets/fonts/KaiseiTokumin-ExtraBold.ttf
+    Accent: assets/fonts/YujiBoku-Regular.ttf
+  bg: {top: [3, 0, 1], bottom: [28, 2, 5], fog: [120, 0, 12], fog_height: 0.38, vignette: 0.78, grain: 0.03}
+  text: [238, 228, 222]
+  muted: [168, 128, 128]
+  accent: [226, 34, 44]
+  title_color: [206, 18, 30]
+  title_glow: [150, 0, 8]
+  drips: [150, 0, 10]
+  pill: {fill: [90, 0, 8, 130], outline: [200, 30, 40, 170], text: [240, 205, 205]}
+  panel: {fill: [10, 0, 2, 234], outline: [190, 20, 30, 150], stroke: [0, 0, 0, 255]}
+  bar: {bg: [52, 10, 14], fill: [204, 24, 36]}
+  fx: {shake: 16, flash: [170, 0, 10], flash_alpha: 0.38, embers: true}
+  named_colors:
+    white: [238, 228, 222]
+    yellow: [232, 188, 70]
+    red: [226, 26, 38]
+    muted: [168, 128, 128]
+
+calm_style:
+  bg: {top: [12, 22, 44], bottom: [34, 52, 88], vignette: 0.55, grain: 0.02}
+  title_color: [244, 236, 224]
+  title_glow: null
+  drips: null
+  pill: {fill: [255, 255, 255, 30], outline: [255, 255, 255, 80], text: [236, 232, 224]}
+
+# ---------- 画面の固定文言 ----------
+title: 危険と隣り合わせの観光地帯
+title_small: ジョージア編｜外務省の危険情報と見比べる
+subtitle: "魅力と、危険情報の地域（{asof}時点）"
+footnote: "危険情報の最終更新：{risk_date}｜地図の位置・範囲はおおよそです"
+
+# 地図は、ジョージア西部〜中部（アブハジア・スヴァネティ・南オセチア）を見せる（bbox = [経度の最小, 緯度の最小, 経度の最大, 緯度の最大]）
+map:
+  bbox: [40.0, 41.2, 45.4, 43.7]
+
+# ---------- 対象の国と、地図に出す地域 ----------
+# provinces: Natural Earth の州の英語名。rings: 州の境界データが無い地域の、座標の多角形（概算）。border: 「国境から○km以内」を国境線から作る（公式に範囲の定めがない地域は、目安）。
+members:
+  - code: "0995"
+    label: ジョージア
+    iso: GEO
+    regions:
+      - level: 3
+        where: ツヒンヴァリ/南オセチア及びその周辺地域、アブハジア及びその周辺地域
+        display: 南オセチア・アブハジアと周辺
+        provinces: [Abkhazia]
+        rings:
+          - [[43.30, 42.35], [43.60, 42.62], [43.95, 42.70], [44.20, 42.55], [44.60, 42.30], [44.62, 42.12], [44.35, 42.05], [43.95, 42.02], [43.55, 42.12], [43.32, 42.22]]
+        note: ジョージア政府の統治が及んでおらず、不測の事態が発生する可能性は否定できません
+        label_at: [41.2, 43.45]
+        say: "ツヒンヴァリ、南オセチアと、アブハジアは、レベル3。どのような目的でも、渡航は止めてください。「周辺地域」も、含まれます。"
+      - level: 2
+        where: ロシアとの国境周辺地域
+        display: ロシア国境周辺（範囲の定めなし）
+        border: {with: RUS, km: 20}
+        note: 情勢により不当に拘束されることや、軍事的緊張が急激に高まる可能性があるため
+        label_at: [44.9, 43.45]
+        say: "ロシアとの国境の周辺は、レベル2です。"
+      - level: 1
+        where: 上記を除く全土（首都トビリシ市を含む）
+        display: 上記を除く全土（トビリシ市を含む）
+        place_note: 「周辺地域」の範囲は、公式に書かれていません
+        say: "スヴァネティ、ズグディディ、ゴリは、地名が出てこない、上記を除く全土。つまり、レベル1です。でも、レベル3の、周辺地域が、どこまでなのかは、公式のページには、書かれていません。"
+    why:
+      - tag: 拘束
+        text: 境界線の付近で、周辺住民が拘束される事件が頻発
+        evidence: 付近では、現在も周辺住民の身柄が拘束される事件が頻発している
+      - tag: 不発弾
+        text: 激しい戦闘のあった地域には、不発弾が今も残っている
+        evidence: 激しい戦闘のあった地域においては、不発弾が依然として残っています
+      - tag: 注意
+        text: 境界線ははっきり示されておらず、誤って越える危険がある
+        evidence: 必ずしも明確に示されておらず、誤って境界内に踏み入れる危険があるため
+
+# 人気の場所（地図に印を出す。座標は Wikipedia・Wikidata の位置。概算）。
+places:
+  - {name: スヴァネティ, marker: [43.05, 43.04], region: 上記を除く全土（首都トビリシ市を含む）, side: above}
+  - {name: ズグディディ, marker: [41.87, 42.51], region: 上記を除く全土（首都トビリシ市を含む）, side: below-left}
+  - {name: ゴリ, marker: [44.11, 41.98], region: 上記を除く全土（首都トビリシ市を含む）, side: below-right}
+
+# ズグディディから、レベル3の地域までの距離（座標から計算した概算）
+distance:
+  from: ズグディディ
+  level: 3
+  round: 5
+  say: "ズグディディから、レベル3の地域までは、直線で、約{dist_km}キロです。"
+
+# ---------- 魅力の紹介（根拠は ja / en の Wikipedia で照合。photo.file は Commons のファイル名） ----------
+scenes:
+  - kind: wikipedia
+    tag: 世界遺産
+    place: スヴァネティ
+    name: スヴァネティ
+    headline: スヴァネティ
+    lines: ["3,000〜5,000m級の山々に囲まれた", "石の塔の村。最高峰シュハラ山も"]
+    wikipedia:
+      - {lang: ja, title: スヴァネティ, contains: [塔, 世界遺産, シュハラ]}
+      - {lang: en, title: Svaneti, contains: [UNESCO, Upper Svaneti, Ushguli]}
+    source_line: 出典：ja / en Wikipedia で確認
+    photo: {file: "File:Ushguli and Mt Shkhara (35923023802).jpg"}
+    min: 7.0
+    say: "まず、スヴァネティ。三千メートルから、五千メートル級の山々に囲まれた、石の塔の村です。ジョージア最高峰の、シュハラ山も、ここにあります。世界遺産にも、登録されています。"
+  - kind: wikipedia
+    tag: 宮殿
+    place: ズグディディ
+    name: ズグディディ
+    headline: ズグディディ
+    lines: ["ナポレオンのデスマスクが", "展示されている、宮殿の町"]
+    wikipedia:
+      - {lang: ja, title: ズグディディ, contains: [ナポレオン, ダディアニ宮殿]}
+      - {lang: en, title: Zugdidi, contains: [Dadiani, Abkhazia]}
+    source_line: 出典：ja / en Wikipedia で確認
+    photo: {file: "File:Zugdidi palace - panoramio.jpg"}
+    min: 6.5
+    say: "次に、ズグディディ。町の宮殿には、あの、ナポレオンの、デスマスクが、展示されています。ダディアニ宮殿博物館として、公開されています。"
+  - kind: wikipedia
+    tag: 古代の洞窟都市
+    place: ゴリ
+    name: ゴリ
+    headline: ゴリ
+    lines: ["スターリンが生まれた町", "近くに、古代の岩の洞窟都市"]
+    wikipedia:
+      - {lang: en, title: "Gori, Georgia", contains: [Stalin, Uplistsikhe, Museum]}
+      - {lang: en, title: Uplistsikhe, contains: [rock-hewn, Gori]}
+    source_line: 出典：en Wikipedia で確認（ja 版に項目なし）
+    photo_note: 写真は、ゴリの近くの洞窟都市ウプリストシヘ
+    photo: {file: "File:The cave town of Uplistsikhe is located just outside Gori (30143389521).jpg"}
+    min: 6.5
+    say: "そして、ゴリ。あの、スターリンが、生まれた町で、博物館もあります。すぐ近くには、古代の、岩の洞窟都市、ウプリストシヘが、あります。"
+
+# ---------- ターンと結び ----------
+turn:
+  say: "でも、この国には、外務省が出している、危険地帯が、あるんです。観光地の、すぐ近くに。"
+  lines:
+    - ["でも…", 130, red]
+    - ["危険地帯と隣り合わせ", 64, white]
+
+caution:
+  head: 外務省は、こう伝えています
+  say: "外務省は、境界線の付近で、周辺の住民が、拘束される事件が、頻発していると伝えています。激しい戦闘のあった地域には、不発弾が、今も、残っています。境界線は、はっきり示されておらず、誤って、越える危険があります。"
+
+closing:
+  say: "世界遺産の村も、宮殿の町も、スターリンの町も、レベル3の地域の、近くにあります。周辺地域の範囲は、書かれていません。行く前に、外務省の最新の情報を、必ず確認してください。"
+  lines:
+    - ["隣り合わせの観光地帯", 58, white]
+    - ["出発前に必ず確認", 54, yellow]
+
+extra_credits:
+  - "人気の根拠：ja / en Wikipedia で確認（ゴリは en のみ）"
+
+# ---------- 声 ----------
+voice:
+  vvm: [1]
+  style_id: 14
+  speed: 1.12
+  pitch: -0.03
+  intonation: 0.9
+  credit: VOICEVOX:冥鳴ひまり
+
+# ---------- 構成 ----------
+hooks:
+  - say: "危険と、隣り合わせの、観光地帯。ジョージア編。"
+    min: 3.0
+    gap: 0.4
+    y: 400
+    fade: 0.4
+    panel:
+      - [危険と隣り合わせの観光地帯, 50, muted, Bold]
+      - [ジョージア編, 120, white, Black]
+  - say: "危険と、隣り合わせの、観光地帯を、知っていますか？"
+    min: 3.6
+    gap: 0.4
+    y: 380
+    fade: 0.35
+    panel:
+      - [危険と隣り合わせの, 64, white, Bold]
+      - [観光地帯, 150, red, Black]
+      - [知っていますか？, 60, yellow, Black]
+  - say: "今日は、ジョージアに存在する、危険と隣り合わせの、観光地帯を、紹介します。"
+    min: 3.8
+    gap: 0.4
+    y: 400
+    fade: 0.35
+    panel:
+      - [今日は, 56, muted, Bold]
+      - [ジョージアの, 90, white, Black]
+      - [観光地帯を紹介, 84, yellow, Black]
+
+cta:
+  say: "世界の意外な、旅行リスクを、地図と、公的情報で、解説しています。次の地域も、紹介します。フォローしてね。気になる国は、コメントで教えてください。"
+  panel:
+    - [世界の意外な旅行リスクを, 46, white, Bold]
+    - [地図と公的情報で解説, 56, white, Black]
+    - [次の地域も紹介します, 46, white, Bold]
+    - [フォローしてね, 76, yellow, Black]
+    - [気になる国はコメントで ↓, 44, white, Bold]
+
+# ---------- 投稿用テキスト（post.md として自動生成） ----------
+post:
+  title: "【{asof}時点】危険と隣り合わせの観光地帯 ジョージア編。ナポレオンのデスマスクがある宮殿も、外務省のレベル3の近く"
+  description: >-
+    ジョージアの世界遺産スヴァネティ、ナポレオンのデスマスクを展示するダディアニ宮殿のあるズグディディ、スターリンが生まれた町ゴリ。
+    外務省の危険情報では、ツヒンヴァリ/南オセチア及びその周辺地域、アブハジア及びその周辺地域はレベル3（渡航中止勧告）、ロシアとの国境周辺地域はレベル2、上記を除く全土はレベル1です。
+    「周辺地域」や「国境周辺地域」の範囲は、公式のページには書かれていません。境界線の付近では、周辺住民が拘束される事件が頻発していると外務省は伝えています。
+    危険情報は国全体ではなく地域ごとに違います。地域と理由は、外務省の危険情報ページの記載を要約しました。渡航前には、必ず外務省の最新の情報を確認してください。
+  pinned_comment: 次に見たい国は、どこですか？コメントで教えてください！
+  hashtags: ["#危険と隣り合わせの観光地帯", "#ジョージア", "#スヴァネティ", "#コーカサス", "#外務省", "#危険情報", "#海外旅行"]

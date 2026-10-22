@@ -1,0 +1,256 @@
+# 場所と危険情報の型（place_vs_risk）: 「危険と隣り合わせの観光地帯 フィリピン編」。
+# ミンダナオ島のカミギン島・ダバオ・ジェネラル・サントス（いずれも外務省がレベル1の例外として名前を挙げている場所）の魅力を、根拠つきで見せたあと、
+# 周りのレベル3・レベル2の地域（州の単位）を、Natural Earth の州の境界から地図に塗って見比べる（src/world.py の admin1_rings）。
+# 人気の根拠は ja / en の Wikipedia で照合し、写真は Commons のライセンスを確認する（src/facts.py）。
+# 危険レベル・地域・理由の文言は、公式の危険情報ページの本文に出てくることを毎回自動で確かめる（src/mofa.py）。書き方は docs/THEME_SPEC.md「場所と危険情報」。
+
+id: philippines_place_risk
+template: place_vs_risk
+
+metric: 外務省の危険レベル
+year: 2026
+unit: レベル（1〜4）
+
+source:
+  name: 外務省 海外安全情報オープンデータ
+  note: "（危険レベルは{asof}時点）"
+  table: 海外安全情報オープンデータ 国別（country/0063.xml）と、フィリピンの危険情報ページ
+  url: https://www.ezairyu.mofa.go.jp/html/opendata/index.html
+  license:
+    checked: 2026-10-13
+    terms_url: https://www.ezairyu.mofa.go.jp/html/opendata/support/terms.html
+    commercial: true
+    credit_lines:
+      - 外務省 海外安全情報オープンデータ 提供情報（https://www.ezairyu.mofa.go.jp/html/opendata/index.html）を加工して作成
+      - 出典：外務省 海外安全情報オープンデータ（https://www.ezairyu.mofa.go.jp/html/opendata/index.html）（{asof}に利用）
+      - 地域・危険の理由の文言：外務省 海外安全ホームページ フィリピンの危険情報（https://www.anzen.mofa.go.jp/）を要約
+  fetch: mofa_risk
+
+verification: >-
+  危険レベルは外務省の国別XML（country/0063.xml）の値を、公式の危険情報ページ本文と照合して使う。
+  画面の地域（レベル3: ミンダナオ地方の一部の州ほか／レベル2／レベル1の例外: カミギン州・ダバオ市・ジェネラル・サントス市など）は、公式ページの「危険度」の節に
+  その文言が出てきて、直後のレベル表示が一致することを毎回自動で確かめる。地域の注記と注意点の文言は、公式ページの本文にそのまま出てくることを確かめる。
+  地図の塗り分けは、Natural Earth 10m の州・県の境界（目安）から。サランガニ州西部の3町（マアシム・キアンバ・マイトゥム）は、位置を円で示す概算。
+  シアルガオ島・スリガオ市は、レベル1の例外として、レベル2の地域から抜いてある（位置と大きさは概算）。
+  観光地の魅力（ダバオに日本人街があったこと、ジェネラル・サントスがマグロの街であること、カミギン島に火山があること）は、ja / en の Wikipedia の本文で確かめる
+  （同じ Wikipedia の別言語版なので、独立した2系統とは言えない）。
+  写真は Wikimedia Commons でライセンス（CC0 / パブリックドメイン / CC BY）と作者を確認し、画面と概要欄に出典を載せる。
+  地図上の位置・範囲は、おおよその目安として画面に明記する。結果は build/philippines_place_risk/fetch_report.txt。
+
+mofa:
+  max_age_hours: 24
+
+# ---------- 見た目 ----------
+# style は本編（ターン以降）の恐怖演出。calm_style で、ターンの前（人気の場面）だけ落ち着いた色に差し替える。
+style:
+  look: horror
+  fonts:
+    Black: assets/fonts/KaiseiTokumin-ExtraBold.ttf
+    Bold: assets/fonts/KaiseiTokumin-ExtraBold.ttf
+    Accent: assets/fonts/YujiBoku-Regular.ttf
+  bg: {top: [3, 0, 1], bottom: [28, 2, 5], fog: [120, 0, 12], fog_height: 0.38, vignette: 0.78, grain: 0.03}
+  text: [238, 228, 222]
+  muted: [168, 128, 128]
+  accent: [226, 34, 44]
+  title_color: [206, 18, 30]
+  title_glow: [150, 0, 8]
+  drips: [150, 0, 10]
+  pill: {fill: [90, 0, 8, 130], outline: [200, 30, 40, 170], text: [240, 205, 205]}
+  panel: {fill: [10, 0, 2, 234], outline: [190, 20, 30, 150], stroke: [0, 0, 0, 255]}
+  bar: {bg: [52, 10, 14], fill: [204, 24, 36]}
+  fx: {shake: 16, flash: [170, 0, 10], flash_alpha: 0.38, embers: true}
+  named_colors:
+    white: [238, 228, 222]
+    yellow: [232, 188, 70]
+    red: [226, 26, 38]
+    muted: [168, 128, 128]
+
+calm_style:
+  bg: {top: [12, 22, 44], bottom: [34, 52, 88], vignette: 0.55, grain: 0.02}
+  title_color: [244, 236, 224]
+  title_glow: null
+  drips: null
+  pill: {fill: [255, 255, 255, 30], outline: [255, 255, 255, 80], text: [236, 232, 224]}
+
+# ---------- 画面の固定文言 ----------
+title: 危険と隣り合わせの観光地帯
+title_small: フィリピン編｜外務省の危険情報と見比べる
+subtitle: "魅力と、危険情報の地域（{asof}時点）"
+footnote: "危険情報の最終更新：{risk_date}｜地図の位置・範囲はおおよそです"
+
+# 地図は、ミンダナオ島を拡大して見せる（bbox = [経度の最小, 緯度の最小, 経度の最大, 緯度の最大]）
+map:
+  bbox: [119.6, 4.6, 127.4, 10.3]
+
+# ---------- 対象の国と、地図に出す地域 ----------
+# provinces: Natural Earth の州・県の英語名（その州全体を塗る）。bands の点（1つ）＋ radius_km は、町の位置を示す円。holes は、地域から抜く例外（[経度, 緯度, 半径km]）。
+members:
+  - code: "0063"
+    label: フィリピン
+    iso: PHL
+    regions:
+      - level: 3
+        where: 北サンボアンガ州、南サンボアンガ州、サンボアンガ・シブガイ州、北ラナオ州、西ミサミス州、コタバト州、スルタン・クダラット州
+        display: サンボアンガ・ラナオなど
+        provinces: [Zamboanga, Zamboanga del Norte, Zamboanga del Sur, Zamboanga Sibugay, Lanao del Norte, Iligan, Lanao del Sur, Misamis Occidental, Cotabato, Sultan Kudarat, Maguindanao, Basilan, Sulu, Tawi-Tawi]
+        bands:
+          - [[125.0, 5.87]]
+          - [[124.63, 5.98]]
+          - [[124.47, 6.03]]
+        radius_km: 16
+        note: イスラム過激派組織による爆弾テロ事件や身代金目的の誘拐事件等が多発する
+        label_at: [122.4, 7.0]
+        say: "ミンダナオ島の、サンボアンガや、ラナオ、コタバトなどの州は、レベル3。渡航は止めてください。"
+      - level: 2
+        where: ブキドノン州、南コタバト州、北スリガオ州（スリガオ市及びシャルガオ島を除く）、南スリガオ州、北アグサン州、南アグサン州
+        display: ブキドノン・南コタバトなど
+        provinces: [Bukidnon, South Cotabato, Sarangani, Surigao del Norte, Surigao del Sur, Agusan del Norte, Agusan del Sur]
+        holes:
+          - [126.08, 9.82, 28]
+          - [125.49, 9.79, 9]
+          - [125.17, 6.11, 20]
+        label_at: [126.2, 8.35]
+        say: "その東と、南の、ブキドノンや、南コタバトなどは、レベル2です。"
+      - level: 1
+        where: カミギン州、東ミサミス州カガヤン・デ・オロ市、ハサアン町、ビリャヌエバ町及びタゴロアン町、東ダバオ州マティ市、北ダバオ州タグム市及びサマール市、南ダバオ州ダバオ市及びディゴス市、南コタバト州ジェネラル・サントス市、北スリガオ州シャルガオ島
+        display: カミギン・ダバオ・ジェネラル・サントス
+        place_where: カミギン州、南ダバオ州ダバオ市、南コタバト州ジェネラル・サントス市ほか
+        place_note: レベル2・3の地域の近くにある観光地です
+        say: "でも、カミギン島と、ダバオ市と、ジェネラル・サントス市は、レベル1。レベル2と3の地域の、すぐ近くにあります。"
+    why:
+      - tag: テロ
+        text: イスラム過激派組織による爆弾テロや、身代金目的の誘拐が多発
+        evidence: イスラム過激派組織による爆弾テロ事件や身代金目的の誘拐事件等が多発する
+      - tag: 誘拐
+        text: 外国人を狙った、身代金目的の誘拐
+        evidence: 身代金目的の外国人誘拐
+      - tag: 注意
+        text: 非常事態宣言の解除後も、テロや誘拐は、依然発生している
+        evidence: テロや誘拐が依然発生しているため、引き続き渡航の際には最新情報に基づく注意が必要です
+
+# 人気の場所（地図に印を出す。座標は Wikipedia・Wikidata の位置。概算）。
+places:
+  - {name: カミギン島, marker: [124.72, 9.17], region: カミギン州、東ミサミス州カガヤン・デ・オロ市、ハサアン町、ビリャヌエバ町及びタゴロアン町、東ダバオ州マティ市、北ダバオ州タグム市及びサマール市、南ダバオ州ダバオ市及びディゴス市、南コタバト州ジェネラル・サントス市、北スリガオ州シャルガオ島, side: above}
+  - {name: ダバオ, marker: [125.61, 7.07], region: カミギン州、東ミサミス州カガヤン・デ・オロ市、ハサアン町、ビリャヌエバ町及びタゴロアン町、東ダバオ州マティ市、北ダバオ州タグム市及びサマール市、南ダバオ州ダバオ市及びディゴス市、南コタバト州ジェネラル・サントス市、北スリガオ州シャルガオ島, side: right}
+  - {name: ジェネラル・サントス, label: ジェネラル・サントス, marker: [125.17, 6.11], region: カミギン州、東ミサミス州カガヤン・デ・オロ市、ハサアン町、ビリャヌエバ町及びタゴロアン町、東ダバオ州マティ市、北ダバオ州タグム市及びサマール市、南ダバオ州ダバオ市及びディゴス市、南コタバト州ジェネラル・サントス市、北スリガオ州シャルガオ島, side: below-left}
+
+# ---------- 魅力の紹介（根拠は ja / en の Wikipedia で照合。photo.file は Commons のファイル名） ----------
+scenes:
+  - kind: wikipedia
+    tag: 火山の島
+    place: カミギン島
+    name: カミギン島
+    headline: カミギン島
+    lines: ["7つの火山がある島", "沖に、白い砂の島が浮かぶ"]
+    wikipedia:
+      - {lang: ja, title: カミギン島, contains: [火山, 白砂]}
+      - {lang: en, title: Camiguin, contains: [volcano, white]}
+    source_line: 出典：ja / en Wikipedia で確認
+    photo: {file: "File:Camiguin island coastline.jpg"}
+    min: 5.2
+    say: "まず、カミギン島。7つの火山がある島です。沖には、白い砂の島が、浮かんでいます。"
+  - kind: wikipedia
+    tag: 日本とのつながり
+    place: ダバオ
+    name: ダバオ
+    headline: ダバオ
+    lines: ["20世紀の初め、日本人が農園を開いて発展", "かつて、日本人街があった街"]
+    wikipedia:
+      - {lang: ja, title: ダバオ, contains: [日本人街, マニラ麻]}
+      - {lang: en, title: Davao City, contains: [Japanese]}
+    source_line: 出典：ja / en Wikipedia で確認
+    photo: {file: "File:People's Park Davao City.jpg"}
+    min: 5.4
+    say: "次に、ダバオ。20世紀のはじめ、日本人が農園を開いて、大きくなった街です。かつては、日本人街もありました。"
+  - kind: wikipedia
+    tag: 名物
+    place: ジェネラル・サントス
+    name: ジェネラル・サントス
+    headline: ジェネラル・サントス
+    lines: ["マグロの街", "「フィリピンのマグロの都」と呼ばれる"]
+    wikipedia:
+      - {lang: ja, title: ジェネラル・サントス, contains: [マグロ]}
+      - {lang: en, title: General Santos, contains: [Tuna Capital of the Philippines]}
+    source_line: 出典：ja / en Wikipedia で確認
+    photo_note: 写真は、フィリピンのマグロ料理
+    photo: {file: "File:Tuna dishes of the Philippines.jpg"}
+    min: 5.2
+    say: "そして、ジェネラル・サントス。フィリピンの、マグロの都と呼ばれる、漁業の街です。"
+
+# ---------- ターンと結び ----------
+turn:
+  say: "でも、この地域は、外務省が出している、危険地帯と、隣り合わせなんです。"
+  lines:
+    - ["でも…", 130, red]
+    - ["危険地帯と隣り合わせ", 64, white]
+
+caution:
+  head: 外務省は、こう伝えています
+  say: "外務省は、レベル3の地域では、爆弾テロや、身代金目的の誘拐が、多発していると伝えています。非常事態宣言が解除されたあとも、テロや誘拐は、続いています。"
+
+closing:
+  say: "魅力のある観光地が、危険な地域の、すぐ近くにあります。行く前に、外務省の最新の情報を、必ず確認してください。"
+  lines:
+    - ["隣り合わせの観光地帯", 58, white]
+    - ["出発前に必ず確認", 54, yellow]
+
+extra_credits:
+  - "人気の根拠：ja / en Wikipedia で確認"
+
+# ---------- 声 ----------
+voice:
+  vvm: [1]
+  style_id: 14
+  speed: 1.12
+  pitch: -0.03
+  intonation: 0.9
+  credit: VOICEVOX:冥鳴ひまり
+
+# ---------- 構成 ----------
+hooks:
+  - say: "危険と、隣り合わせの、観光地帯。フィリピン編。"
+    min: 3.0
+    gap: 0.4
+    y: 400
+    fade: 0.4
+    panel:
+      - [危険と隣り合わせの観光地帯, 50, muted, Bold]
+      - [フィリピン編, 120, white, Black]
+  - say: "危険と、隣り合わせの、観光地帯を、知っていますか？"
+    min: 3.6
+    gap: 0.4
+    y: 380
+    fade: 0.35
+    panel:
+      - [危険と隣り合わせの, 64, white, Bold]
+      - [観光地帯, 150, red, Black]
+      - [知っていますか？, 60, yellow, Black]
+  - say: "今日は、フィリピンに存在する、危険と隣り合わせの、観光地帯を、紹介します。"
+    min: 3.8
+    gap: 0.4
+    y: 400
+    fade: 0.35
+    panel:
+      - [今日は, 56, muted, Bold]
+      - [フィリピンの, 90, white, Black]
+      - [観光地帯を紹介, 84, yellow, Black]
+
+cta:
+  say: "世界の意外な、旅行リスクを、地図と、公的情報で、解説しています。次の地域も、紹介します。フォローしてね。気になる国は、コメントで教えてください。"
+  panel:
+    - [世界の意外な旅行リスクを, 46, white, Bold]
+    - [地図と公的情報で解説, 56, white, Black]
+    - [次の地域も紹介します, 46, white, Bold]
+    - [フォローしてね, 76, yellow, Black]
+    - [気になる国はコメントで ↓, 44, white, Bold]
+
+# ---------- 投稿用テキスト（post.md として自動生成） ----------
+post:
+  title: "【{asof}時点】危険と隣り合わせの観光地帯 フィリピン編。ダバオ・ジェネラル・サントス・カミギン島と、ミンダナオの危険情報"
+  description: >-
+    フィリピンのミンダナオ島には、火山と白い砂州のカミギン島、戦前に日本人街があったダバオ、マグロの街ジェネラル・サントスがあります。
+    外務省の危険情報では、いずれも「レベル1」の例外として名前が挙がっていますが、周りには、レベル3（渡航中止勧告）の州（サンボアンガ、ラナオ、コタバトなど）と、
+    レベル2（ブキドノン、南コタバトなど）の地域があります。レベル3の地域では、爆弾テロや身代金目的の誘拐が多発していると外務省は伝えています。
+    危険情報は国全体ではなく地域ごとに違います。地域と理由は、外務省の危険情報ページの記載を要約しました。渡航前には、必ず外務省の最新の情報を確認してください。
+  pinned_comment: 次に見たい国は、どこですか？コメントで教えてください！
+  hashtags: ["#危険と隣り合わせの観光地帯", "#フィリピン", "#ミンダナオ", "#ダバオ", "#外務省", "#危険情報", "#海外旅行"]

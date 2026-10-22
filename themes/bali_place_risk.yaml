@@ -1,0 +1,241 @@
+# 場所と危険情報の型（place_vs_risk）: 「危険と隣り合わせの観光地帯 バリ島編」（番外: バリ島は、危険地域の近くにはない）。
+# 外務省の危険情報では、インドネシアのレベル2は中部パプア州と山岳パプア州だけで、バリ島はレベル1（「上記を除く全ての地域」）。バリ島からレベル2の地域までの距離を、座標から計算して見せる。
+# 柱は、公式ページが伝える、2002年10月のバリ島爆弾テロ事件（日本人2名を含む200名以上の犠牲者）と、2023年以降テロは発生していないが継続的な警戒が必要、という現在の見方。
+# 犠牲者のいる事件を扱うので、恐怖演出（赤黒・血の滴り・揺れ・心音）は使わず、落ち着いた見た目・音にする（style に look: horror を書かない）。
+# 人気の根拠は ja / en の Wikipedia で照合し、写真は Commons のライセンスを確認する（src/facts.py）。
+# 危険レベル・地域・理由の文言は、公式の危険情報ページの本文に出てくることを毎回自動で確かめる（src/mofa.py）。書き方は docs/THEME_SPEC.md「場所と危険情報」。
+
+id: bali_place_risk
+template: place_vs_risk
+
+metric: 外務省の危険レベル
+year: 2026
+unit: レベル（1〜4）
+
+source:
+  name: 外務省 海外安全情報オープンデータ
+  note: "（危険レベルは{asof}時点）"
+  table: 海外安全情報オープンデータ 国別（country/0062.xml）と、インドネシアの危険情報ページ
+  url: https://www.ezairyu.mofa.go.jp/html/opendata/index.html
+  license:
+    checked: 2026-10-13
+    terms_url: https://www.ezairyu.mofa.go.jp/html/opendata/support/terms.html
+    commercial: true
+    credit_lines:
+      - 外務省 海外安全情報オープンデータ 提供情報（https://www.ezairyu.mofa.go.jp/html/opendata/index.html）を加工して作成
+      - 出典：外務省 海外安全情報オープンデータ（https://www.ezairyu.mofa.go.jp/html/opendata/index.html）（{asof}に利用）
+      - 地域・危険の理由の文言：外務省 海外安全ホームページ インドネシアの危険情報（https://www.anzen.mofa.go.jp/）を要約
+  fetch: mofa_risk
+
+verification: >-
+  危険レベルは外務省の国別XML（country/0062.xml）の値を、公式の危険情報ページ本文と照合して使う。
+  画面の地域（レベル2: 中部パプア州及び山岳パプア州／レベル1: 上記を除く全ての地域）は、公式ページの「危険度」の節にその文言が出てきて、直後のレベル表示が一致することを毎回自動で確かめる。
+  地域の注記と注意点の文言（2002年のバリ島爆弾テロ事件、2023年以降テロは発生していないこと、デモ）は、公式ページの本文にそのまま出てくることを確かめる。
+  地図のレベル2は、2つの州の州都（ナビレ、ワメナ）を中心にした円による、位置の目安（Natural Earth の州の境界は、2022年に分かれる前の「パプア州」のままで、2州を単独で取り出せないため）。バリ島からの距離は、この円の縁までの概算。
+  バリ島の魅力（バリ州の文化的景観が2012年に世界遺産になったこと、ウブドが芸術の村であること、ウルワツ寺院）は、ja / en の Wikipedia の本文で確かめる
+  （同じ Wikipedia の別言語版なので、独立した2系統とは言えない）。
+  写真は Wikimedia Commons でライセンス（CC0 / パブリックドメイン / CC BY）と作者を確認し、画面と概要欄に出典を載せる。
+  地図上の位置・範囲は、おおよその目安として画面に明記する。結果は build/bali_place_risk/fetch_report.txt。
+
+mofa:
+  max_age_hours: 24
+
+# ---------- 見た目 ----------
+# 犠牲者のいる事件を扱うので、恐怖演出は使わない（look: horror・fx・drips を書かない）。ターンの前後で、同じ落ち着いた色を使う。
+style:
+  fonts:
+    Black: assets/fonts/KaiseiTokumin-ExtraBold.ttf
+    Bold: assets/fonts/KaiseiTokumin-ExtraBold.ttf
+    Accent: assets/fonts/YujiBoku-Regular.ttf
+  bg: {top: [12, 22, 44], bottom: [34, 52, 88], vignette: 0.55, grain: 0.02}
+  text: [238, 236, 230]
+  muted: [168, 178, 200]
+  accent: [232, 188, 70]
+  title_color: [244, 236, 224]
+  title_glow: null
+  drips: null
+  pill: {fill: [255, 255, 255, 30], outline: [255, 255, 255, 80], text: [236, 232, 224]}
+  panel: {fill: [10, 16, 34, 232], outline: [150, 170, 210, 150], stroke: [0, 0, 0, 255]}
+  bar: {bg: [40, 48, 90], fill: [255, 255, 255]}
+  map: {fill: [40, 60, 104], glow: [96, 130, 190], edge: [150, 176, 220]}
+  named_colors:
+    white: [238, 236, 230]
+    yellow: [232, 188, 70]
+    red: [232, 120, 110]
+    muted: [168, 178, 200]
+
+# ---------- 画面の固定文言 ----------
+title: 危険と隣り合わせの観光地帯
+title_small: バリ島編｜外務省の危険情報と見比べる
+subtitle: "魅力と、危険情報の地域（{asof}時点）"
+footnote: "危険情報の最終更新：{risk_date}｜地図の位置・範囲はおおよそです"
+
+# 地図は、インドネシア東部（バリ島と、レベル2のパプアの2州）を見せる（bbox = [経度の最小, 緯度の最小, 経度の最大, 緯度の最大]）
+map:
+  bbox: [112.5, -11.5, 141.0, -0.5]
+
+# ---------- 対象の国と、地図に出す地域 ----------
+# bands（1点）＋ radius_km は、位置を示す円。edge_km は、距離を測るときの円の半径（radius_km と同じ値）。
+members:
+  - code: "0062"
+    label: インドネシア
+    iso: IDN
+    regions:
+      - level: 2
+        where: 中部パプア州及び山岳パプア州
+        display: 中部パプア州・山岳パプア州
+        bands:
+          - [[135.48, -3.37]]
+          - [[138.95, -4.09]]
+        radius_km: 120
+        edge_km: 120
+        clip: true
+        note: 分離独立を求める武装集団による治安当局等への襲撃事件が散発的に発生しており、治安が不安定な状況が続いています
+        label_at: [132.2, -1.3]
+        say: "インドネシアで、レベル2なのは、遠く東の、中部パプア州と、山岳パプア州だけです。"
+      - level: 1
+        where: 上記を除く全ての地域
+        display: 上記を除く全ての地域
+        place_note: バリ島は、この中です
+        say: "バリ島は、レベル1です。レベル2の地域とは、遠く離れています。"
+    why:
+      - tag: テロ
+        text: 2002年10月、バリ島で爆弾テロ事件。日本人2名を含む200名以上が犠牲に
+        evidence: 日本人2名を含む200名以上の犠牲者が出た2002年10月のバリ島爆弾テロ事件
+      - tag: 注意
+        text: 2023年以降テロは発生していない。ただし、継続的な警戒が必要
+        evidence: 2023年以降、テロは発生していませんが、テロ関係の逮捕者数は引き続き多く、テロに対する継続的な警戒が必要です
+      - tag: デモ
+        text: 各地で抗議デモ。暴動の可能性も
+        evidence: 場合によっては、暴動に発展する可能性もありますので、十分注意してください
+
+# 人気の場所（地図に印を出す。座標は Wikipedia・Wikidata の位置。概算）。
+places:
+  - {name: バリ島, marker: [115.19, -8.4], region: 上記を除く全ての地域, side: below}
+
+# バリ島から、レベル2の地域までの距離（座標から計算した概算）
+distance:
+  from: バリ島
+  level: 2
+  round: 100
+  say: "バリ島から、レベル2の地域までは、直線で、約{dist_km}キロです。"
+
+# ---------- 魅力の紹介（根拠は ja / en の Wikipedia で照合。photo.file は Commons のファイル名） ----------
+scenes:
+  - kind: wikipedia
+    tag: 世界遺産
+    place: バリ島
+    name: バリ州の文化的景観
+    headline: バリ島の棚田
+    lines: ["9世紀から続く、水を分け合う仕組み「スバック」", "棚田の景観が、2012年に世界遺産に"]
+    wikipedia:
+      - {lang: ja, title: バリ州の文化的景観, contains: ["9世紀", スバック, 世界遺産]}
+      - {lang: en, title: Subak (irrigation), contains: ["9th century", UNESCO]}
+    source_line: 出典：ja / en Wikipedia で確認
+    photo: {file: "File:Bali- Jatiluwih rice terraces - 50281829456.jpg"}
+    min: 8.0
+    say: "まず、バリ島の、棚田。九世紀から続く、水を分け合う仕組み、スバックが、この景観を、守ってきました。二千十二年に、世界遺産になりました。"
+  - kind: wikipedia
+    tag: 芸術の村
+    place: バリ島
+    name: ウブド
+    headline: ウブド
+    lines: ["ガムラン音楽、バリ舞踊、バリ絵画の、芸術の村", "外国人観光客が、年に300万人以上"]
+    wikipedia:
+      - {lang: ja, title: ウブド, contains: [芸術, ガムラン]}
+      - {lang: en, title: Ubud, contains: ["three million foreign tourists"]}
+    source_line: 出典：ja / en Wikipedia で確認
+    photo: {file: "File:Ubud, Balinese dance, Group, Bali, Indonesia.jpg"}
+    min: 7.0
+    say: "次に、ウブド。音楽、舞踊、絵画で知られる、芸術の村です。外国人観光客が、年に、三百万人以上、訪れるとされます。"
+  - kind: wikipedia
+    tag: 海の寺院
+    place: バリ島
+    name: ウルワツ寺院
+    headline: ウルワツ寺院
+    lines: ["11世紀に建てられた、海の霊をまつる寺院", "断崖の上で、毎日夕方6時にケチャダンス"]
+    wikipedia:
+      - {lang: ja, title: ウルワツ寺院, contains: ["11世紀", 海の霊]}
+      - {lang: en, title: Uluwatu Temple, contains: [cliff, Kecak, "6pm"]}
+    source_line: 出典：ja / en Wikipedia で確認
+    photo: {file: "File:Luhur Uluwatu Temple - 2015.02 - panoramio.jpg"}
+    min: 8.0
+    say: "そして、ウルワツ寺院。十一世紀に建てられた、海の霊を、まつる寺院で、島の南の端の、断崖の上に、あります。毎日、夕方六時には、断崖の上で、ケチャダンスが、上演されます。"
+
+# ---------- ターンと結び ----------
+turn:
+  say: "でも、バリ島には、忘れてはいけない、歴史があります。"
+  lines:
+    - ["でも…", 130, red]
+    - ["忘れてはいけない歴史", 60, white]
+
+caution:
+  head: 外務省は、こう伝えています
+  say: "外務省のページには、2002年10月の、バリ島爆弾テロ事件で、日本人2名を含む、200名以上が、亡くなったと、書かれています。2023年以降、テロは発生していませんが、継続的な警戒が、必要だと伝えています。各地の抗議デモにも、注意が必要です。"
+
+closing:
+  say: "バリ島は、レベル1です。でも、過去の事件を忘れずに、行く前に、外務省の最新の情報を、必ず確認してください。"
+  lines:
+    - ["レベル1でも", 56, white]
+    - ["出発前に必ず確認", 54, yellow]
+
+extra_credits:
+  - "人気の根拠：ja / en Wikipedia で確認"
+
+# ---------- 声 ----------
+voice:
+  vvm: [1]
+  style_id: 14
+  speed: 1.12
+  pitch: -0.03
+  intonation: 0.9
+  credit: VOICEVOX:冥鳴ひまり
+
+# ---------- 構成 ----------
+hooks:
+  - say: "危険と、隣り合わせの、観光地帯。バリ島編。"
+    min: 3.0
+    gap: 0.4
+    y: 400
+    fade: 0.4
+    panel:
+      - [危険と隣り合わせの観光地帯, 50, muted, Bold]
+      - [バリ島編, 120, white, Black]
+  - say: "危険と、隣り合わせの、観光地帯を、知っていますか？"
+    min: 3.6
+    gap: 0.4
+    y: 380
+    fade: 0.35
+    panel:
+      - [危険と隣り合わせの, 64, white, Bold]
+      - [観光地帯, 150, red, Black]
+      - [知っていますか？, 60, yellow, Black]
+  - say: "今日は、バリ島について、外務省の情報を、見ていきます。"
+    min: 3.8
+    gap: 0.4
+    y: 400
+    fade: 0.35
+    panel:
+      - [今日は, 56, muted, Bold]
+      - [バリ島について, 90, white, Black]
+      - [外務省の情報を見ます, 70, yellow, Black]
+
+cta:
+  say: "世界の意外な、旅行リスクを、地図と、公的情報で、解説しています。次の地域も、紹介します。フォローしてね。気になる国は、コメントで教えてください。"
+  panel:
+    - [世界の意外な旅行リスクを, 46, white, Bold]
+    - [地図と公的情報で解説, 56, white, Black]
+    - [次の地域も紹介します, 46, white, Bold]
+    - [フォローしてね, 76, yellow, Black]
+    - [気になる国はコメントで ↓, 44, white, Bold]
+
+# ---------- 投稿用テキスト（post.md として自動生成） ----------
+post:
+  title: "【{asof}時点】バリ島の危険情報は？外務省はレベル1。でも、2002年のテロ事件と、いまの公式の見方"
+  description: >-
+    インドネシアの外務省の危険情報で、レベル2は、中部パプア州と山岳パプア州だけ。バリ島は、レベル1（「上記を除く全ての地域」）です。
+    でも、外務省のページには、日本人2名を含む200名以上が亡くなった、2002年10月のバリ島爆弾テロ事件が書かれています。
+    2023年以降、テロは発生していませんが、継続的な警戒が必要、と外務省は伝えています。各地の抗議デモにも注意が必要です。
+    地域と理由は、外務省の危険情報ページの記載を要約しました。渡航前には、必ず外務省の最新の情報を確認してください。
+  pinned_comment: 次に見たい国は、どこですか？コメントで教えてください！
+  hashtags: ["#危険と隣り合わせの観光地帯", "#バリ島", "#インドネシア", "#外務省", "#危険情報", "#海外旅行"]

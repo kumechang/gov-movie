@@ -28,6 +28,7 @@ SEC_PER_CHAR = theme.SEC_PER_CHAR
 class ListTheme:
     def __init__(self, spec, narration_json=None):
         self.spec = spec
+        self.style = spec.get('style') or {}
         self.warnings = []
         self.estimated_keys = []
         self._load()
@@ -88,6 +89,7 @@ class ListTheme:
         else:
             raise ThemeError('values か items のどちらかが必要です')
         self.is_pref = bool(s.get('values'))
+        self.uses_map = self.is_pref          # 都道府県の形を使うときだけ地図のクレジットが要る
         self.notes = {it['name']: it.get('note', '') for it in s.get('items', [])}
         self.ALL = {n: v for n, v, _ in pairs}
         if len(self.ALL) < 2:
@@ -234,11 +236,13 @@ class ListTheme:
     def _panel(self, rows):
         out = []
         for text, size, color, weight in rows:
-            if color not in theme.NAMED_COLORS:
-                raise ThemeError('不明な色名: %s（使える色: %s）' % (color, '/'.join(theme.NAMED_COLORS)))
+            named = dict(theme.NAMED_COLORS)
+            named.update({k: tuple(v) for k, v in (self.style.get('named_colors') or {}).items()})
+            if color not in named:
+                raise ThemeError('不明な色名: %s（使える色: %s）' % (color, '/'.join(named)))
             if weight not in theme.WEIGHTS:
                 raise ThemeError('不明な太さ: %s（使える太さ: %s）' % (weight, '/'.join(theme.WEIGHTS)))
-            out.append((self.say(text), int(size), theme.NAMED_COLORS[color], weight))
+            out.append((self.say(text), int(size), named[color], weight))
         return out
 
     # ---------- 時間割 ----------

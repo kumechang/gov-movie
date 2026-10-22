@@ -1,0 +1,240 @@
+# 段階ボードのテーマ: G20（日本をのぞく18か国）の、外務省の危険レベル。
+# データは外務省の海外安全情報オープンデータ。レベルは取得して検証し、「どこが」「何が危ないか」の文言は、
+# 公式の危険情報ページの本文にそのまま出てくることを自動で確かめる（出てこなければ止まる）。書き方は docs/THEME_SPEC.md「段階ボード」。
+
+id: g20_risk_levels
+template: tier_board
+
+# ---------- データ ----------
+metric: 外務省の危険レベル
+year: 2026
+unit: レベル（1〜4）
+
+source:
+  name: 外務省 海外安全情報オープンデータ
+  note: "（国別の危険レベルは{asof}時点）"
+  table: 海外安全情報オープンデータ 国別（country/<国コード>.xml の riskLevel1〜4）と、各国の危険情報ページ
+  url: https://www.ezairyu.mofa.go.jp/html/opendata/index.html
+  license:
+    checked: 2026-10-13
+    terms_url: https://www.ezairyu.mofa.go.jp/html/opendata/support/terms.html
+    commercial: true              # 利用規約「商用利用も可能です」（政府標準利用規約2.0版準拠・CC BY互換）。出典の記載と、加工した旨の記載が必要
+    credit_lines:
+      - 外務省 海外安全情報オープンデータ 提供情報（https://www.ezairyu.mofa.go.jp/html/opendata/index.html）を加工して作成
+      - 出典：外務省 海外安全情報オープンデータ（https://www.ezairyu.mofa.go.jp/html/opendata/index.html）（{asof}に利用）
+      - 地域・危険の理由の文言：外務省 海外安全ホームページ 各国の危険情報（https://www.anzen.mofa.go.jp/）を要約
+  fetch: mofa_risk
+
+verification: >-
+  外務省の国別XML（全207か国）の危険レベル（riskLevel1〜4＝「そのレベルの地域を含む」）から、国ごとの最大レベルを使う。
+  各国の公式の危険情報ページ（HTML）の本文に、その最大レベルが出てくるかで2系統目の照合をし、一致した国だけを使う。
+  画面の「どこ？」は、公式ページの「危険レベル」の節にそのまま出てきて直後のレベルが一致すること、
+  「何が危ない？」は、根拠の文言が公式ページの本文にそのまま出てくることを、毎回自動で確かめる（結果は build/g20_risk_levels/fetch_report.txt）。
+  G20の加盟国は、日本をのぞく18か国（EU・アフリカ連合は国ではないので含めない）。国全体ではなく国内の一部地域のレベルであることを画面に明記する。
+
+mofa:
+  max_age_hours: 24
+
+# ---------- 見た目（恐怖演出: 赤黒・筆文字・血の滴り・画面の揺れ・心音） ----------
+style:
+  look: horror                    # 音も、明るい和音をやめて不協和なうなりと心音になる
+  fonts:                          # scripts/setup_fonts.sh で assets/fonts/ に配置（無ければ標準のフォント）
+    Black: assets/fonts/KaiseiTokumin-ExtraBold.ttf
+    Bold: assets/fonts/KaiseiTokumin-ExtraBold.ttf
+    Accent: assets/fonts/YujiBoku-Regular.ttf
+  bg: {top: [3, 0, 1], bottom: [28, 2, 5], fog: [120, 0, 12], fog_height: 0.38, vignette: 0.78, grain: 0.03}
+  text: [238, 228, 222]
+  muted: [168, 128, 128]
+  accent: [226, 34, 44]
+  title_color: [206, 18, 30]
+  title_glow: [150, 0, 8]
+  drips: [150, 0, 10]
+  pill: {fill: [90, 0, 8, 130], outline: [200, 30, 40, 170], text: [240, 205, 205]}
+  panel: {fill: [10, 0, 2, 234], outline: [190, 20, 30, 150], stroke: [0, 0, 0, 255]}
+  bar: {bg: [52, 10, 14], fill: [204, 24, 36]}
+  fx: {shake: 16, flash: [170, 0, 10], flash_alpha: 0.38, embers: true}   # embers: 立ちのぼる火の粉
+  named_colors:                   # hooks / cta の panel で使う色名の差し替え
+    white: [238, 228, 222]
+    yellow: [232, 188, 70]
+    red: [226, 26, 38]
+    muted: [168, 128, 128]
+
+# ---------- 画面の固定文言 ----------
+title: G20の危険レベル
+title_small: 外務省｜海外安全情報
+subtitle: "日本をのぞく18か国（{asof}時点）"
+footnote: 国全体ではなく、その国に含まれる地域のレベルです
+
+# ---------- 段階（先に出す順。最後がクライマックス） ----------
+tiers:
+  - level: 0
+    title: 危険情報なし
+    sub: 外務省の危険情報は出ていません
+    color: [62, 108, 92]
+    fast: true                    # 名前は読み上げず、サッと流す
+    say: "まず、危険情報が出ていない国。{count}か国。"
+  - level: 1
+    title: レベル1
+    sub: 十分注意してください
+    color: [196, 166, 48]
+    fast: true
+    say: "レベル1。十分注意してください。{count}か国。"
+  - level: 2
+    title: レベル2
+    sub: 不要不急の渡航は止めてください
+    color: [208, 98, 26]
+    say: "レベル2。不要不急の渡航は止めてください。{count}か国。"
+  - level: 3
+    title: レベル3
+    sub: 渡航は止めてください（渡航中止勧告）
+    color: [204, 22, 34]
+    spotlight: true               # 1か国ずつ、地域と理由まで見せる
+    say: "ここから。レベル3。渡航は止めてください。{count}か国。"
+  - level: 4
+    title: レベル4
+    sub: 退避してください（退避勧告）
+    color: [128, 0, 16]
+    spotlight: true
+    say: "そして、レベル4。退避してください。{count}か国。"
+
+# ---------- 対象の国（発表順。レベルは取得したデータで決まる） ----------
+members:
+  - {code: "1000", label: アメリカ}
+  - {code: "0044", label: イギリス}
+  - {code: "0049", label: ドイツ}
+  - {code: "0033", label: フランス}
+  - {code: "0039", label: イタリア}
+  - {code: "9001", label: カナダ}
+  - {code: "0061", label: オーストラリア}
+  - {code: "0082", label: 韓国}
+  - {code: "0086", label: 中国}
+  - {code: "0055", label: ブラジル}
+  - {code: "0054", label: アルゼンチン}
+  - {code: "0062", label: インドネシア}
+  - {code: "0027", label: 南アフリカ}
+  - code: "0052"
+    label: メキシコ
+    iso: MEX                       # 背景の国の形（Natural Earth）
+    marker: [-99.50, 17.55]          # おおよその位置 [経度, 緯度]（where の地域の近く）
+    where: ゲレロ州チルパンシンゴ市及びその周辺地域
+    why:
+      - tag: ギャング・凶悪犯罪
+        text: 犯罪組織の抗争で、殺人・誘拐が多い
+        evidence: 犯罪組織間の抗争及びこれらと治安当局との衝突が発生しており、これらに起因する多くの殺人及び誘拐事件が報告されている
+      - tag: 観光地でも
+        text: 観光客が多い場所でも、凶悪事件が発生
+        evidence: 観光客が多く訪れる場所であっても、殺人等多くの凶悪事件が発生しています
+      - tag: 事件率
+        text: モレロス州は、殺人件数が州別で2位
+        evidence: 殺人件数は、10万人あたりの発生件数の州別で2位となっております
+    say: "メキシコ。ゲレロ州の一部が、レベル3です。犯罪組織の抗争で、殺人や誘拐が多数報告されています。"
+  - code: "0966"
+    label: サウジアラビア
+    iso: SAU                       # 背景の国の形（Natural Earth）
+    marker: [44.0, 17.5]          # おおよその位置 [経度, 緯度]（where の地域の近く）
+    where: イエメンとの国境地帯
+    why:
+      - tag: 紛争・武力衝突
+        text: イエメンのホーシー派が、攻撃を強めている
+        evidence: イエメンのホーシー派がサウジアラビアに対する攻撃を強めており
+      - tag: 死者も
+        text: 空港への攻撃で、外国人2名が死亡
+        evidence: アブハー国際空港では外国人2名が死亡
+    say: "サウジアラビア。イエメンとの国境地帯が、レベル3です。ホーシー派の攻撃で、空港でも、外国人が亡くなりました。"
+  - code: "0090"
+    label: トルコ
+    iso: TUR                       # 背景の国の形（Natural Earth）
+    marker: [37.1, 36.7]          # おおよその位置 [経度, 緯度]（where の地域の近く）
+    where: シリアとの国境地帯
+    also:
+      - {level: 3, where: ディヤルバクル県及びイラクとの国境地帯}
+    why:
+      - tag: 紛争・武力衝突
+        text: クルド系武装組織との衝突が、散発している
+        evidence: トルコ軍とYPG（クルド人民防衛隊）等クルド系武装組織との衝突が散発的に発生しています
+      - tag: 誤爆・流弾
+        text: テロ・誤爆・流弾の危害が及ぶおそれ
+        evidence: テロ、誤爆、流弾等の危害が及ぶ可能性
+      - tag: テロ
+        text: イスタンブールでも、爆弾テロが発生
+        evidence: 爆弾テロ事件が発生
+    say: "トルコ。シリアとの国境地帯が、レベル4です。武装組織との衝突が、散発しています。"
+  - code: "0091"
+    label: インド
+    iso: IND                       # 背景の国の形（Natural Earth）
+    marker: [74.0, 34.2]          # おおよその位置 [経度, 緯度]（where の地域の近く）
+    where: 管理ライン（LoC）付近
+    also:
+      - level: 1
+        where: 上記以外のインド全域（デリー、コルカタ、チェンナイ、ムンバイ、ベンガルールなどの大都市を含む地域）
+    why:
+      - tag: テロ
+        text: 分離独立を主張する過激派が、各地でテロ
+        evidence: インドからの分離独立を主張する過激派や少数民族の権利保護を唱える過激派などが複数存在し、各地でテロ活動を行っています
+      - tag: テロ警戒
+        text: 大都市でも、当局がテロへの警戒を呼びかけ
+        evidence: 大都市では、インド当局がイスラム過激派等によるテロへの警戒を行うよう呼びかけています
+    say: "インド。ジャンム・カシミール準州の、管理ライン付近が、レベル4です。ただし、デリーやムンバイなどの大都市は、レベル1です。"
+  - code: "9007"
+    label: ロシア
+    iso: RUS                       # 背景の国の形（Natural Earth）
+    marker: [36.6, 50.6]          # おおよその位置 [経度, 緯度]（where の地域の近く）
+    where: ウクライナとの国境周辺地域
+    also:
+      - {level: 3, where: ウクライナとの国境周辺地域を除く地域（モスクワ市を含む）}
+    why:
+      - tag: 紛争・武力衝突
+        text: 国境周辺で、砲撃などの被害が発生
+        evidence: ウクライナとの国境周辺地域では砲撃等による被害が発生
+      - tag: テロ
+        text: 北カフカスでは、武装勢力の攻撃や自爆テロ
+        evidence: 武装勢力による攻撃や自爆テロが多数発生しており
+    say: "ロシア。ウクライナとの国境周辺が、レベル4です。そして、それ以外の地域も、モスクワを含めて、レベル3です。"
+
+# ---------- 声 ----------
+voice:
+  vvm: [1]                        # tts/vv/1.vvm（冥鳴ひまり）。scripts/setup_voicevox.sh の EXTRA_VVM="1" で配置
+  style_id: 14                    # 冥鳴ひまり ノーマル（落ち着いた低めの声）
+  speed: 1.12
+  pitch: -0.03
+  intonation: 0.9
+  credit: VOICEVOX:冥鳴ひまり
+
+# ---------- 構成 ----------
+hooks:
+  - say: "ジーにじゅう、世界の主要国。外務省の危険レベルは、いくつの国に出ていると思う？"
+    min: 2.8
+    gap: 0.5
+    y: 380
+    fade: 0.4
+    panel:
+      - [G20の, 56, white, Bold]
+      - [危険レベル, 150, red, Black]
+      - [いくつの国に出てる？, 52, yellow, Bold]
+  - say: "日本をのぞく、18か国。危険情報が出ていない国から、順にいくよ。"
+    min: 2.6
+    gap: 0.45
+    y: 400
+    fade: 0.35
+    panel:
+      - [日本をのぞく, 56, white, Bold]
+      - [18か国, 170, yellow, Black]
+      - [レベル1〜4, 50, muted, Bold]
+
+cta:
+  say: "ジーにじゅうのうち、レベル3以上の地域を含む国は、{n_high}か国。多くは、国の一部の地域です。渡航の前は、必ず外務省の情報を確認してね。"
+  panel:
+    - [レベル3以上を含む国, 48, white, Bold]
+    - ["{n_high}か国", 190, red, Black]
+    - [渡航の前は必ず確認, 46, white, Bold]
+    - [コメントで教えてね ↓, 54, white, Black]
+
+# ---------- 投稿用テキスト（post.md として自動生成） ----------
+post:
+  title: "【{asof}時点】G20のうち、外務省の危険レベル3以上の地域を含む国は？"
+  description: >-
+    G20（日本をのぞく18か国）の、外務省の危険レベルを調べました。レベル3（渡航中止勧告）以上の地域を含む国は{n_high}か国。
+    ただし、国全体ではなく、その国に含まれる地域のレベルです。地域と理由は、外務省の危険情報ページの記載を要約しました。
+    渡航前には、必ず外務省の最新の情報を確認してください。
+  pinned_comment: あなたが気になる国は、どこですか？コメントで教えてください！
+  hashtags: ["#外務省", "#危険レベル", "#海外安全情報", "#G20", "#海外旅行"]

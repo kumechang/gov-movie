@@ -17,12 +17,16 @@ MAP_TOP = 398
 FPS = 30
 
 # ---------- フォント ----------
-_FALLBACK = {'Black': ('Black', 'Bold'), 'Medium': ('Medium', 'Regular'), 'Bold': ('Bold',), 'Regular': ('Regular',)}
+_FALLBACK = {'Black': ('Black', 'Bold'), 'Medium': ('Medium', 'Regular'), 'Bold': ('Bold',), 'Regular': ('Regular',),
+             'Accent': ('Black', 'Bold')}      # Accent: 見せ場用の書体。FONT_OVERRIDE で指定が無ければ Black と同じ
+FONT_OVERRIDE = {}   # {'Black': '/path/to.ttf', ...} テーマの style.fonts から設定する（無ければ標準の Noto Sans CJK）
 # macOS のヒラギノは未検証（見つからなければ次の候補へ進む）
-_HIRAGINO = {'Regular': 'W3', 'Medium': 'W3', 'Bold': 'W6', 'Black': 'W8'}
+_HIRAGINO = {'Regular': 'W3', 'Medium': 'W3', 'Bold': 'W6', 'Black': 'W8', 'Accent': 'W8'}
 
 
 def _font_paths(w):
+    if FONT_OVERRIDE.get(w):
+        yield FONT_OVERRIDE[w]
     if os.environ.get('FONT_PATH'):
         p = os.environ['FONT_PATH']
         for name in _FALLBACK[w]:
@@ -51,6 +55,7 @@ YELLOW = (255, 213, 74)
 MUTED = (170, 180, 215)
 GRAY = (46, 55, 100)
 BG_TOP, BG_BOT = np.array([9, 14, 36]), np.array([20, 27, 58])
+PANEL_FILL, PANEL_OUTLINE, STROKE = (8, 12, 32, 222), (255, 255, 255, 40), (9, 14, 36, 255)   # panel() の配色。テーマの style で変える
 
 # init() で設定する（テーマと地図データ）
 T = None
@@ -168,11 +173,11 @@ def panel(frame, lines, cy, alpha=1.0, pad=44, gap=18):
     slide = (1 - ease(alpha * 1.0)) * 30
     layer = Image.new('RGBA', (W, int(total_h + pad * 1.6) + 6), (0, 0, 0, 0))
     ld = ImageDraw.Draw(layer)
-    ld.rounded_rectangle(((W - w) / 2, 3, (W + w) / 2, layer.size[1] - 3), 36, fill=(8, 12, 32, 222), outline=(255, 255, 255, 40), width=2)
+    ld.rounded_rectangle(((W - w) / 2, 3, (W + w) / 2, layer.size[1] - 3), 36, fill=PANEL_FILL, outline=PANEL_OUTLINE, width=2)
     y = pad * 0.8 + 3
     for s, f, col, tw, size in metrics:
         h = int(size * 1.1)
-        ld.text((W / 2, y + h / 2), s, font=f, fill=col + (255,), anchor='mm', stroke_width=2 if size > 80 else 0, stroke_fill=(9, 14, 36, 255))
+        ld.text((W / 2, y + h / 2), s, font=f, fill=col + (255,), anchor='mm', stroke_width=2 if size > 80 else 0, stroke_fill=STROKE)
         y += h + gap
     layer.putalpha(ImageChops.multiply(layer.getchannel('A'), Image.new('L', layer.size, int(255 * ease(alpha)))))
     frame.paste(layer, (0, int(top + slide)), layer)

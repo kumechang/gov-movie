@@ -7,19 +7,36 @@ run.py / render*.py / narration.py が共通で使う入口。
 import os
 
 import estat
+import facts
 import fetch_estat
 import listtheme
+import mofa
 import theme
+import spottheme
+import tiertheme
 
 
 def load_resolved(path, out_dir, refetch=False):
     spec = theme.load_spec(path)
     report = ''
-    if spec.get('source', {}).get('fetch') == 'estat':
+    fetch = spec.get('source', {}).get('fetch')
+    if fetch == 'estat':
         try:
             spec, report = fetch_estat.resolve(spec, os.path.join(out_dir, 'estat_cache.json'), refetch)
         except (fetch_estat.FetchError, estat.EstatError) as err:
             raise SystemExit(estat.redact(err))
+    elif fetch == 'mofa_risk':
+        try:
+            # 全国分のキャッシュは複数のテーマで共有する（build/mofa_cache.json）
+            spec, report = mofa.resolve(spec, os.path.join(os.path.dirname(out_dir), 'mofa_cache.json'), refetch)
+        except mofa.MofaError as err:
+            raise SystemExit(str(err))
+    if spec.get('template') == 'place_vs_risk':
+        try:
+            spec, rep = facts.resolve(spec, os.path.join(os.path.dirname(out_dir), 'facts_cache.json'), os.path.join(os.path.dirname(out_dir), 'images'))
+        except facts.FactsError as err:
+            raise SystemExit(str(err))
+        report = (report + '\n\n' + rep) if report else rep
     return spec, report
 
 
@@ -27,4 +44,8 @@ def make_theme(spec, narration_json=None):
     t = spec.get('template', 'prefecture_map')
     if t == 'ranked_list':
         return listtheme.ListTheme(spec, narration_json)
+    if t == 'place_vs_risk':
+        return spottheme.SpotTheme(spec, narration_json)
+    if t == 'tier_board':
+        return tiertheme.TierTheme(spec, narration_json)
     return theme.Theme(spec, narration_json)
