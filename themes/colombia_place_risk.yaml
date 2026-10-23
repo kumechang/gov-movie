@@ -160,7 +160,7 @@ scenes:
       - {lang: ja, title: カルタヘナ_(コロンビア), contains: [難攻不落, 世界遺産]}
       - {lang: en, title: "Cartagena, Colombia", contains: [UNESCO]}
     source_line: 出典：ja / en Wikipedia で確認
-    photo: {file: "PHOTO_CARTAGENA"}
+    photo: {file: "File:Cartagena, Colombia - Laslovarga (27).jpg"}
     min: 8.0
     say: "まず、カルタヘナ。難攻不落の港として、築かれた、城壁の街です。港、要塞、歴史的建造物群が、世界遺産です。レベル2の地域まで、約{zone2_km_0}キロです。"
   - kind: wikipedia
@@ -173,7 +173,7 @@ scenes:
       - {lang: en, title: Colombian coffee growing axis, contains: [UNESCO, "2011"]}
       - {lang: en, title: Quindío Department, contains: [coffee]}
     source_line: 出典：en Wikipedia で確認（ja 版は記述が少ない。外務省の文言は公式ページ）
-    photo: {file: "PHOTO_COFFEE"}
+    photo: {file: "File:Valle de cocora(salento-Quindio).jpg"}
     min: 8.0
     say: "次に、コーヒー文化的景観。コーヒー畑が広がる、二千十一年登録の、世界遺産です。バジェ・デル・カウカ県の、すぐ隣です。レベル2の地域まで、約{zone2_km_1}キロです。"
   - kind: wikipedia
@@ -184,9 +184,9 @@ scenes:
     lines: ["「5色の川」「液体の虹」と呼ばれる川", "周りはレベル2。ここ周辺だけが、レベル1", "外務省は、陸路を避け、空路で行くよう勧める"]
     wikipedia:
       - {lang: en, title: Caño Cristales, contains: [Liquid Rainbow, River of Five Colors]}
-      - {lang: en, title: La Macarena Meta, contains: [Caño Cristales]}
+      - {lang: en, title: Meta Department, contains: [Caño Cristales]}
     source_line: 出典：en Wikipedia で確認（外務省の文言は公式ページ）
-    photo: {file: "PHOTO_CRISTALES"}
+    photo: {file: "File:Caño Cristales2.JPG"}
     min: 8.0
     say: "そして、カニョ・クリスタレス。五色の川、液体の虹と、呼ばれる川です。周りは、レベル2ですが、この周辺だけは、レベル1です。ただし外務省は、陸路を避け、空路で行くよう、勧めています。"
 
