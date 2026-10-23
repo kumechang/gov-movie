@@ -147,7 +147,7 @@ scenes:
     headline: アルジェのカスバ
     lines: ["映画『望郷』の舞台として知られる城壁の街", "カスバは1992年に世界遺産に登録", "レベル3の地域まで 約{zone3_km_0}km（地図上の概算）"]
     wikipedia:
-      - {lang: ja, title: アルジェ, contains: [カスバ, 望郷, 1992年世界遺産]}
+      - {lang: ja, title: アルジェ, contains: [カスバ, 望郷, 1992年]}
       - {lang: en, title: Casbah of Algiers, contains: [UNESCO]}
     source_line: 出典：ja / en Wikipedia で確認
     photo: {file: "File:Casbah of Algiers, the heart of the city.jpg"}
