@@ -175,7 +175,7 @@ scenes:
     lines: ["ローマ時代の劇場や神殿が残る、世界遺産", "1997年に登録", "レベル2の地域まで 約{zone2_km_2}km（地図上の概算）"]
     wikipedia:
       - {lang: en, title: Dougga, contains: [UNESCO, "Roman theatre"]}
-      - {lang: en, title: Teboursouk, contains: [Dougga]}
+      - {lang: en, title: List of World Heritage Sites in Tunisia, contains: [Dougga]}
     source_line: 出典：en Wikipedia で確認（ja 版は記述が少ない。外務省の文言は公式ページ）
     photo: {file: "File:The Theatre of Dougga, Tunisia.jpg"}
     min: 7.5
