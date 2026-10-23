@@ -155,10 +155,15 @@ class SpotTheme(TierTheme):
         for r in self.regions:                         # 国境からの距離で決まる地域（例: タイ国境から30km以内）は、国境線のデータから帯を作る
             b = r.get('border')
             if b:
-                runs = world.border_runs(self.country['iso'], b['with'])
-                if not runs:
-                    raise ThemeError('地域「%s」: %s との国境線が見つかりません' % (r['where'], b['with']))
-                r.update(bands=[[list(p) for p in run] for run in runs], width_km=2 * float(b['km']), clip=True, edge_km=float(b['km']))
+                bl = b if isinstance(b, list) else [b]          # border は、隣国ごとの {with, km} のリストでもよい（km は最大のものに揃える）
+                runs = []
+                for bb in bl:
+                    rr = world.border_runs(self.country['iso'], bb['with'])
+                    if not rr:
+                        raise ThemeError('地域「%s」: %s との国境線が見つかりません' % (r['where'], bb['with']))
+                    runs += rr
+                km = max(float(bb['km']) for bb in bl)
+                r.update(bands=[[list(p) for p in run] for run in runs], width_km=2 * km, clip=True, edge_km=km)
         for r in self.regions:                         # 州・県の単位で決まる地域は、Natural Earth の州の境界から塗る（provinces: 英語名。provinces_clip: 州の南部だけ・北部だけを塗る [{name, lat_max, lat_min}]）
             if r.get('provinces') or r.get('provinces_clip'):
                 try:
@@ -217,7 +222,7 @@ class SpotTheme(TierTheme):
                 raise ThemeError('places %s: 座標が、地図に描く地域「%s」の中にありません（州・帯・円の範囲を確かめてください）' % (p['name'], p['rg']['where']))
             if p['status'] == 'in_region' and p['rg'].get('border') and not p.get('border_with') and p['border_km'] > p['rg']['edge_km']:
                 raise ThemeError('places %s: 国境まで約%dkm あり、「%s」（国境から%skm以内）の中とは言えません（座標か地域を確かめてください）'
-                                 % (p['name'], p['border_km'], p['rg']['where'], p['rg']['border']['km']))
+                                 % (p['name'], p['border_km'], p['rg']['where'], p['rg']['edge_km']))
         names = [p['name'] for p in self.places]
         if len(set(names)) != len(names):
             raise ThemeError('places の name が重複しています: %s' % names)

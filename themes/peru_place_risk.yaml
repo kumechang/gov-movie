@@ -1,0 +1,238 @@
+# 場所と危険情報の型（place_vs_risk）: 「危険と隣り合わせの観光地帯 ペルー編」。
+# 外務省の危険情報（ペルー）: レベル3＝フニン州・ワンカベリカ州・アヤクチョ州・クスコ州の一部（VRAEM地域）とロレト州プトゥマヨ郡／レベル2＝コロンビア・ブラジル・エクアドルとの国境地帯の一部／レベル1＝上記以外（リマ市など）。
+# レベル3に近い人気の観光地として、マチュピチュ・クスコ（どちらもレベル1）・アヤクーチョ（レベル1。ワンタ郡のすぐ近く）を見せる。
+# 州・郡の境界は、郡の境界のデータが無いので、郡の中心の位置の円（半径18km、目安）で示す。クスコ州コンベンシオン郡は「一部地域」としか書かれていないので、VRAEM地域の町（ピチャリ）の位置の円で示す（目安）。
+# ロレト州プトゥマヨ郡（コロンビアとの国境地帯。レベル3）とレベル2の国境地帯は、この回の地図の範囲の外なので、図には出さない。
+# 人気の根拠は ja / en の Wikipedia で照合し、写真は Commons のライセンスを確認する（src/facts.py）。
+# 危険レベル・地域・理由の文言は、公式の危険情報ページの本文に出てくることを毎回自動で確かめる（src/mofa.py）。書き方は docs/THEME_SPEC.md「場所と危険情報」。
+
+id: peru_place_risk
+template: place_vs_risk
+
+metric: 外務省の危険レベル
+year: 2026
+unit: レベル（1〜4）
+
+source:
+  name: 外務省 海外安全情報オープンデータ
+  note: "（危険レベルは{asof}時点）"
+  table: 海外安全情報オープンデータ 国別（country/0051.xml）と、ペルーの危険情報ページ
+  url: https://www.ezairyu.mofa.go.jp/html/opendata/index.html
+  license:
+    checked: 2026-10-13
+    terms_url: https://www.ezairyu.mofa.go.jp/html/opendata/support/terms.html
+    commercial: true
+    credit_lines:
+      - 外務省 海外安全情報オープンデータ 提供情報（https://www.ezairyu.mofa.go.jp/html/opendata/index.html）を加工して作成
+      - 出典：外務省 海外安全情報オープンデータ（https://www.ezairyu.mofa.go.jp/html/opendata/index.html）（{asof}に利用）
+      - 地域・危険の理由の文言：外務省 海外安全ホームページ ペルーの危険情報（https://www.anzen.mofa.go.jp/）を要約
+  fetch: mofa_risk
+
+verification: >-
+  危険レベルは外務省の国別XML（country/0051.xml）の値を、公式の危険情報ページ本文と照合して使う。
+  画面の地域（レベル3: フニン州・ワンカベリカ州・アヤクチョ州・クスコ州の一部／レベル1: 上記以外）は、公式ページの「危険レベル」の節にその文言が出てきて、直後のレベル表示が一致することを毎回自動で確かめる。
+  地域の注記と注意点の文言は、公式ページの本文にそのまま出てくることを確かめる。
+  地図の範囲は概算: レベル3の郡は、郡の中心の位置を中心にした円（半径18km。郡の境界のデータが無い。クスコ州コンベンシオン郡は「一部地域」の範囲が書かれていないので、VRAEM地域の町ピチャリの位置の円）。
+  ロレト州プトゥマヨ郡（レベル3）とレベル2の国境地帯は、この回の地図の範囲の外なので、図に出さない。
+  観光地からレベル3の地域までの距離は、座標とこの図形からの概算（5km単位）。
+  観光地の根拠は、ja / en の Wikipedia の本文で確かめる（同じ Wikipedia の別言語版なので、独立した2系統とは言えない）。
+  写真は Wikimedia Commons でライセンス（CC0 / パブリックドメイン / CC BY / CC BY-SA）と作者を確認し、画面と概要欄に出典を載せる。結果は build/peru_place_risk/fetch_report.txt。
+
+mofa:
+  max_age_hours: 24
+
+
+# ---------- 見た目 ----------
+# style は本編（ターン以降）の恐怖演出。calm_style で、ターンの前（人気の場面）だけ落ち着いた色に差し替える。
+style:
+  look: horror
+  fonts:
+    Black: assets/fonts/KaiseiTokumin-ExtraBold.ttf
+    Bold: assets/fonts/KaiseiTokumin-ExtraBold.ttf
+    Accent: assets/fonts/YujiBoku-Regular.ttf
+  bg: {top: [3, 0, 1], bottom: [28, 2, 5], fog: [120, 0, 12], fog_height: 0.38, vignette: 0.78, grain: 0.03}
+  text: [238, 228, 222]
+  muted: [168, 128, 128]
+  accent: [226, 34, 44]
+  title_color: [206, 18, 30]
+  title_glow: [150, 0, 8]
+  drips: [150, 0, 10]
+  pill: {fill: [90, 0, 8, 130], outline: [200, 30, 40, 170], text: [240, 205, 205]}
+  panel: {fill: [10, 0, 2, 234], outline: [190, 20, 30, 150], stroke: [0, 0, 0, 255]}
+  bar: {bg: [52, 10, 14], fill: [204, 24, 36]}
+  fx: {shake: 16, flash: [170, 0, 10], flash_alpha: 0.38, embers: true}
+  named_colors:
+    white: [238, 228, 222]
+    yellow: [232, 188, 70]
+    red: [226, 26, 38]
+    muted: [168, 128, 128]
+
+calm_style:
+  bg: {top: [12, 22, 44], bottom: [34, 52, 88], vignette: 0.55, grain: 0.02}
+  title_color: [244, 236, 224]
+  title_glow: null
+  drips: null
+  pill: {fill: [255, 255, 255, 30], outline: [255, 255, 255, 80], text: [236, 232, 224]}
+
+
+# ---------- 画面の固定文言 ----------
+title: 危険と隣り合わせの観光地帯
+title_small: ペルー編｜外務省の危険情報と見比べる
+subtitle: "魅力と、危険情報の地域（{asof}時点）"
+footnote: "危険情報の最終更新：{risk_date}｜地図の位置・範囲はおおよそです"
+
+# 地図: ペルー南部〜中部（クスコ・アヤクーチョ・フニン周辺）を見せる（bbox = [経度の最小, 緯度の最小, 経度の最大, 緯度の最大]）
+map:
+  bbox: [-76.4, -14.6, -70.8, -10.6]
+
+
+# ---------- 対象の国と、地図に出す地域 ----------
+# bands（1点）＋ radius_km: 円。
+members:
+  - code: "0051"
+    label: ペルー
+    iso: PER
+    regions:
+      - level: 3
+        where: フニン州の一部地域（ワンカヨ郡、コンセプシオン郡の一部地域及びサティポ郡）、ワンカベリカ州タヤカハ郡及びチュルカンパ郡、アヤクチョ州ワンタ郡及びラ・マル郡、クスコ州コンベンシオン郡の一部地域
+        display: フニン州・アヤクチョ州・クスコ州などの一部（VRAEM地域）
+        bands:
+          - [[-75.21, -12.07]]
+          - [[-75.31, -11.92]]
+          - [[-74.64, -11.25]]
+          - [[-74.87, -12.39]]
+          - [[-74.39, -12.43]]
+          - [[-74.28, -12.86]]
+          - [[-73.98, -13.02]]
+          - [[-73.83, -12.52]]
+        radius_km: 18
+        note: 現在でも頻繁に当局へのテロ攻撃や武装襲撃、村民に対する誘拐事件が発生しており
+        label_at: [-75.9, -12.0]
+        say: "フニン州、アヤクチョ州、クスコ州などの、一部は、レベル3です。テロ組織が、麻薬の生産の拠点にしている、地域です。"
+      - level: 1
+        where: 上記以外の地域（首都リマ市、カヤオ憲法特別市を含む）
+        display: 上記以外（リマ市など）
+        place_note: 3つとも、この中です
+        say: "マチュピチュも、クスコも、アヤクーチョも、レベル1です。ただし、アヤクーチョは、レベル3の地域の、すぐ近くです。"
+    why:
+      - tag: 犯罪
+        text: 主要な観光地で、外国人旅行者を狙った強盗・スリ
+        evidence: 外国人の旅行者を狙った銃器を使用した強盗、スリ・ひったくり、置き引き等の一般犯罪が頻発しています
+      - tag: 抗議
+        text: 抗議活動で、マチュピチュへの鉄道が止まることも
+        evidence: 観光地のマチュピチュ遺跡を往来する鉄道が運行停止する場合もあり、現地で立ち往生となる可能性があります
+      - tag: テロ
+        text: レベル3の地域では、テロや誘拐事件が発生
+        evidence: 引き続きテロや誘拐事件が発生しています
+
+# 人気の場所（地図に印を出す。座標は Wikipedia の位置。概算）。
+places:
+  - {name: マチュピチュ, marker: [-72.545, -13.163], region: 上記以外の地域（首都リマ市、カヤオ憲法特別市を含む）, side: above}
+  - {name: クスコ, marker: [-71.967, -13.532], region: 上記以外の地域（首都リマ市、カヤオ憲法特別市を含む）, side: below-right}
+  - {name: アヤクーチョ, marker: [-74.223, -13.158], region: 上記以外の地域（首都リマ市、カヤオ憲法特別市を含む）, side: below-left}
+
+# ---------- 魅力の紹介（根拠は ja / en の Wikipedia で照合。photo.file は Commons のファイル名） ----------
+scenes:
+  - kind: wikipedia
+    tag: 世界遺産
+    place: マチュピチュ
+    name: マチュピチュ
+    headline: マチュピチュ
+    lines: ["標高2,430mの尾根に残る、15世紀のインカの遺跡", "クスコの北西、約70km", "レベル3の地域まで 約{zone3_km_0}km（地図上の概算）"]
+    wikipedia:
+      - {lang: ja, title: マチュ・ピチュ, contains: [標高2430メートル, 15世紀, 北西]}
+      - {lang: en, title: Machu Picchu, contains: ["Urubamba", "15th-century"]}
+    source_line: 出典：ja / en Wikipedia で確認
+    photo: {file: "File:Machu Picchu Panorama 2018.jpg"}
+    min: 8.0
+    say: "まず、マチュピチュ。標高二千四百三十メートルの、尾根に残る、十五世紀の、インカの遺跡です。クスコの、北西、約七十キロです。レベル3の地域まで、約{zone3_km_0}キロです。"
+  - kind: wikipedia
+    tag: インカの都
+    place: クスコ
+    name: クスコ
+    headline: クスコ
+    lines: ["ケチュア語で「へそ」という意味の街", "インカ帝国の首都。標高3,400m", "レベル3の地域まで 約{zone3_km_1}km（地図上の概算）"]
+    wikipedia:
+      - {lang: ja, title: クスコ, contains: [へそ, インカ帝国, "3,400m"]}
+      - {lang: en, title: Cusco, contains: [Inca, "Inca Empire"]}
+    source_line: 出典：ja / en Wikipedia で確認
+    photo: {file: "File:Plaza de Armas on Independence day.jpg"}
+    min: 7.5
+    say: "次に、クスコ。ケチュア語で、へそという意味の街です。インカ帝国の、首都でした。標高は、三千四百メートルです。レベル3の地域まで、約{zone3_km_1}キロです。"
+  - kind: wikipedia
+    tag: 独立の街
+    place: アヤクーチョ
+    name: アヤクーチョ
+    headline: アヤクーチョ
+    lines: ["独立戦争の、最後の戦いが起きた街", "植民地時代に造られた、33の教会", "レベル3の地域まで 約{zone3_km_2}km（地図上の概算）"]
+    wikipedia:
+      - {lang: ja, title: アヤクーチョ, contains: [33の教会, アヤクーチョの戦い, 最後の軍事的衝突]}
+      - {lang: en, title: Ayacucho, contains: [Battle of Ayacucho]}
+    source_line: 出典：ja / en Wikipedia で確認
+    photo: {file: "File:Plaza de Armas de Huamanga.jpg"}
+    min: 8.0
+    say: "そして、アヤクーチョ。独立戦争の、最後の戦いが、起きた街です。植民地時代に造られた、三十三の教会が、あります。レベル3の地域まで、約{zone3_km_2}キロです。"
+
+# ---------- ターンと結び ----------
+turn:
+  say: "でも、この人気の観光地は、外務省が出している、危険地帯と、隣り合わせなんです。"
+  lines:
+    - ["でも…", 130, red]
+    - ["危険地帯と隣り合わせ", 64, white]
+
+caution:
+  head: 外務省は、こう伝えています
+  say: "外務省は、主要な観光地で、外国人の旅行者を狙った、強盗や、スリ、ひったくりが、頻発していると、伝えています。抗議活動で、マチュピチュへの鉄道が、止まることも、あります。"
+
+closing:
+  say: "人気の観光地の、近くに、レベル3の地域が、あります。マチュピチュも、クスコも、アヤクーチョも、レベル1です。行く前に、外務省の最新の情報を、必ず確認してください。"
+  lines:
+    - ["隣り合わせの観光地帯", 58, white]
+    - ["出発前に必ず確認", 54, yellow]
+
+extra_credits:
+  - "人気の根拠：ja / en Wikipedia で確認"
+
+
+# ---------- 声 ----------
+voice:
+  vvm: [1]
+  style_id: 14
+  speed: 1.12
+  pitch: -0.03
+  intonation: 0.9
+  credit: VOICEVOX:冥鳴ひまり
+
+
+# ---------- 構成 ----------
+hooks:
+  - say: "危険と、隣り合わせの、観光地帯。ペルー編。"
+    min: 3.0
+    gap: 0.4
+    y: 400
+    fade: 0.4
+    panel:
+      - [危険と隣り合わせの観光地帯, 50, muted, Bold]
+      - [ペルー編, 120, white, Black]
+
+cta:
+  say: "世界の意外な、旅行リスクを、地図と、公的情報で、解説しています。次の地域も、紹介します。フォローしてね。気になる国は、コメントで教えてください。"
+  panel:
+    - [世界の意外な旅行リスクを, 46, white, Bold]
+    - [地図と公的情報で解説, 56, white, Black]
+    - [次の地域も紹介します, 46, white, Bold]
+    - [フォローしてね, 76, yellow, Black]
+    - [気になる国はコメントで ↓, 44, white, Bold]
+
+
+# ---------- 投稿用テキスト（post.md として自動生成） ----------
+post:
+  title: "【{asof}時点】危険と隣り合わせの観光地帯 ペルー編。アヤクーチョも、マチュピチュも、外務省のレベル3の近く"
+  description: >-
+    ペルーの人気の観光地、空中の遺跡マチュピチュ、インカの首都クスコ、独立戦争の街アヤクーチョ。
+    外務省の危険情報では、フニン州・ワンカベリカ州・アヤクチョ州・クスコ州の一部（VRAEM地域）とロレト州プトゥマヨ郡がレベル3（渡航中止勧告）。上記以外の地域（リマ市を含む）はレベル1です。
+    マチュピチュからレベル3の地域までは約{zone3_km_0}km、クスコからは約{zone3_km_1}km、アヤクーチョからは約{zone3_km_2}km（地図上の概算）。
+    外務省は、主要な観光地で外国人旅行者を狙った強盗・スリ・ひったくりが頻発していること、抗議活動でマチュピチュへの鉄道が止まることもあることを伝えています。
+    危険情報は国全体ではなく地域ごとに違います。地域と理由は、外務省の危険情報ページの記載を要約しました。渡航前には、必ず外務省の最新の情報を確認してください。
+  pinned_comment: 次に見たい国は、どこですか？コメントで教えてください！
+  hashtags: ["#危険と隣り合わせの観光地帯", "#ペルー", "#マチュピチュ", "#クスコ", "#アヤクーチョ", "#外務省", "#危険情報", "#海外旅行"]

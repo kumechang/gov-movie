@@ -1,0 +1,247 @@
+# 場所と危険情報の型（place_vs_risk）: 「危険と隣り合わせの観光地帯 ベネズエラ編」。
+# 外務省の危険情報（ベネズエラ）: レベル3＝スリア州（マラカイボ市と東部を除く）・タチラ州・ボリバル州の一部（アルコ・ミネロ鉱業地帯とブラジル国境地帯）・アプレ州とアマゾナス州の国境地帯・スクレ州パリア半島／レベル2＝上記以外。
+# 2025年12月にレベル3に引き上げた地域は、2026年にレベル2に引き下げられた（公式ページの【ポイント】）。
+# 観光地として、メリダ（ロープウェイ。タチラ州のレベル3の近く）・エンジェルフォール（カナイマ国立公園。レベル2）・ロライマ山（ブラジルとの国境地帯。レベル3の中）を見せる。
+# 州の境界は Natural Earth。マラカイボ市と「スリア州東部地域」は範囲が書かれていないので、円で抜く（目安）。コロンビア・ブラジルとの国境地帯は国境から約25kmの帯（公式に範囲の定めがない。目安）。アルコ・ミネロは概算の多角形（目安）。パリア半島は座標の帯（目安）。
+# 政治的な出来事（米軍の攻撃・大統領の拘束）は、この動画では扱わない。外務省の危険レベルと、地域・理由の文言だけを使う。
+# 人気の根拠は ja / en の Wikipedia で照合し、写真は Commons のライセンスを確認する（src/facts.py）。
+# 危険レベル・地域・理由の文言は、公式の危険情報ページの本文に出てくることを毎回自動で確かめる（src/mofa.py）。書き方は docs/THEME_SPEC.md「場所と危険情報」。
+
+id: venezuela_place_risk
+template: place_vs_risk
+
+metric: 外務省の危険レベル
+year: 2026
+unit: レベル（1〜4）
+
+source:
+  name: 外務省 海外安全情報オープンデータ
+  note: "（危険レベルは{asof}時点）"
+  table: 海外安全情報オープンデータ 国別（country/0058.xml）と、ベネズエラの危険情報ページ
+  url: https://www.ezairyu.mofa.go.jp/html/opendata/index.html
+  license:
+    checked: 2026-10-13
+    terms_url: https://www.ezairyu.mofa.go.jp/html/opendata/support/terms.html
+    commercial: true
+    credit_lines:
+      - 外務省 海外安全情報オープンデータ 提供情報（https://www.ezairyu.mofa.go.jp/html/opendata/index.html）を加工して作成
+      - 出典：外務省 海外安全情報オープンデータ（https://www.ezairyu.mofa.go.jp/html/opendata/index.html）（{asof}に利用）
+      - 地域・危険の理由の文言：外務省 海外安全ホームページ ベネズエラの危険情報（https://www.anzen.mofa.go.jp/）を要約
+  fetch: mofa_risk
+
+verification: >-
+  危険レベルは外務省の国別XML（country/0058.xml）の値を、公式の危険情報ページ本文と照合して使う。
+  画面の地域（レベル3: スリア州ほか多数の州の一部・パリア半島／レベル2: 上記以外）は、公式ページの「危険レベル」の節にその文言が出てきて、直後のレベル表示が一致することを毎回自動で確かめる。
+  地域の注記と注意点の文言は、公式ページの本文にそのまま出てくることを確かめる。
+  地図の範囲は概算: スリア州・タチラ州は Natural Earth の州境。マラカイボ市と「スリア州東部地域」は円で抜いた目安。コロンビア・ブラジルとの国境地帯は国境から約25kmの帯（公式に範囲の定めがない）。アルコ・ミネロは概算の多角形、パリア半島は座標の帯。地図の線は国境の主張ではない。
+  観光地からレベル3の地域までの距離は、座標とこの図形からの概算（5km単位）。
+  観光地の根拠は、ja / en の Wikipedia の本文で確かめる（同じ Wikipedia の別言語版なので、独立した2系統とは言えない）。
+  写真は Wikimedia Commons でライセンス（CC0 / パブリックドメイン / CC BY / CC BY-SA）と作者を確認し、画面と概要欄に出典を載せる。結果は build/venezuela_place_risk/fetch_report.txt。
+
+mofa:
+  max_age_hours: 24
+
+
+# ---------- 見た目 ----------
+# style は本編（ターン以降）の恐怖演出。calm_style で、ターンの前（人気の場面）だけ落ち着いた色に差し替える。
+style:
+  look: horror
+  fonts:
+    Black: assets/fonts/KaiseiTokumin-ExtraBold.ttf
+    Bold: assets/fonts/KaiseiTokumin-ExtraBold.ttf
+    Accent: assets/fonts/YujiBoku-Regular.ttf
+  bg: {top: [3, 0, 1], bottom: [28, 2, 5], fog: [120, 0, 12], fog_height: 0.38, vignette: 0.78, grain: 0.03}
+  text: [238, 228, 222]
+  muted: [168, 128, 128]
+  accent: [226, 34, 44]
+  title_color: [206, 18, 30]
+  title_glow: [150, 0, 8]
+  drips: [150, 0, 10]
+  pill: {fill: [90, 0, 8, 130], outline: [200, 30, 40, 170], text: [240, 205, 205]}
+  panel: {fill: [10, 0, 2, 234], outline: [190, 20, 30, 150], stroke: [0, 0, 0, 255]}
+  bar: {bg: [52, 10, 14], fill: [204, 24, 36]}
+  fx: {shake: 16, flash: [170, 0, 10], flash_alpha: 0.38, embers: true}
+  named_colors:
+    white: [238, 228, 222]
+    yellow: [232, 188, 70]
+    red: [226, 26, 38]
+    muted: [168, 128, 128]
+
+calm_style:
+  bg: {top: [12, 22, 44], bottom: [34, 52, 88], vignette: 0.55, grain: 0.02}
+  title_color: [244, 236, 224]
+  title_glow: null
+  drips: null
+  pill: {fill: [255, 255, 255, 30], outline: [255, 255, 255, 80], text: [236, 232, 224]}
+
+
+# ---------- 画面の固定文言 ----------
+title: 危険と隣り合わせの観光地帯
+title_small: ベネズエラ編｜外務省の危険情報と見比べる
+subtitle: "魅力と、危険情報の地域（{asof}時点）"
+footnote: "危険情報の最終更新：{risk_date}｜地図の位置・範囲はおおよそです"
+
+# 地図: ベネズエラ西部（メリダ・タチラ）から、南東部（ギアナ高地）まで見せる（bbox = [経度の最小, 緯度の最小, 経度の最大, 緯度の最大]）
+map:
+  bbox: [-73.8, 4.0, -60.0, 11.4]
+
+
+# ---------- 対象の国と、地図に出す地域 ----------
+# provinces: Natural Earth の州の名前。border: 国境から km 以内の帯（隣国のリストでもよい）。rings: 座標の多角形。holes: 地域から抜く円 [経度, 緯度, 半径km]。
+members:
+  - code: "0058"
+    label: ベネズエラ
+    iso: VEN
+    regions:
+      - level: 3
+        where: スクレ州の一部地域（パリア半島全域）
+        display: スクレ州のパリア半島
+        bands:
+          - [[-63.3, 10.65], [-61.9, 10.72]]
+        width_km: 35
+        label_at: [-60.7, 10.9]
+        say: "スクレ州の、パリア半島は、レベル3です。トリニダード・トバゴに近く、犯罪組織が、活動しているとされています。"
+      - level: 3
+        where: スリア州のマラカイボ市及び同州東部地域を除く地域、タチラ州、ボリバル州の一部地域（州北東部の「アルコ・ミネロ」鉱業地帯及びブラジルとの国境地帯）、アプレ州の一部地域（コロンビアとの国境地帯）及びアマゾナス州の一部地域（コロンビアとの国境地帯及びブラジルとの国境地帯）
+        display: スリア州・タチラ州・国境地帯・アルコ・ミネロ
+        provinces: [Zulia, Táchira]
+        holes:
+          - [-71.64, 10.64, 22]
+          - [-71.2, 10.2, 45]
+        border:
+          - {with: COL, km: 25}
+          - {with: BRA, km: 25}
+        rings:
+          - [[-64.9, 8.2], [-62.4, 8.75], [-61.2, 7.3], [-61.9, 6.35], [-64.0, 6.35], [-65.0, 7.2]]
+        label_at: [-68.0, 5.0]
+        note: 嘱託殺人、誘拐、麻薬、食料品密輸です
+        say: "スリア州と、タチラ州、コロンビア、ブラジルとの、国境地帯、それに、ボリバル州の、鉱業地帯も、レベル3です。"
+      - level: 2
+        where: 上記以外の地域
+        display: 上記以外の地域
+        provinces: ['Amazonas', 'Anzoátegui', 'Apure', 'Aragua', 'Barinas', 'Bolívar', 'Carabobo', 'Cojedes', 'Delta Amacuro', 'Distrito Capital', 'Falcón', 'Guárico', 'Lara', 'Miranda', 'Monagas', 'Mérida', 'Nueva Esparta', 'Portuguesa', 'Sucre', 'Trujillo', 'Vargas', 'Yaracuy', 'Zulia', 'Táchira']
+        label_at: [-66.5, 8.9]
+        place_note: メリダと、エンジェルフォールは、この中です
+        say: "上記以外は、レベル2です。メリダも、エンジェルフォールも、この中です。"
+    why:
+      - tag: 犯罪
+        text: 銃を使った強盗が多く、制服の警察官・軍人が行う例も
+        evidence: 制服を着た警察官、軍人が犯行を行う事例も増加傾向にあると言われています
+      - tag: タクシー
+        text: タクシーの運転手による強盗も。流しのタクシーは避ける
+        evidence: 流しや客待ちのタクシーの利用は絶対に避けてください
+      - tag: 注意
+        text: デモや集会には、絶対に近づかない
+        evidence: 反政府勢力や治安当局等との衝突に巻き込まれる可能性がありますので、絶対に近づかないようにしてください
+
+# 人気の場所（地図に印を出す。座標は Wikipedia の位置。概算）。
+places:
+  - {name: メリダ, marker: [-71.1450, 8.5900], in_region: 上記以外の地域, side: above-left}
+  - {name: エンジェルフォール, marker: [-62.5356, 5.9675], in_region: 上記以外の地域, side: left}
+  - {name: ロライマ山, marker: [-60.7617, 5.1431], in_region: スリア州のマラカイボ市及び同州東部地域を除く地域、タチラ州、ボリバル州の一部地域（州北東部の「アルコ・ミネロ」鉱業地帯及びブラジルとの国境地帯）、アプレ州の一部地域（コロンビアとの国境地帯）及びアマゾナス州の一部地域（コロンビアとの国境地帯及びブラジルとの国境地帯）, side: below}
+
+# ---------- 魅力の紹介（根拠は ja / en の Wikipedia で照合。photo.file は Commons のファイル名） ----------
+scenes:
+  - kind: wikipedia
+    tag: ロープウェイ
+    place: メリダ
+    name: メリダ
+    headline: メリダ
+    lines: ["世界で最も高く、最も長いロープウェイ", "アンデスの谷にある、大学と観光の街", "レベル3の地域まで 約{zone3_km_0}km（地図上の概算）"]
+    wikipedia:
+      - {lang: ja, title: メリダ_(ベネズエラ), contains: [メリダ]}
+      - {lang: en, title: "Mérida, Mérida", contains: ["highest and longest cable car", "Pico Bolívar"]}
+    source_line: 出典：ja / en Wikipedia で確認
+    photo: {file: "PHOTO_MERIDA"}
+    min: 8.0
+    say: "まず、メリダ。世界で、最も高く、最も長い、ロープウェイが、ある街です。アンデスの谷にある、大学と、観光の街です。レベル3の地域まで、約{zone3_km_0}キロです。"
+  - kind: wikipedia
+    tag: 世界遺産
+    place: エンジェルフォール
+    name: エンジェルフォール
+    headline: エンジェルフォール
+    lines: ["世界最大の落差、979メートル", "ギアナ高地の台地から、流れ落ちる", "レベル3の地域まで 約{zone3_km_1}km（地図上の概算）"]
+    wikipedia:
+      - {lang: ja, title: エンジェルフォール, contains: [世界最大の落差, 979メートル, ギアナ高地]}
+      - {lang: en, title: Angel Falls, contains: [979]}
+    source_line: 出典：ja / en Wikipedia で確認
+    photo: {file: "PHOTO_ANGEL"}
+    min: 8.0
+    say: "次に、エンジェルフォール。世界最大の、落差、九百七十九メートルの、滝です。ギアナ高地の、台地から、流れ落ちます。レベル3の地域まで、約{zone3_km_1}キロです。"
+  - kind: wikipedia
+    tag: テーブルマウンテン
+    place: ロライマ山
+    name: ロライマ山
+    headline: ロライマ山
+    lines: ["標高2,810m。三つの国境が交わる台地", "ベネズエラ・ブラジル・ガイアナ", "ブラジルとの国境地帯で、レベル3の中"]
+    wikipedia:
+      - {lang: ja, title: ロライマ山, contains: [2,810 メートル, トリプルポイント, テーブルマウンテン]}
+      - {lang: en, title: Mount Roraima, contains: ["2,810 m", Guyana]}
+    source_line: 出典：ja / en Wikipedia で確認
+    photo: {file: "PHOTO_RORAIMA"}
+    min: 7.5
+    say: "そして、ロライマ山。標高二千八百十メートル、ベネズエラ、ブラジル、ガイアナの、三つの国境が、交わる台地です。でも、この山は、ブラジルとの、国境地帯で、レベル3の中です。"
+
+# ---------- ターンと結び ----------
+turn:
+  say: "でも、この人気の観光地は、外務省が出している、危険地帯と、隣り合わせなんです。"
+  lines:
+    - ["でも…", 130, red]
+    - ["危険地帯と隣り合わせ", 64, white]
+
+caution:
+  head: 外務省は、こう伝えています
+  say: "外務省は、拳銃を使った強盗が、増えていて、警察官や軍人が、行う例もあると、伝えています。流しのタクシーは、避けること、デモや集会には、絶対に近づかないことを、求めています。"
+
+closing:
+  say: "有名な観光地の、近くに、レベル3の地域が、あります。ロライマ山は、レベル3の中、メリダと、エンジェルフォールは、レベル2です。行く前に、外務省の最新の情報を、必ず確認してください。"
+  lines:
+    - ["隣り合わせの観光地帯", 58, white]
+    - ["出発前に必ず確認", 54, yellow]
+
+extra_credits:
+  - "人気の根拠：ja / en Wikipedia で確認"
+
+
+# ---------- 声 ----------
+voice:
+  vvm: [1]
+  style_id: 14
+  speed: 1.12
+  pitch: -0.03
+  intonation: 0.9
+  credit: VOICEVOX:冥鳴ひまり
+
+
+# ---------- 構成 ----------
+hooks:
+  - say: "危険と、隣り合わせの、観光地帯。ベネズエラ編。"
+    min: 3.0
+    gap: 0.4
+    y: 400
+    fade: 0.4
+    panel:
+      - [危険と隣り合わせの観光地帯, 50, muted, Bold]
+      - [ベネズエラ編, 120, white, Black]
+
+cta:
+  say: "世界の意外な、旅行リスクを、地図と、公的情報で、解説しています。次の地域も、紹介します。フォローしてね。気になる国は、コメントで教えてください。"
+  panel:
+    - [世界の意外な旅行リスクを, 46, white, Bold]
+    - [地図と公的情報で解説, 56, white, Black]
+    - [次の地域も紹介します, 46, white, Bold]
+    - [フォローしてね, 76, yellow, Black]
+    - [気になる国はコメントで ↓, 44, white, Bold]
+
+
+# ---------- 投稿用テキスト（post.md として自動生成） ----------
+post:
+  title: "【{asof}時点】危険と隣り合わせの観光地帯 ベネズエラ編。ロライマ山は、外務省のレベル3の中"
+  description: >-
+    ベネズエラの人気の観光地、世界一のロープウェイのメリダ、世界最大の落差のエンジェルフォール、三国国境のロライマ山。
+    外務省の危険情報では、スリア州（マラカイボ市と東部を除く）・タチラ州・ボリバル州の一部（アルコ・ミネロ鉱業地帯とブラジルとの国境地帯）・アプレ州とアマゾナス州の国境地帯・スクレ州のパリア半島がレベル3（渡航中止勧告）。上記以外の地域はレベル2です。
+    メリダからレベル3の地域までは約{zone3_km_0}km、エンジェルフォールからは約{zone3_km_1}km（地図上の概算）。ロライマ山はブラジルとの国境地帯でレベル3の中です。
+    外務省は、拳銃を使った強盗が増え、警察官や軍人が行う例もあること、流しのタクシーを避けること、デモや集会に近づかないことを伝えています。
+    危険情報は国全体ではなく地域ごとに違います。地域と理由は、外務省の危険情報ページの記載を要約しました。渡航前には、必ず外務省の最新の情報を確認してください。
+  pinned_comment: 次に見たい国は、どこですか？コメントで教えてください！
+  hashtags: ["#危険と隣り合わせの観光地帯", "#ベネズエラ", "#エンジェルフォール", "#ロライマ山", "#メリダ", "#外務省", "#危険情報", "#海外旅行"]
