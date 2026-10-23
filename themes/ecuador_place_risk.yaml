@@ -160,7 +160,7 @@ scenes:
       - {lang: ja, title: キト, contains: [赤道記念碑, 23km, 誤差]}
       - {lang: en, title: Mitad del Mundo, contains: [Quito]}
     source_line: 出典：ja / en Wikipedia で確認
-    photo: {file: "PHOTO_EQUATOR"}
+    photo: {file: "File:Mitad del Mundo 01.jpg"}
     min: 8.0
     say: "次に、赤道記念碑。キトの北、二十三キロの、ミタード・デル・ムンドです。線で、赤道が示されていますが、実際の赤道とは、誤差があります。レベル3の地域まで、約{zone3_km_1}キロです。"
   - kind: wikipedia
