@@ -151,7 +151,7 @@ scenes:
       - {lang: ja, title: ケルアン, contains: [北アフリカのマッカ, グランド・モスク, アグラブ朝]}
       - {lang: en, title: Kairouan, contains: [UNESCO]}
     source_line: 出典：ja / en Wikipedia で確認
-    photo: {file: "PHOTO_KAIROUAN"}
+    photo: {file: "File:The Minaret of the Great Mosque Okba of Kairouan, Tunisia.jpg"}
     min: 8.0
     say: "まず、ケルアン。北アフリカの、マッカと呼ばれた、聖地です。グランド・モスクで知られる、世界遺産です。レベル3の地域まで、約{zone3_km_0}キロです。"
   - kind: wikipedia
@@ -164,7 +164,7 @@ scenes:
       - {lang: ja, title: ジェルバ島, contains: [オデュッセウス, ユダヤ人, シナゴーグ]}
       - {lang: en, title: Djerba, contains: [Odysseus]}
     source_line: 出典：ja / en Wikipedia で確認
-    photo: {file: "PHOTO_DJERBA"}
+    photo: {file: "File:Traditional Weaving Workshops in Houmt Souk, Djerba.jpg"}
     min: 8.0
     say: "次に、ジェルバ島。オデュッセウスが、上陸したと、伝わる島です。ユダヤ人が、古くから、暮らしてきました。リビアとの、国境まで、約{border_km_1}キロです。"
   - kind: wikipedia
@@ -177,7 +177,7 @@ scenes:
       - {lang: en, title: Dougga, contains: [UNESCO, "Roman theatre"]}
       - {lang: en, title: Teboursouk, contains: [Dougga]}
     source_line: 出典：en Wikipedia で確認（ja 版は記述が少ない。外務省の文言は公式ページ）
-    photo: {file: "PHOTO_DOUGGA"}
+    photo: {file: "File:The Theatre of Dougga, Tunisia.jpg"}
     min: 7.5
     say: "そして、ドゥッガ。ローマ時代の、劇場や、神殿が残る、世界遺産です。千九百九十七年に、登録されました。レベル2の地域まで、約{zone2_km_2}キロです。"
 

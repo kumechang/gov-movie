@@ -150,7 +150,7 @@ scenes:
       - {lang: ja, title: アルジェ, contains: [カスバ, 望郷, 1992年世界遺産]}
       - {lang: en, title: Casbah of Algiers, contains: [UNESCO]}
     source_line: 出典：ja / en Wikipedia で確認
-    photo: {file: "PHOTO_ALGIERS"}
+    photo: {file: "File:Casbah of Algiers, the heart of the city.jpg"}
     min: 8.0
     say: "まず、アルジェのカスバ。映画、望郷の舞台として、知られる、城壁の街です。千九百九十二年に、世界遺産に、登録されました。レベル3の地域まで、約{zone3_km_0}キロです。"
   - kind: wikipedia
@@ -163,7 +163,7 @@ scenes:
       - {lang: en, title: Timgad, contains: [Trajan, "grid plan"]}
       - {lang: en, title: Batna Province, contains: [Timgad]}
     source_line: 出典：en Wikipedia で確認（ja 版は記述が少ない。外務省の文言は公式ページ）
-    photo: {file: "PHOTO_TIMGAD"}
+    photo: {file: "File:Arch of Trajan (Timgad).jpg"}
     min: 8.0
     say: "次に、ティムガド。トラヤヌス帝が築いた、碁盤の目の、ローマ都市です。千九百八十二年に、世界遺産に、登録されました。レベル3の地域まで、約{zone3_km_1}キロです。"
   - kind: wikipedia
@@ -176,7 +176,7 @@ scenes:
       - {lang: ja, title: ジェミラ, contains: [山の地形, 劇場, 1982年]}
       - {lang: en, title: Djémila, contains: [UNESCO]}
     source_line: 出典：ja / en Wikipedia で確認
-    photo: {file: "PHOTO_DJEMILA"}
+    photo: {file: "File:Roman Ruins of Djemila in Sétif, Algeria.jpg"}
     min: 7.5
     say: "そして、ジェミラ。山の地形に、合わせて築かれた、ローマの街です。劇場や、神殿が、よい状態で、残っています。レベル3の地域まで、約{zone3_km_2}キロです。"
 

@@ -147,7 +147,7 @@ scenes:
       - {lang: ja, title: キト, contains: [世界遺産, 赤道]}
       - {lang: en, title: Quito, contains: [UNESCO]}
     source_line: 出典：ja / en Wikipedia で確認
-    photo: {file: "PHOTO_QUITO"}
+    photo: {file: "File:Quito as from panecillo Basilica.jpg"}
     min: 8.0
     say: "まず、キト。標高二千八百五十メートルの、高地にある、首都です。坂道に、古い建物が並ぶ、旧市街は、世界遺産です。レベル3の地域まで、約{zone3_km_0}キロです。"
   - kind: wikipedia
@@ -173,7 +173,7 @@ scenes:
       - {lang: ja, title: グアヤキル, contains: [最大の都市, 最大の港湾都市]}
       - {lang: en, title: Guayaquil, contains: [largest]}
     source_line: 出典：ja / en Wikipedia で確認（外務省の文言は公式ページ）
-    photo: {file: "PHOTO_GUAYAQUIL"}
+    photo: {file: "File:Vista de Malecón 2000, Guayaquil, Junio de 2017.jpg"}
     min: 7.5
     say: "そして、グアヤキル。エクアドル最大の、都市で、最大の、港湾都市です。でも、この市は、レベル2です。麻薬関連の、犯罪組織が活発で、凶悪事件が、頻繁に、発生しています。"
 
