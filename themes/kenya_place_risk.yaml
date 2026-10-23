@@ -142,7 +142,7 @@ members:
         where: その他の地域
         display: その他の地域（モンバサなど）
         place_note: モンバサは、この中です
-        say: "モンバサは、レベル1です。ただし、ラム郡からは、遠くありません。"
+        say: "モンバサは、レベル1です。レベル3の、ラム郡とは、約{zone3_km_2}キロ、離れています。"
     why:
       - tag: テロ
         text: ケニア全土で、テロ・誘拐・一般犯罪に注意
@@ -170,9 +170,9 @@ scenes:
     lines: ["ケニアで最も古くから、人が住み続ける街", "島には、約3,000頭のロバ", "街は、レベル3のラム郡の中"]
     wikipedia:
       - {lang: en, title: Lamu Old Town, contains: ["oldest continually inhabited town", "3000 donkeys"]}
-      - {lang: en, title: Lamu Island, contains: [donkeys]}
+      - {lang: en, title: Lamu County, contains: [donkeys]}
     source_line: 出典：en Wikipedia で確認（ja 版に項目なし。外務省の文言は公式ページ）
-    photo: {file: "PHOTO_LAMU"}
+    photo: {file: "File:Lamu 2015-76 (24088960521).jpg"}
     min: 8.0
     say: "まず、ラム旧市街。ケニアで、最も古くから、人が住み続ける、街です。島では、荷物を運ぶのも、ロバで、その数は、約三千頭です。でも、この街は、レベル3の、ラム郡の中です。"
   - kind: wikipedia
@@ -182,10 +182,10 @@ scenes:
     headline: トゥルカナ湖
     lines: ["砂漠にある湖としては、世界最大", "ナイルワニが、およそ14,000頭", "レベル3の地域まで 約{zone3_km_1}km（地図上の概算）"]
     wikipedia:
-      - {lang: ja, title: トゥルカナ湖, contains: [砂漠にある湖としては最大, 14000頭, 琵琶湖]}
+      - {lang: ja, title: トゥルカナ湖, contains: [ナイルワニ, 14000頭, 琵琶湖]}
       - {lang: en, title: Lake Turkana, contains: [Nile crocodile]}
     source_line: 出典：ja / en Wikipedia で確認
-    photo: {file: "PHOTO_TURKANA"}
+    photo: {file: "File:Dusk over Lake Turkana.jpg"}
     min: 8.0
     say: "次に、トゥルカナ湖。砂漠にある湖としては、世界最大です。ナイルワニが、およそ一万四千頭、生息しています。レベル3の地域まで、約{zone3_km_1}キロです。"
   - kind: wikipedia
@@ -196,9 +196,9 @@ scenes:
     lines: ["1593年に、スペイン王の命令で建てられた要塞", "2011年に、世界遺産に登録", "レベル3のラム郡まで 約{zone3_km_2}km（地図上の概算）"]
     wikipedia:
       - {lang: ja, title: ジーザス要塞, contains: [1593年, フェリペ2世, 2011年]}
-      - {lang: en, title: Fort Jesus, contains: [1593, Portuguese]}
+      - {lang: en, title: Fort Jesus, contains: ["1593", Portuguese]}
     source_line: 出典：ja / en Wikipedia で確認
-    photo: {file: "PHOTO_MOMBASA"}
+    photo: {file: "File:Fort Jesus Mombasa.jpg"}
     min: 7.5
     say: "そして、モンバサ。千五百九十三年に、スペイン王の命令で建てられた、ジーザス要塞が、あります。二千十一年に、世界遺産になりました。レベル3の、ラム郡まで、約{zone3_km_2}キロです。"
 

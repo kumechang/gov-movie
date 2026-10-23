@@ -152,7 +152,7 @@ scenes:
       - {lang: ja, title: メリダ_(ベネズエラ), contains: [メリダ]}
       - {lang: en, title: "Mérida, Mérida", contains: ["highest and longest cable car", "Pico Bolívar"]}
     source_line: 出典：ja / en Wikipedia で確認
-    photo: {file: "PHOTO_MERIDA"}
+    photo: {file: "File:Teleférico de Mérida estación pico espejo.jpg"}
     min: 8.0
     say: "まず、メリダ。世界で、最も高く、最も長い、ロープウェイが、ある街です。アンデスの谷にある、大学と、観光の街です。レベル3の地域まで、約{zone3_km_0}キロです。"
   - kind: wikipedia
@@ -162,10 +162,10 @@ scenes:
     headline: エンジェルフォール
     lines: ["世界最大の落差、979メートル", "ギアナ高地の台地から、流れ落ちる", "レベル3の地域まで 約{zone3_km_1}km（地図上の概算）"]
     wikipedia:
-      - {lang: ja, title: エンジェルフォール, contains: [世界最大の落差, 979メートル, ギアナ高地]}
-      - {lang: en, title: Angel Falls, contains: [979]}
+      - {lang: ja, title: エンジェルフォール, contains: [世界最大の落差, ギアナ高地]}
+      - {lang: en, title: Angel Falls, contains: ["979"]}
     source_line: 出典：ja / en Wikipedia で確認
-    photo: {file: "PHOTO_ANGEL"}
+    photo: {file: "File:KerepakupaiVená.jpg"}
     min: 8.0
     say: "次に、エンジェルフォール。世界最大の、落差、九百七十九メートルの、滝です。ギアナ高地の、台地から、流れ落ちます。レベル3の地域まで、約{zone3_km_1}キロです。"
   - kind: wikipedia
@@ -175,10 +175,10 @@ scenes:
     headline: ロライマ山
     lines: ["標高2,810m。三つの国境が交わる台地", "ベネズエラ・ブラジル・ガイアナ", "ブラジルとの国境地帯で、レベル3の中"]
     wikipedia:
-      - {lang: ja, title: ロライマ山, contains: [2,810 メートル, トリプルポイント, テーブルマウンテン]}
+      - {lang: ja, title: ロライマ山, contains: [トリプルポイント, テーブルマウンテン, 三つの国境]}
       - {lang: en, title: Mount Roraima, contains: ["2,810 m", Guyana]}
     source_line: 出典：ja / en Wikipedia で確認
-    photo: {file: "PHOTO_RORAIMA"}
+    photo: {file: "File:Monte Roraima e Kukenan Tepui com sol radiante.jpg"}
     min: 7.5
     say: "そして、ロライマ山。標高二千八百十メートル、ベネズエラ、ブラジル、ガイアナの、三つの国境が、交わる台地です。でも、この山は、ブラジルとの、国境地帯で、レベル3の中です。"
 
