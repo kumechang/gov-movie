@@ -125,7 +125,7 @@
 - 上位：カンボジア、フィリピン、インド、タイ、エジプト、パキスタン、タジキスタン、ジョージア、ケニア、ベネズエラ、メキシコ……
 
 ### 最初の10本（案）
-トルコ（作成済み）→ **カンボジア（作成済み）**→ **フィリピン（作成済み）** → **エジプト（作成済み）** → **タイ（作成済み）** → バリ島（番外・作成済み。[VIDEO_BALI.md](VIDEO_BALI.md)）→ インド（作成済み。[VIDEO_INDIA.md](VIDEO_INDIA.md)）→ **ジョージア（作成済み。[VIDEO_GEORGIA.md](VIDEO_GEORGIA.md)）** → ケニア → **メキシコ（作成済み。[VIDEO_MEXICO.md](VIDEO_MEXICO.md)）**、**パキスタン（作成済み。[VIDEO_PAKISTAN.md](VIDEO_PAKISTAN.md)）**、**ミャンマー（作成済み。[VIDEO_MYANMAR.md](VIDEO_MYANMAR.md)）** → ペルー → アルメニア。
+トルコ（作成済み）→ **カンボジア（作成済み）**→ **フィリピン（作成済み）** → **エジプト（作成済み）** → **タイ（作成済み）** → バリ島（番外・作成済み。[VIDEO_BALI.md](VIDEO_BALI.md)）→ インド（作成済み。[VIDEO_INDIA.md](VIDEO_INDIA.md)）→ **ジョージア（作成済み。[VIDEO_GEORGIA.md](VIDEO_GEORGIA.md)）** → **ケニア（作成済み。[VIDEO_KENYA.md](VIDEO_KENYA.md)）** → **メキシコ（作成済み。[VIDEO_MEXICO.md](VIDEO_MEXICO.md)）**、**パキスタン（作成済み。[VIDEO_PAKISTAN.md](VIDEO_PAKISTAN.md)）**、**ミャンマー（作成済み。[VIDEO_MYANMAR.md](VIDEO_MYANMAR.md)）** → **ペルー（作成済み。[VIDEO_PERU.md](VIDEO_PERU.md)）** → **アルメニア（作成済み。[VIDEO_ARMENIA.md](VIDEO_ARMENIA.md)）** → **ベネズエラ（作成済み。[VIDEO_VENEZUELA.md](VIDEO_VENEZUELA.md)）**。
 カンボジアとタイは、国境の寺院で話がつながるので、続けて出すと見やすい。
 
 各国の候補（観光地・危険地域）は、作る前に、公式ページの文言と、世界遺産などの情報で検証する。表の「観光地・名物」の列は、まだ私の知識。
