@@ -1,0 +1,20 @@
+[取得] 外務省 海外安全情報オープンデータ（国別 207 か国）  取得日時 2026-10-23T17:16:07
+  国別XMLの最終更新: 2026/10/23 16:59:43
+  最大レベル別（照合できた国）: レベル4 34 か国 / レベル3 29 か国 / レベル2 24 か国 / レベル1 34 か国 / 危険情報なし 84 か国
+[照合] 公式の危険情報ページ本文との照合: 123 か国中 121 か国が一致
+  ×除外 ニューカレドニア（仏領）（XML最大レベル2）: XMLの最大レベル2 が、危険情報ページ本文（レベル1）に出てこない
+  ×除外 パレスチナ（XML最大レベル3）: XMLの最大レベル3 が、危険情報ページ本文（レベルの記載なし）に出てこない
+  （感染症危険レベルは使わない。参考: パレスチナ[3, 2]、コンゴ民主共和国[1]、ウガンダ[1]）
+[対象の検証] 指定した 1 か国
+  アルジェリア: レベル4（地域・理由の文言を公式ページ本文と照合済み）
+
+[人気の根拠の照合] Wikidata（CC0）× ja.wikipedia、写真は Commons のライセンスを確認
+  アルジェのカスバ: ja.wikipedia「アルジェ」（カスバ、望郷、1992年）
+  アルジェのカスバ: en.wikipedia「Casbah of Algiers」（UNESCO）
+  写真 File:Casbah of Algiers, the heart of the city.jpg: CC BY-SA 4.0 ／ Nour Abdelatif／CC BY-SA 4.0／Wikimedia Commons
+  ティムガド: en.wikipedia「Timgad」（Trajan、grid plan）
+  ティムガド: en.wikipedia「Batna Province」（Timgad）
+  写真 File:Arch of Trajan (Timgad).jpg: CC BY 4.0 ／ Bernard Gagnon／CC BY 4.0／Wikimedia Commons
+  ジェミラ: ja.wikipedia「ジェミラ」（山の地形、劇場、1982年）
+  ジェミラ: en.wikipedia「Djémila」（UNESCO）
+  写真 File:Roman Ruins of Djemila in Sétif, Algeria.jpg: CC BY-SA 4.0 ／ Alioueche Mokhtar／CC BY-SA 4.0／Wikimedia Commons
