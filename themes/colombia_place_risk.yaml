@@ -1,0 +1,255 @@
+# 場所と危険情報の型（place_vs_risk）: 「危険と隣り合わせの観光地帯 コロンビア編」。
+# 外務省の危険情報（コロンビア）: レベル3＝アラウカ県・カウカ県西部・ナリーニョ県西部・ノルテ・デ・サンタンデル県北部／レベル2＝多数の県（メタ県・バジェ・デル・カウカ県・ベネズエラ国境付近など）／レベル1＝メタ県カニョ・クリスタレス地区周辺と上記以外。
+# 観光地として、カルタヘナ（レベル1）・コーヒー文化的景観（レベル1。バジェ・デル・カウカ県のレベル2のすぐ隣）・カニョ・クリスタレス（レベル2のメタ県の中で、ここだけレベル1）を見せる。
+# 県の境界は Natural Earth。「西部」「東部」「北部」「南部」は範囲が書かれていないので、県を緯度で切るか、円で示す目安。レベル2のうち、ラ・グアヒラ県・ビチャダ県・グアイニア県のベネズエラ国境付近、アリアリ地域などは、この回の図に出さない。
+# 人気の根拠は ja / en の Wikipedia で照合し、写真は Commons のライセンスを確認する（src/facts.py）。
+# 危険レベル・地域・理由の文言は、公式の危険情報ページの本文に出てくることを毎回自動で確かめる（src/mofa.py）。書き方は docs/THEME_SPEC.md「場所と危険情報」。
+
+id: colombia_place_risk
+template: place_vs_risk
+
+metric: 外務省の危険レベル
+year: 2026
+unit: レベル（1〜4）
+
+source:
+  name: 外務省 海外安全情報オープンデータ
+  note: "（危険レベルは{asof}時点）"
+  table: 海外安全情報オープンデータ 国別（country/0057.xml）と、コロンビアの危険情報ページ
+  url: https://www.ezairyu.mofa.go.jp/html/opendata/index.html
+  license:
+    checked: 2026-10-13
+    terms_url: https://www.ezairyu.mofa.go.jp/html/opendata/support/terms.html
+    commercial: true
+    credit_lines:
+      - 外務省 海外安全情報オープンデータ 提供情報（https://www.ezairyu.mofa.go.jp/html/opendata/index.html）を加工して作成
+      - 出典：外務省 海外安全情報オープンデータ（https://www.ezairyu.mofa.go.jp/html/opendata/index.html）（{asof}に利用）
+      - 地域・危険の理由の文言：外務省 海外安全ホームページ コロンビアの危険情報（https://www.anzen.mofa.go.jp/）を要約
+  fetch: mofa_risk
+
+verification: >-
+  危険レベルは外務省の国別XML（country/0057.xml）の値を、公式の危険情報ページ本文と照合して使う。
+  画面の地域（レベル3: アラウカ県・カウカ県西部・ナリーニョ県西部・ノルテ・デ・サンタンデル県北部／レベル2: 多数の県／レベル1: カニョ・クリスタレス地区周辺と上記以外）は、公式ページの「危険レベル」の節にその文言が出てきて、直後のレベル表示が一致することを毎回自動で確かめる。
+  地図の範囲は概算: アラウカ県などは Natural Earth の県境。「西部」「東部」は円、「北部」「南部」は県を緯度で切った目安。カニョ・クリスタレスは円（半径20km）。ベネズエラ国境付近・アリアリ地域などは、この回の図に出さない。
+  観光地からレベル2の地域までの距離は、座標とこの図形からの概算（5km単位）。
+  地域の注記と注意点の文言は、公式ページの本文にそのまま出てくることを確かめる。
+  観光地の根拠は、ja / en の Wikipedia の本文で確かめる（同じ Wikipedia の別言語版なので、独立した2系統とは言えない）。
+  写真は Wikimedia Commons でライセンス（CC0 / パブリックドメイン / CC BY / CC BY-SA）と作者を確認し、画面と概要欄に出典を載せる。結果は build/colombia_place_risk/fetch_report.txt。
+
+mofa:
+  max_age_hours: 24
+
+
+# ---------- 見た目 ----------
+# style は本編（ターン以降）の恐怖演出。calm_style で、ターンの前（人気の場面）だけ落ち着いた色に差し替える。
+style:
+  look: horror
+  fonts:
+    Black: assets/fonts/KaiseiTokumin-ExtraBold.ttf
+    Bold: assets/fonts/KaiseiTokumin-ExtraBold.ttf
+    Accent: assets/fonts/YujiBoku-Regular.ttf
+  bg: {top: [3, 0, 1], bottom: [28, 2, 5], fog: [120, 0, 12], fog_height: 0.38, vignette: 0.78, grain: 0.03}
+  text: [238, 228, 222]
+  muted: [168, 128, 128]
+  accent: [226, 34, 44]
+  title_color: [206, 18, 30]
+  title_glow: [150, 0, 8]
+  drips: [150, 0, 10]
+  pill: {fill: [90, 0, 8, 130], outline: [200, 30, 40, 170], text: [240, 205, 205]}
+  panel: {fill: [10, 0, 2, 234], outline: [190, 20, 30, 150], stroke: [0, 0, 0, 255]}
+  bar: {bg: [52, 10, 14], fill: [204, 24, 36]}
+  fx: {shake: 16, flash: [170, 0, 10], flash_alpha: 0.38, embers: true}
+  named_colors:
+    white: [238, 228, 222]
+    yellow: [232, 188, 70]
+    red: [226, 26, 38]
+    muted: [168, 128, 128]
+
+calm_style:
+  bg: {top: [12, 22, 44], bottom: [34, 52, 88], vignette: 0.55, grain: 0.02}
+  title_color: [244, 236, 224]
+  title_glow: null
+  drips: null
+  pill: {fill: [255, 255, 255, 30], outline: [255, 255, 255, 80], text: [236, 232, 224]}
+
+
+# ---------- 画面の固定文言 ----------
+title: 危険と隣り合わせの観光地帯
+title_small: コロンビア編｜外務省の危険情報と見比べる
+subtitle: "魅力と、危険情報の地域（{asof}時点）"
+footnote: "危険情報の最終更新：{risk_date}｜地図の位置・範囲はおおよそです"
+
+# 地図: コロンビア北部〜中部（カルタヘナ・コーヒー地帯・メタ県・国境地帯）を見せる（bbox = [経度の最小, 緯度の最小, 経度の最大, 緯度の最大]）
+map:
+  bbox: [-79.2, 0.0, -71.0, 10.6]
+
+
+# ---------- 対象の国と、地図に出す地域 ----------
+# provinces: Natural Earth の県。provinces_clip: 県の北部・南部だけ。bands（1点）＋ radius_km: 円。holes: 地域から抜く円。
+members:
+  - code: "0057"
+    label: コロンビア
+    iso: COL
+    regions:
+      - level: 3
+        where: アラウカ県、カウカ県西部、ナリーニョ県西部、ノルテ・デ・サンタンデル県北部
+        display: アラウカ県・カウカ県西部・ナリーニョ県西部・ノルテ・デ・サンタンデル県北部
+        provinces: [Arauca]
+        bands:
+          - [[-77.0, 2.4]]
+          - [[-78.5, 1.5]]
+          - [[-72.8, 8.7]]
+        radius_km: 55
+        label_at: [-79.1, 2.9]
+        say: "アラウカ県と、カウカ県と、ナリーニョ県の西部、ノルテ・デ・サンタンデル県の北部は、レベル3です。"
+      - level: 2
+        where: カサナレ県北部のアラウカ県県境地域、カウカ県東部、ナリーニョ県東部、アンティオキア県北部、セサール県、ノルテ・デ・サンタンデル県南部、チョコ県、ボリーバル県南部、コルドバ県南部、メタ県(アリアリ地域及びカニョ・クリスタレス地区を除く。)、ボヤカ県北部、バジェ・デル・カウカ県（カリ市の一部地域を除く。）、グアビアレ県、カケタ県、プトゥマヨ県並びにラ・グアヒラ県、ビチャダ県及びグアイニア県の3県におけるベネズエラとの国境付近
+        display: メタ県・バジェ・デル・カウカ県・チョコ県など多数の県
+        provinces: [Chocó, Cesar, "Valle del Cauca", Guaviare, Caquetá, Putumayo, Meta]
+        provinces_clip:
+          - {name: Antioquia, lat_min: 7.0}
+          - {name: Córdoba, lat_max: 8.0}
+          - {name: Bolívar, lat_max: 8.4}
+          - {name: Norte de Santander, lat_max: 8.2}
+          - {name: Boyacá, lat_min: 6.0}
+        bands:
+          - [[-76.2, 2.6]]
+          - [[-77.3, 1.2]]
+        radius_km: 50
+        holes:
+          - [-73.79, 2.18, 22]
+        label_at: [-71.6, 7.0]
+        say: "メタ県、バジェ・デル・カウカ県、チョコ県など、多くの県は、レベル2です。"
+      - level: 1
+        where: メタ県カニョ・クリスタレス地区周辺
+        display: メタ県のカニョ・クリスタレス地区周辺
+        place_note: レベル2のメタ県で、ここだけ、レベル1です
+        note: 長期間にわたり外国人観光客が被害者となる殺人・強盗などの重大凶悪事案は確認されていない
+        say: "メタ県の中でも、カニョ・クリスタレス地区の周辺だけは、レベル1に、引き下げられました。"
+      - level: 1
+        where: 上記以外の地域（サン・アンドレス島、プロビデンシア島等の諸島を除く。）
+        display: 上記以外（カルタヘナなど）
+        place_note: カルタヘナと、コーヒー地帯は、この中です
+        say: "カルタヘナと、コーヒー地帯を含む、上記以外の地域は、レベル1です。"
+    why:
+      - tag: 犯罪
+        text: レベル1の地域でも、テロ・誘拐・殺人に十分注意
+        evidence: 危険レベル1の地域でもテロ、誘拐、殺人等に十分に注意してください
+      - tag: 注意
+        text: レベル2以上の地域を、陸路で通らない
+        evidence: 危険レベル2以上の地域を陸路で通過することは避けてください
+      - tag: 空路
+        text: カニョ・クリスタレスへは、陸路を避け、空路で
+        evidence: 同地区周辺を訪問する際は、陸路での移動は厳に避けること、空路による移動を行うことを強く推奨します
+
+# 人気の場所（地図に印を出す。座標は Wikipedia の位置。概算）。
+places:
+  - {name: カルタヘナ, marker: [-75.5144, 10.3910], region: 上記以外の地域（サン・アンドレス島、プロビデンシア島等の諸島を除く。）, side: below-left}
+  - {name: コーヒー文化的景観, marker: [-75.5700, 4.6350], region: 上記以外の地域（サン・アンドレス島、プロビデンシア島等の諸島を除く。）, side: right}
+  - {name: カニョ・クリスタレス, marker: [-73.79, 2.18], region: メタ県カニョ・クリスタレス地区周辺, side: below}
+
+# ---------- 魅力の紹介（根拠は ja / en の Wikipedia で照合。photo.file は Commons のファイル名） ----------
+scenes:
+  - kind: wikipedia
+    tag: 世界遺産
+    place: カルタヘナ
+    name: カルタヘナ
+    headline: カルタヘナ
+    lines: ["難攻不落の港として築かれた、城壁の街", "「港、要塞、歴史的建造物群」が世界遺産", "レベル2の地域まで 約{zone2_km_0}km（地図上の概算）"]
+    wikipedia:
+      - {lang: ja, title: カルタヘナ_(コロンビア), contains: [難攻不落, 世界遺産]}
+      - {lang: en, title: "Cartagena, Colombia", contains: [UNESCO]}
+    source_line: 出典：ja / en Wikipedia で確認
+    photo: {file: "PHOTO_CARTAGENA"}
+    min: 8.0
+    say: "まず、カルタヘナ。難攻不落の港として、築かれた、城壁の街です。港、要塞、歴史的建造物群が、世界遺産です。レベル2の地域まで、約{zone2_km_0}キロです。"
+  - kind: wikipedia
+    tag: 世界遺産
+    place: コーヒー文化的景観
+    name: コーヒー文化的景観
+    headline: コーヒー文化的景観
+    lines: ["コーヒー畑が広がる、2011年登録の世界遺産", "バジェ・デル・カウカ県（レベル2）の、すぐ隣", "レベル2の地域まで 約{zone2_km_1}km（地図上の概算）"]
+    wikipedia:
+      - {lang: en, title: Colombian coffee growing axis, contains: [UNESCO, "2011"]}
+      - {lang: en, title: Quindío Department, contains: [coffee]}
+    source_line: 出典：en Wikipedia で確認（ja 版は記述が少ない。外務省の文言は公式ページ）
+    photo: {file: "PHOTO_COFFEE"}
+    min: 8.0
+    say: "次に、コーヒー文化的景観。コーヒー畑が広がる、二千十一年登録の、世界遺産です。バジェ・デル・カウカ県の、すぐ隣です。レベル2の地域まで、約{zone2_km_1}キロです。"
+  - kind: wikipedia
+    tag: 五色の川
+    place: カニョ・クリスタレス
+    name: カニョ・クリスタレス
+    headline: カニョ・クリスタレス
+    lines: ["「5色の川」「液体の虹」と呼ばれる川", "周りはレベル2。ここ周辺だけが、レベル1", "外務省は、陸路を避け、空路で行くよう勧める"]
+    wikipedia:
+      - {lang: en, title: Caño Cristales, contains: [Liquid Rainbow, River of Five Colors]}
+      - {lang: en, title: La Macarena Meta, contains: [Caño Cristales]}
+    source_line: 出典：en Wikipedia で確認（外務省の文言は公式ページ）
+    photo: {file: "PHOTO_CRISTALES"}
+    min: 8.0
+    say: "そして、カニョ・クリスタレス。五色の川、液体の虹と、呼ばれる川です。周りは、レベル2ですが、この周辺だけは、レベル1です。ただし外務省は、陸路を避け、空路で行くよう、勧めています。"
+
+# ---------- ターンと結び ----------
+turn:
+  say: "でも、この人気の観光地は、外務省が出している、危険地帯と、隣り合わせなんです。"
+  lines:
+    - ["でも…", 130, red]
+    - ["危険地帯と隣り合わせ", 64, white]
+
+caution:
+  head: 外務省は、こう伝えています
+  say: "外務省は、レベル1の地域でも、テロ、誘拐、殺人などに、十分に注意するよう、求めています。レベル2以上の地域を、陸路で通ることは、避けてください、としています。"
+
+closing:
+  say: "人気の観光地の、近くに、レベル2と、レベル3の地域が、あります。カルタヘナも、コーヒー地帯も、レベル1です。行く前に、外務省の最新の情報を、必ず確認してください。"
+  lines:
+    - ["隣り合わせの観光地帯", 58, white]
+    - ["出発前に必ず確認", 54, yellow]
+
+extra_credits:
+  - "人気の根拠：ja / en Wikipedia で確認（コーヒー文化的景観・カニョ・クリスタレスは en のみ）"
+
+
+# ---------- 声 ----------
+voice:
+  vvm: [1]
+  style_id: 14
+  speed: 1.12
+  pitch: -0.03
+  intonation: 0.9
+  credit: VOICEVOX:冥鳴ひまり
+
+
+# ---------- 構成 ----------
+hooks:
+  - say: "危険と、隣り合わせの、観光地帯。コロンビア編。"
+    min: 3.0
+    gap: 0.4
+    y: 400
+    fade: 0.4
+    panel:
+      - [危険と隣り合わせの観光地帯, 50, muted, Bold]
+      - [コロンビア編, 120, white, Black]
+
+cta:
+  say: "世界の意外な、旅行リスクを、地図と、公的情報で、解説しています。次の地域も、紹介します。フォローしてね。気になる国は、コメントで教えてください。"
+  panel:
+    - [世界の意外な旅行リスクを, 46, white, Bold]
+    - [地図と公的情報で解説, 56, white, Black]
+    - [次の地域も紹介します, 46, white, Bold]
+    - [フォローしてね, 76, yellow, Black]
+    - [気になる国はコメントで ↓, 44, white, Bold]
+
+
+# ---------- 投稿用テキスト（post.md として自動生成） ----------
+post:
+  title: "【{asof}時点】危険と隣り合わせの観光地帯 コロンビア編。カニョ・クリスタレスは、レベル2の中のレベル1"
+  description: >-
+    コロンビアの人気の観光地、城壁の街カルタヘナ、コーヒー文化的景観、五色の川カニョ・クリスタレス。
+    外務省の危険情報では、アラウカ県・カウカ県西部・ナリーニョ県西部・ノルテ・デ・サンタンデル県北部がレベル3（渡航中止勧告）。メタ県・バジェ・デル・カウカ県など多くの県がレベル2。カニョ・クリスタレス地区周辺と、上記以外の地域はレベル1です。
+    カルタヘナからレベル2の地域までは約{zone2_km_0}km、コーヒー文化的景観からは約{zone2_km_1}km（地図上の概算）。
+    外務省は、レベル1の地域でもテロ・誘拐・殺人等に十分注意すること、レベル2以上の地域を陸路で通過しないこと、カニョ・クリスタレス周辺へは空路で行くことを勧めています。
+    危険情報は国全体ではなく地域ごとに違います。地域と理由は、外務省の危険情報ページの記載を要約しました。渡航前には、必ず外務省の最新の情報を確認してください。
+  pinned_comment: 次に見たい国は、どこですか？コメントで教えてください！
+  hashtags: ["#危険と隣り合わせの観光地帯", "#コロンビア", "#カルタヘナ", "#カニョクリスタレス", "#コーヒー", "#外務省", "#危険情報", "#海外旅行"]

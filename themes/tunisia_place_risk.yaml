@@ -1,0 +1,246 @@
+# 場所と危険情報の型（place_vs_risk）: 「危険と隣り合わせの観光地帯 チュニジア編」。
+# 外務省の危険情報（チュニジア）: レベル3＝西部の山岳地帯（シャアンビ山ほか）・ガフサ県オルバタ山付近・アルジェリア・リビア国境付近・南部軍事緩衝地帯／レベル2＝ジャンドゥーバ県・ル・ケフ県・南部砂漠地帯の一部／レベル1＝上記以外。
+# 観光地として、ケルアン（聖都）・ジェルバ島・ドゥッガ（ローマ遺跡）を見せる（どれもレベル1）。
+# 県の境界は Natural Earth。山岳地帯は山の位置の円、南部軍事緩衝地帯はタタウィン県を緯度で切った目安。レベル2・3の国境付近、国道・市内の例外は、図に出せない（細かいため）。
+# 人気の根拠は ja / en の Wikipedia で照合し、写真は Commons のライセンスを確認する（src/facts.py）。
+# 危険レベル・地域・理由の文言は、公式の危険情報ページの本文に出てくることを毎回自動で確かめる（src/mofa.py）。書き方は docs/THEME_SPEC.md「場所と危険情報」。
+
+id: tunisia_place_risk
+template: place_vs_risk
+
+metric: 外務省の危険レベル
+year: 2026
+unit: レベル（1〜4）
+
+source:
+  name: 外務省 海外安全情報オープンデータ
+  note: "（危険レベルは{asof}時点）"
+  table: 海外安全情報オープンデータ 国別（country/0216.xml）と、チュニジアの危険情報ページ
+  url: https://www.ezairyu.mofa.go.jp/html/opendata/index.html
+  license:
+    checked: 2026-10-13
+    terms_url: https://www.ezairyu.mofa.go.jp/html/opendata/support/terms.html
+    commercial: true
+    credit_lines:
+      - 外務省 海外安全情報オープンデータ 提供情報（https://www.ezairyu.mofa.go.jp/html/opendata/index.html）を加工して作成
+      - 出典：外務省 海外安全情報オープンデータ（https://www.ezairyu.mofa.go.jp/html/opendata/index.html）（{asof}に利用）
+      - 地域・危険の理由の文言：外務省 海外安全ホームページ チュニジアの危険情報（https://www.anzen.mofa.go.jp/）を要約
+  fetch: mofa_risk
+
+verification: >-
+  危険レベルは外務省の国別XML（country/0216.xml）の値を、公式の危険情報ページ本文と照合して使う。
+  画面の地域（レベル3: 西部の山岳地帯・オルバタ山付近・南部軍事緩衝地帯／レベル2: ジャンドゥーバ県・ル・ケフ県ほか／レベル1: 上記以外）は、公式ページの「危険レベル」の節にその文言が出てきて、直後のレベル表示が一致することを毎回自動で確かめる。
+  地図の範囲は概算: 山岳地帯は山の位置の円（半径22〜30km）。南部軍事緩衝地帯はタタウィン県を北緯32.2度より南で切った目安。ジャンドゥーバ県・ル・ケフ県は県全体で塗った目安（国道・市内の例外は図に出さない）。
+  観光地からレベル3の地域までの距離は、座標とこの図形からの概算（5km単位）。ジェルバ島は、リビア国境までの距離（座標と国境線）で言う。
+  地域の注記と注意点の文言は、公式ページの本文にそのまま出てくることを確かめる。
+  観光地の根拠は、ja / en の Wikipedia の本文で確かめる（同じ Wikipedia の別言語版なので、独立した2系統とは言えない）。
+  写真は Wikimedia Commons でライセンス（CC0 / パブリックドメイン / CC BY / CC BY-SA）と作者を確認し、画面と概要欄に出典を載せる。結果は build/tunisia_place_risk/fetch_report.txt。
+
+mofa:
+  max_age_hours: 24
+
+
+# ---------- 見た目 ----------
+# style は本編（ターン以降）の恐怖演出。calm_style で、ターンの前（人気の場面）だけ落ち着いた色に差し替える。
+style:
+  look: horror
+  fonts:
+    Black: assets/fonts/KaiseiTokumin-ExtraBold.ttf
+    Bold: assets/fonts/KaiseiTokumin-ExtraBold.ttf
+    Accent: assets/fonts/YujiBoku-Regular.ttf
+  bg: {top: [3, 0, 1], bottom: [28, 2, 5], fog: [120, 0, 12], fog_height: 0.38, vignette: 0.78, grain: 0.03}
+  text: [238, 228, 222]
+  muted: [168, 128, 128]
+  accent: [226, 34, 44]
+  title_color: [206, 18, 30]
+  title_glow: [150, 0, 8]
+  drips: [150, 0, 10]
+  pill: {fill: [90, 0, 8, 130], outline: [200, 30, 40, 170], text: [240, 205, 205]}
+  panel: {fill: [10, 0, 2, 234], outline: [190, 20, 30, 150], stroke: [0, 0, 0, 255]}
+  bar: {bg: [52, 10, 14], fill: [204, 24, 36]}
+  fx: {shake: 16, flash: [170, 0, 10], flash_alpha: 0.38, embers: true}
+  named_colors:
+    white: [238, 228, 222]
+    yellow: [232, 188, 70]
+    red: [226, 26, 38]
+    muted: [168, 128, 128]
+
+calm_style:
+  bg: {top: [12, 22, 44], bottom: [34, 52, 88], vignette: 0.55, grain: 0.02}
+  title_color: [244, 236, 224]
+  title_glow: null
+  drips: null
+  pill: {fill: [255, 255, 255, 30], outline: [255, 255, 255, 80], text: [236, 232, 224]}
+
+
+# ---------- 画面の固定文言 ----------
+title: 危険と隣り合わせの観光地帯
+title_small: チュニジア編｜外務省の危険情報と見比べる
+subtitle: "魅力と、危険情報の地域（{asof}時点）"
+footnote: "危険情報の最終更新：{risk_date}｜地図の位置・範囲はおおよそです"
+
+# 地図: チュニジア全体（北部の遺跡から、南のジェルバ島・軍事緩衝地帯まで）を見せる（bbox = [経度の最小, 緯度の最小, 経度の最大, 緯度の最大]）
+map:
+  bbox: [7.4, 31.0, 11.9, 37.5]
+
+
+# ---------- 対象の国と、地図に出す地域 ----------
+# provinces: Natural Earth の県。provinces_clip: 県の北部・南部だけ。bands（1点）＋ radius_km: 円。
+members:
+  - code: "0216"
+    label: チュニジア
+    iso: TUN
+    regions:
+      - level: 3
+        where: カスリン県及びシディ・ブ・ジッド県の山岳地帯（シャアンビ山、セルーン山、ムギラ山、スメナ山、オルバタ山付近）
+        display: 西部の山岳地帯（カスリン県・シディ・ブ・ジッド県）
+        bands:
+          - [[8.68, 35.19]]
+          - [[8.85, 35.0]]
+        radius_km: 28
+        note: 地元住民がテロ組織により埋設された地雷で死傷する事件が発生しています
+        label_at: [7.7, 34.6]
+        say: "カスリン県と、シディ・ブ・ジッド県の、山岳地帯は、レベル3です。テロ組織が、潜伏しているとされる、地域です。"
+      - level: 3
+        where: ガフサ県の山岳地帯（オルバタ山付近）、アルジェリア・リビア国境付近及び南部軍事緩衝地帯
+        display: オルバタ山付近・南部軍事緩衝地帯
+        provinces_clip:
+          - {name: Tataouine, lat_max: 32.2}
+        bands:
+          - [[8.95, 34.45]]
+        radius_km: 20
+        label_at: [8.0, 32.4]
+        say: "ガフサ県の、オルバタ山付近と、南部の、軍事緩衝地帯も、レベル3です。"
+      - level: 2
+        where: ジャンドゥーバ県（レベル3の地域、国道17号線以東、タバルカ市内、アイン・ドラハム市内及びジャンドゥーバ市内を除く）、ル・ケフ県（レベル3の地域、国道17号線以東及びル・ケフ市内を除く）及び南部砂漠地帯の一部（ジュビル国立公園、ボルジュ・ブルギバ、ルマダ、タタウィン、ザルジスの各都市を除くそれより南方の一部地域で、レベル3以外の地域）
+        display: ジャンドゥーバ県・ル・ケフ県ほか
+        provinces: [Jendouba, "Le Kef"]
+        label_at: [7.7, 36.5]
+        say: "北西部の、ジャンドゥーバ県と、ル・ケフ県は、レベル2です。"
+      - level: 1
+        where: 上記以外の地域
+        display: 上記以外の地域
+        place_note: 3つとも、この中です
+        say: "ケルアン、ジェルバ島、ドゥッガは、レベル1です。"
+    why:
+      - tag: テロ
+        text: 2015年、バルドー博物館襲撃で、日本人3人を含む22人が死亡
+        evidence: 2015年3月のバルドー国立博物館襲撃テロ事件では日本人3人を含む22人が死亡しました
+      - tag: 地雷
+        text: 西部の山岳地帯では、地雷で住民が死傷
+        evidence: 地元住民がテロ組織により埋設された地雷で死傷する事件が発生しています
+      - tag: 注意
+        text: レベル1の地域でも、テロや一般犯罪のおそれ
+        evidence: テロ事件が発生する可能性は排除されず、また、一般犯罪の被害にあう等トラブルに巻き込まれる可能性もありますので
+
+# 人気の場所（地図に印を出す。座標は Wikipedia の位置。概算）。
+places:
+  - {name: ケルアン, marker: [10.0963, 35.6781], region: 上記以外の地域, side: right}
+  - {name: ジェルバ島, marker: [10.8572, 33.8760], border_with: LBY, region: 上記以外の地域, side: right}
+  - {name: ドゥッガ, marker: [9.2203, 36.4233], region: 上記以外の地域, side: above-right}
+
+# ---------- 魅力の紹介（根拠は ja / en の Wikipedia で照合。photo.file は Commons のファイル名） ----------
+scenes:
+  - kind: wikipedia
+    tag: 聖都
+    place: ケルアン
+    name: ケルアン
+    headline: ケルアン
+    lines: ["「北アフリカのマッカ」と呼ばれた聖地", "グランド・モスクで知られる世界遺産", "レベル3の地域まで 約{zone3_km_0}km（地図上の概算）"]
+    wikipedia:
+      - {lang: ja, title: ケルアン, contains: [北アフリカのマッカ, グランド・モスク, アグラブ朝]}
+      - {lang: en, title: Kairouan, contains: [UNESCO]}
+    source_line: 出典：ja / en Wikipedia で確認
+    photo: {file: "PHOTO_KAIROUAN"}
+    min: 8.0
+    say: "まず、ケルアン。北アフリカの、マッカと呼ばれた、聖地です。グランド・モスクで知られる、世界遺産です。レベル3の地域まで、約{zone3_km_0}キロです。"
+  - kind: wikipedia
+    tag: 島
+    place: ジェルバ島
+    name: ジェルバ島
+    headline: ジェルバ島
+    lines: ["オデュッセウスが上陸したと伝わる島", "ユダヤ人が、古くから暮らしてきた", "リビア国境まで 約{border_km_1}km（地図上の概算）"]
+    wikipedia:
+      - {lang: ja, title: ジェルバ島, contains: [オデュッセウス, ユダヤ人, シナゴーグ]}
+      - {lang: en, title: Djerba, contains: [Odysseus]}
+    source_line: 出典：ja / en Wikipedia で確認
+    photo: {file: "PHOTO_DJERBA"}
+    min: 8.0
+    say: "次に、ジェルバ島。オデュッセウスが、上陸したと、伝わる島です。ユダヤ人が、古くから、暮らしてきました。リビアとの、国境まで、約{border_km_1}キロです。"
+  - kind: wikipedia
+    tag: ローマ遺跡
+    place: ドゥッガ
+    name: ドゥッガ
+    headline: ドゥッガ
+    lines: ["ローマ時代の劇場や神殿が残る、世界遺産", "1997年に登録", "レベル2の地域まで 約{zone2_km_2}km（地図上の概算）"]
+    wikipedia:
+      - {lang: en, title: Dougga, contains: [UNESCO, "Roman theatre"]}
+      - {lang: en, title: Teboursouk, contains: [Dougga]}
+    source_line: 出典：en Wikipedia で確認（ja 版は記述が少ない。外務省の文言は公式ページ）
+    photo: {file: "PHOTO_DOUGGA"}
+    min: 7.5
+    say: "そして、ドゥッガ。ローマ時代の、劇場や、神殿が残る、世界遺産です。千九百九十七年に、登録されました。レベル2の地域まで、約{zone2_km_2}キロです。"
+
+# ---------- ターンと結び ----------
+turn:
+  say: "でも、この人気の観光地は、外務省が出している、危険地帯と、隣り合わせなんです。"
+  lines:
+    - ["でも…", 130, red]
+    - ["危険地帯と隣り合わせ", 64, white]
+
+caution:
+  head: 外務省は、こう伝えています
+  say: "外務省は、二千十五年に、バルドー国立博物館が、襲撃され、日本人三人を含む、二十二人が、亡くなったと、伝えています。西部の山岳地帯では、地雷で、住民が、死傷する事件も、起きています。"
+
+closing:
+  say: "人気の観光地の、近くに、レベル2と、レベル3の地域が、あります。ケルアン、ジェルバ島、ドゥッガは、レベル1です。行く前に、外務省の最新の情報を、必ず確認してください。"
+  lines:
+    - ["隣り合わせの観光地帯", 58, white]
+    - ["出発前に必ず確認", 54, yellow]
+
+extra_credits:
+  - "人気の根拠：ja / en Wikipedia で確認（ドゥッガは en のみ）"
+
+
+# ---------- 声 ----------
+voice:
+  vvm: [1]
+  style_id: 14
+  speed: 1.12
+  pitch: -0.03
+  intonation: 0.9
+  credit: VOICEVOX:冥鳴ひまり
+
+
+# ---------- 構成 ----------
+hooks:
+  - say: "危険と、隣り合わせの、観光地帯。チュニジア編。"
+    min: 3.0
+    gap: 0.4
+    y: 400
+    fade: 0.4
+    panel:
+      - [危険と隣り合わせの観光地帯, 50, muted, Bold]
+      - [チュニジア編, 120, white, Black]
+
+cta:
+  say: "世界の意外な、旅行リスクを、地図と、公的情報で、解説しています。次の地域も、紹介します。フォローしてね。気になる国は、コメントで教えてください。"
+  panel:
+    - [世界の意外な旅行リスクを, 46, white, Bold]
+    - [地図と公的情報で解説, 56, white, Black]
+    - [次の地域も紹介します, 46, white, Bold]
+    - [フォローしてね, 76, yellow, Black]
+    - [気になる国はコメントで ↓, 44, white, Bold]
+
+
+# ---------- 投稿用テキスト（post.md として自動生成） ----------
+post:
+  title: "【{asof}時点】危険と隣り合わせの観光地帯 チュニジア編。ケルアンもドゥッガも、外務省のレベル2・3の近く"
+  description: >-
+    チュニジアの人気の観光地、聖都ケルアン、ジェルバ島、ローマ遺跡ドゥッガ。
+    外務省の危険情報では、西部の山岳地帯・ガフサ県オルバタ山付近・アルジェリア・リビア国境付近・南部軍事緩衝地帯がレベル3（渡航中止勧告）。ジャンドゥーバ県・ル・ケフ県などがレベル2。上記以外の地域はレベル1です。
+    ケルアンからレベル3の地域までは約{zone3_km_0}km、ジェルバ島からリビア国境までは約{border_km_1}km、ドゥッガからレベル2の地域までは約{zone2_km_2}km（地図上の概算）。
+    外務省は、2015年のバルドー国立博物館襲撃テロで日本人3人を含む22人が死亡したこと、西部の山岳地帯で地雷による死傷事件が起きていることを伝えています。
+    危険情報は国全体ではなく地域ごとに違います。地域と理由は、外務省の危険情報ページの記載を要約しました。渡航前には、必ず外務省の最新の情報を確認してください。
+  pinned_comment: 次に見たい国は、どこですか？コメントで教えてください！
+  hashtags: ["#危険と隣り合わせの観光地帯", "#チュニジア", "#ケルアン", "#ジェルバ島", "#ドゥッガ", "#外務省", "#危険情報", "#海外旅行"]
